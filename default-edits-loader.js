@@ -51,33 +51,21 @@
     PURGE[key].forEach(function (id) { delete existing[key][id]; });
   });
 
-  var alreadySeeded = localStorage.getItem(DEFAULTS_KEY) === VERSION;
-
-  // If already seeded once, only fill in missing keys (user edits take precedence).
-  // If not yet seeded, force defaults to apply (overwriting any prior edits to those buildings).
+  // mergeMaps(defaults, existing) → existing always wins.
+  // This means: defaults are only applied when the user has no entry for that key,
+  // so the first visit gets the bundled polygons/etc., and all subsequent edits stick.
+  // Version-driven cleanup is handled by the PURGE list above.
   var merged = {
-    buildings:   alreadySeeded
-                  ? mergeMaps(defaults.buildings || {}, existing.buildings || {})
-                  : mergeMaps(existing.buildings || {}, defaults.buildings || {}),
-    nodes:       alreadySeeded
-                  ? mergeMaps(defaults.nodes || {}, existing.nodes || {})
-                  : mergeMaps(existing.nodes || {}, defaults.nodes || {}),
+    buildings:   mergeMaps(defaults.buildings || {}, existing.buildings || {}),
+    nodes:       mergeMaps(defaults.nodes || {}, existing.nodes || {}),
     addedNodes:  mergeMaps(defaults.addedNodes || {}, existing.addedNodes || {}),
     addedEdges:  mergeArrays(defaults.addedEdges, existing.addedEdges),
     removedEdges:mergeArrays(defaults.removedEdges, existing.removedEdges),
-    edgeMeta:    alreadySeeded
-                  ? mergeMaps(defaults.edgeMeta || {}, existing.edgeMeta || {})
-                  : mergeMaps(existing.edgeMeta || {}, defaults.edgeMeta || {}),
+    edgeMeta:    mergeMaps(defaults.edgeMeta || {}, existing.edgeMeta || {}),
     shuttle:     mergeMaps(defaults.shuttle || {}, existing.shuttle || {}),
-    entrances:   alreadySeeded
-                  ? mergeMaps(defaults.entrances || {}, existing.entrances || {})
-                  : mergeMaps(existing.entrances || {}, defaults.entrances || {}),
-    crosswalks:  alreadySeeded
-                  ? mergeMaps(defaults.crosswalks || {}, existing.crosswalks || {})
-                  : mergeMaps(existing.crosswalks || {}, defaults.crosswalks || {}),
-    pois:        alreadySeeded
-                  ? mergeMaps(defaults.pois || {}, existing.pois || {})
-                  : mergeMaps(existing.pois || {}, defaults.pois || {}),
+    entrances:   mergeMaps(defaults.entrances || {}, existing.entrances || {}),
+    crosswalks:  mergeMaps(defaults.crosswalks || {}, existing.crosswalks || {}),
+    pois:        mergeMaps(defaults.pois || {}, existing.pois || {}),
   };
 
   try {
