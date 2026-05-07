@@ -4,12 +4,18 @@
 (function () {
   var KEY = "ucd-campus-map-edits-v2";
   var DEFAULTS_KEY = "ucd-campus-map-defaults-version";
-  var VERSION = "2026-05-06-1"; // bump to force re-seed when default-edits.json changes
+  var VERSION = "2026-05-06-2"; // bump to force re-seed when default-edits.json changes
+
+  // One-time cleanup of leftover test data that shipped in earlier defaults.
+  // Removed when found, regardless of version — runs before merge.
+  var PURGE = {
+    crosswalks: ["xw_c3p0i"], // landed on Research 3
+  };
 
   function fetchDefaultsSync() {
     try {
       var xhr = new XMLHttpRequest();
-      xhr.open("GET", "default-edits.json", false); // sync
+      xhr.open("GET", "default-edits.json?v=" + VERSION, false); // sync; bust cache when version bumps
       xhr.send(null);
       if (xhr.status >= 200 && xhr.status < 300) return JSON.parse(xhr.responseText);
     } catch (e) { console.warn("default-edits load failed", e); }
@@ -38,6 +44,12 @@
 
   var existing = {};
   try { existing = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+
+  // Apply one-time purges to existing data
+  Object.keys(PURGE).forEach(function (key) {
+    if (!existing[key]) return;
+    PURGE[key].forEach(function (id) { delete existing[key][id]; });
+  });
 
   var alreadySeeded = localStorage.getItem(DEFAULTS_KEY) === VERSION;
 

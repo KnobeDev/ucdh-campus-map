@@ -1623,13 +1623,5 @@
       "label": "Test ADA"
     }
   },
-  "crosswalks": {
-    "xw_c3p0i": {
-      "id": "xw_c3p0i",
-      "x": 600,
-      "y": 600,
-      "angle": 45,
-      "label": ""
-    }
-  }
+  "crosswalks": {}
 }
