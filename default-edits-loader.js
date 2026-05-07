@@ -63,6 +63,9 @@
     crosswalks:  alreadySeeded
                   ? mergeMaps(defaults.crosswalks || {}, existing.crosswalks || {})
                   : mergeMaps(existing.crosswalks || {}, defaults.crosswalks || {}),
+    pois:        alreadySeeded
+                  ? mergeMaps(defaults.pois || {}, existing.pois || {})
+                  : mergeMaps(existing.pois || {}, defaults.pois || {}),
   };
 
   try {

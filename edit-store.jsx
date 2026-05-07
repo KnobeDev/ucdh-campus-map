@@ -66,6 +66,7 @@ function defaultEdits() {
     addedEdges:[], removedEdges:[], edgeMeta:{},
     shuttle:{},
     entrances:{}, crosswalks:{},
+    pois:{},
   };
 }
 function writeEdits(e) {
@@ -96,9 +97,10 @@ function applyEdits(edits) {
     const o = edits.shuttle[s.id];
     return o ? { ...s, ...o } : s;
   });
-  // Entrances + crosswalks (purely user-added)
+  // Entrances + crosswalks + POIs (purely user-added)
   window.ENTRANCES  = Object.values(edits.entrances || {});
   window.CROSSWALKS = Object.values(edits.crosswalks || {});
+  window.POIS       = Object.values(edits.pois || {});
 }
 
 function edgeKey(e) {
@@ -295,6 +297,35 @@ const editStore = {
     this.set(e => {
       const cc = { ...e.crosswalks }; delete cc[id];
       return { ...e, crosswalks: cc };
+    });
+  },
+
+  // ---- Points of Interest ----
+  // POI shape: { id, x, y, name, instructions, events: [{title,when,note}], mapsLink }
+  addPOI(x, y, opts = {}) {
+    const id = uid("poi");
+    this.set(e => ({ ...e, pois: { ...(e.pois || {}),
+      [id]: {
+        id, x, y,
+        name: opts.name || "New point of interest",
+        instructions: opts.instructions || "",
+        events: opts.events || [],
+        mapsLink: opts.mapsLink || "",
+      }
+    }}));
+    return id;
+  },
+  updatePOI(id, partial) {
+    this.set(e => {
+      const cur = (e.pois || {})[id];
+      if (!cur) return e;
+      return { ...e, pois: { ...e.pois, [id]: { ...cur, ...partial } } };
+    });
+  },
+  deletePOI(id) {
+    this.set(e => {
+      const pp = { ...(e.pois || {}) }; delete pp[id];
+      return { ...e, pois: pp };
     });
   },
 

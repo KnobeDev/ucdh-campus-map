@@ -31,6 +31,10 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
       const c = window.CROSSWALKS.find(x => x.id === editTargetId.id);
       return c && { kind:"crosswalk", id: editTargetId.id, data: c };
     }
+    if (editTargetId.kind === "poi") {
+      const p = (window.POIS || []).find(x => x.id === editTargetId.id);
+      return p && { kind:"poi", id: editTargetId.id, data: p };
+    }
     return null;
   })();
 
@@ -69,7 +73,8 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
     Object.keys(edits.edgeMeta || {}).length +
     Object.keys(edits.shuttle).length +
     Object.keys(edits.entrances || {}).length +
-    Object.keys(edits.crosswalks || {}).length;
+    Object.keys(edits.crosswalks || {}).length +
+    Object.keys(edits.pois || {}).length;
 
   const helpText = window.EDIT_MODES.find(m => m.id === mode)?.help || "";
 
@@ -258,6 +263,10 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
               }}>Delete</button>
             </>
           )}
+          {target.kind === "poi" && (
+            <POIInspector poi={target.data} onChange={(patch) => window.editStore.updatePOI(target.id, patch)}
+              onDelete={() => { window.editStore.deletePOI(target.id); setEditTargetId(null); }} />
+          )}
         </div>
       )}
 
@@ -334,6 +343,79 @@ function SelectField({ label, value, onChange, options, width = 140 }) {
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </label>
+  );
+}
+
+function POIInspector({ poi, onChange, onDelete }) {
+  const events = poi.events || [];
+  const updateEvent = (idx, patch) => {
+    const next = events.map((ev, i) => i === idx ? { ...ev, ...patch } : ev);
+    onChange({ events: next });
+  };
+  const addEvent = () => onChange({ events: [...events, { title: "", when: "", note: "" }] });
+  const removeEvent = (idx) => onChange({ events: events.filter((_, i) => i !== idx) });
+
+  const linkValid = !poi.mapsLink || /^https?:\/\//i.test(poi.mapsLink);
+
+  return (
+    <>
+      <div className="edit-insp-title">
+        <span className="edit-insp-code">★</span>
+        <span className="edit-insp-name">Point of interest</span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, flex: "1 1 100%" }}>
+        <TextField label="Name" value={poi.name || ""} width={260}
+          onChange={(v) => onChange({ name: v })} />
+        <label className="edit-num" style={{ alignItems: "flex-start" }}>
+          <span style={{ paddingTop: 4 }}>Visitor instructions</span>
+          <textarea value={poi.instructions || ""}
+            placeholder="What visitors should know — e.g. enter through east lobby, ask at info desk."
+            onChange={(e) => onChange({ instructions: e.target.value })}
+            style={{ width: 320, minHeight: 50, padding: "4px 6px", border: "1px solid #E5E0D5", borderRadius: 4, font: "inherit", fontSize: 12, resize: "vertical" }} />
+        </label>
+        <label className="edit-num" style={{ alignItems: "flex-start" }}>
+          <span style={{ paddingTop: 4 }}>Apple/Google Maps link</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2, width: 320 }}>
+            <input type="url" value={poi.mapsLink || ""}
+              placeholder="https://maps.google.com/?q=… or https://maps.apple.com/?q=…"
+              onChange={(e) => onChange({ mapsLink: e.target.value })}
+              style={{ width: "100%", padding: "4px 6px", border: `1px solid ${linkValid ? "#E5E0D5" : "#C8102E"}`, borderRadius: 4, font: "inherit", fontSize: 12 }} />
+            <small style={{ color: "#5A6470", fontSize: 11 }}>
+              Visitors can tap this link to open the location on their phone's map app.
+            </small>
+            {!linkValid && <small style={{ color: "#C8102E", fontSize: 11 }}>Must start with http(s)://</small>}
+          </div>
+        </label>
+        <NumField label="X" value={poi.x} onChange={(v) => onChange({ x: v })} />
+        <NumField label="Y" value={poi.y} onChange={(v) => onChange({ y: v })} />
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
+          <strong style={{ fontSize: 11, letterSpacing: 0.04, textTransform: "uppercase", color: "#5A6470" }}>Upcoming events</strong>
+          <button className="edit-tb-btn small" onClick={addEvent}>+ Add event</button>
+        </div>
+        {events.length === 0 && (
+          <small style={{ color: "#8A8F99", fontSize: 11 }}>No events yet — add one to highlight an upcoming activity at this location.</small>
+        )}
+        {events.map((ev, i) => (
+          <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 6, padding: "6px 8px", border: "1px solid #E5E0D5", borderRadius: 6, background: "#F8F6F0" }}>
+            <input type="text" value={ev.title || ""} placeholder="Event title"
+              onChange={(e) => updateEvent(i, { title: e.target.value })}
+              style={{ padding: "4px 6px", border: "1px solid #E5E0D5", borderRadius: 4, font: "inherit", fontSize: 12 }} />
+            <input type="text" value={ev.when || ""} placeholder="When (e.g. May 12, 6pm)"
+              onChange={(e) => updateEvent(i, { when: e.target.value })}
+              style={{ padding: "4px 6px", border: "1px solid #E5E0D5", borderRadius: 4, font: "inherit", fontSize: 12 }} />
+            <button className="edit-tb-btn small danger" onClick={() => removeEvent(i)}>×</button>
+            <input type="text" value={ev.note || ""} placeholder="Optional note (audience, registration, etc.)"
+              onChange={(e) => updateEvent(i, { note: e.target.value })}
+              style={{ gridColumn: "1 / span 3", padding: "4px 6px", border: "1px solid #E5E0D5", borderRadius: 4, font: "inherit", fontSize: 12 }} />
+          </div>
+        ))}
+
+        <button className="edit-tb-btn small danger" style={{ alignSelf: "flex-start", marginTop: 6 }} onClick={onDelete}>
+          Delete POI
+        </button>
+      </div>
+    </>
   );
 }
 

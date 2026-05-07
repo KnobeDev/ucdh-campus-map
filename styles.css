@@ -129,6 +129,74 @@ html, body {
 }
 .sb-section:first-child { margin-top: 4px; }
 
+/* Skip link — visible on focus only */
+.sb-skip-link {
+  position: absolute;
+  left: -9999px;
+  width: 1px; height: 1px;
+  overflow: hidden;
+}
+.sb-skip-link:focus {
+  position: static;
+  width: auto; height: auto;
+  display: block;
+  margin: 4px 0 8px;
+  padding: 8px 12px;
+  background: var(--uc-blue);
+  color: white;
+  border-radius: var(--radius);
+  font-weight: 600;
+  text-decoration: none;
+  outline: 3px solid var(--uc-gold);
+  outline-offset: 2px;
+}
+
+/* Collapsible section header */
+.sb-collapsible { margin-bottom: 4px; }
+.sb-section-toggle {
+  appearance: none;
+  width: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+.sb-section-toggle:hover { color: var(--uc-blue); }
+.sb-section-toggle:focus-visible {
+  outline: 2px solid var(--uc-gold);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.sb-section-caret {
+  display: inline-block;
+  width: 12px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.sb-collapsible-body { padding-bottom: 4px; }
+
+/* Points of interest list */
+.sb-poi-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.sb-poi-item {
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  background: white;
+}
+.sb-poi-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.sb-poi-name { font-weight: 700; color: var(--text); font-size: 13px; }
+.sb-poi-instructions { margin: 0 0 8px; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+.sb-poi-events { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.sb-poi-events li { padding: 6px 8px; background: color-mix(in srgb, var(--uc-gold) 12%, white); border-left: 3px solid var(--uc-gold-dark); border-radius: 4px; }
+.sb-poi-events strong { color: var(--text); }
+.sb-poi-when { color: var(--text-muted); font-size: 11px; }
+.sb-poi-note { color: var(--text-muted); font-size: 11px; margin-top: 2px; }
+.sb-btn.small { padding: 6px 10px; font-size: 12px; }
+
 /* ---------- Search ---------- */
 .sb-search {
   position: relative;
@@ -606,6 +674,25 @@ html, body {
 }
 .route-flow {
   animation: routeFlow 1.2s linear infinite;
+}
+
+/* Reduce-motion: applied via [data-reduce-motion="1"] on <html> when the user
+   enables the toggle, or automatically when prefers-reduced-motion: reduce. */
+html[data-reduce-motion="1"] *,
+html[data-reduce-motion="1"] *::before,
+html[data-reduce-motion="1"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ---------- Map legend overlay ---------- */

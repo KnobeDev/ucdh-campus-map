@@ -12,10 +12,17 @@ function Sidebar({
   showShuttle, setShowShuttle,
   showPois, setShowPois,
   showLabels, setShowLabels,
+  reduceMotion, setReduceMotion,
   panelMode, setPanelMode, // 'browse' | 'route' | 'detail'
   theme,
 }) {
   const [query, setQuery] = useState2("");
+  const [filterOpen, setFilterOpen] = useState2(true);
+  const [layersOpen, setLayersOpen] = useState2(true);
+  const [buildingsOpen, setBuildingsOpen] = useState2(true);
+  const [parkingOpen, setParkingOpen] = useState2(false);
+  const [shuttleOpen, setShuttleOpen] = useState2(false);
+  const [poiOpen, setPoiOpen] = useState2(false);
 
   const allItems = useMemo(() => [
     ...window.BUILDINGS.map(b => ({
@@ -155,45 +162,124 @@ function Sidebar({
 
           {!query && panelMode === "browse" && (
             <>
-              <SectionHeader>Filter map</SectionHeader>
-              <div className="sb-filters">
-                {Object.entries(window.CATEGORIES).map(([key, c]) => (
-                  <button key={key}
-                    className={`sb-filter ${filters.has(key) ? "active" : ""}`}
-                    onClick={() => toggleFilter(key)}
-                    style={{ "--filter-color": c.color }}>
-                    <span className="sb-filter-dot" style={{ background: c.color }}></span>
-                    {c.label}
-                  </button>
-                ))}
-                <button className={`sb-filter ${filters.has("parking") ? "active" : ""}`}
-                  onClick={() => toggleFilter("parking")}
-                  style={{ "--filter-color": "#1ba0d3" }}>
-                  <span className="sb-filter-dot" style={{ background: "#1ba0d3" }}></span>
-                  Parking
-                </button>
-              </div>
+              <a className="sb-skip-link" href="#sb-buildings"
+                 onClick={(e) => {
+                   e.preventDefault();
+                   setBuildingsOpen(true);
+                   const el = document.getElementById("sb-buildings");
+                   el?.scrollIntoView({ behavior: "smooth" });
+                   setTimeout(() => document.querySelector("#sb-buildings .sb-list-item")?.focus(), 50);
+                 }}>
+                Skip to buildings list
+              </a>
 
-              <SectionHeader>Layers</SectionHeader>
-              <div className="sb-toggles">
-                <Toggle label="Shuttle stops" checked={showShuttle} onChange={setShowShuttle} />
-                <Toggle label="Points of interest" checked={showPois} onChange={setShowPois} />
-                <Toggle label="Building names" checked={showLabels} onChange={setShowLabels} />
-              </div>
-
-              <SectionHeader>Buildings A–Z</SectionHeader>
-              <div className="sb-list">
-                {[...window.BUILDINGS].sort((a, b) => a.code.localeCompare(b.code)).map(b => (
-                  <button key={b.code}
-                    className={`sb-list-item ${selectedId === b.code ? "selected" : ""}`}
-                    onMouseEnter={() => setHoveredId(b.code)}
-                    onMouseLeave={() => setHoveredId(null)}
-                    onClick={() => { setSelectedId(b.code); setPanelMode("detail"); }}>
-                    <span className="sb-list-badge" style={{ background: (window.CATEGORIES[b.cat]?.color || "#1ba0d3") }}>{b.code}</span>
-                    <span className="sb-list-name">{b.name}</span>
+              <CollapsibleSection title="Filter map" open={filterOpen} setOpen={setFilterOpen}>
+                <div className="sb-filters">
+                  {Object.entries(window.CATEGORIES).map(([key, c]) => (
+                    <button key={key}
+                      className={`sb-filter ${filters.has(key) ? "active" : ""}`}
+                      onClick={() => toggleFilter(key)}
+                      style={{ "--filter-color": c.color }}>
+                      <span className="sb-filter-dot" style={{ background: c.color }}></span>
+                      {c.label}
+                    </button>
+                  ))}
+                  <button className={`sb-filter ${filters.has("parking") ? "active" : ""}`}
+                    onClick={() => toggleFilter("parking")}
+                    style={{ "--filter-color": "#1ba0d3" }}>
+                    <span className="sb-filter-dot" style={{ background: "#1ba0d3" }}></span>
+                    Parking
                   </button>
-                ))}
-              </div>
+                </div>
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Layers" open={layersOpen} setOpen={setLayersOpen}>
+                <div className="sb-toggles">
+                  <Toggle label="Shuttle stops" checked={showShuttle} onChange={setShowShuttle} />
+                  <Toggle label="Points of interest" checked={showPois} onChange={setShowPois} />
+                  <Toggle label="Building names" checked={showLabels} onChange={setShowLabels} />
+                  <Toggle label="Reduce animation" checked={!!reduceMotion} onChange={setReduceMotion} />
+                </div>
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Buildings A–Z" open={buildingsOpen} setOpen={setBuildingsOpen} id="sb-buildings">
+                <div className="sb-list">
+                  {[...window.BUILDINGS]
+                    .filter(b => b.cat !== "parking")
+                    .sort((a, b) => a.code.localeCompare(b.code))
+                    .map(b => (
+                      <button key={b.code}
+                        className={`sb-list-item ${selectedId === b.code ? "selected" : ""}`}
+                        onMouseEnter={() => setHoveredId(b.code)}
+                        onMouseLeave={() => setHoveredId(null)}
+                        onClick={() => { setSelectedId(b.code); setPanelMode("detail"); }}>
+                        <span className="sb-list-badge" style={{ background: (window.CATEGORIES[b.cat]?.color || "#1ba0d3") }}>{b.code}</span>
+                        <span className="sb-list-name">{b.name}</span>
+                      </button>
+                    ))}
+                </div>
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Parking" open={parkingOpen} setOpen={setParkingOpen}>
+                <div className="sb-list">
+                  {[...window.BUILDINGS]
+                    .filter(b => b.cat === "parking")
+                    .sort((a, b) => a.code.localeCompare(b.code))
+                    .map(b => (
+                      <button key={b.code}
+                        className={`sb-list-item ${selectedId === b.code ? "selected" : ""}`}
+                        onMouseEnter={() => setHoveredId(b.code)}
+                        onMouseLeave={() => setHoveredId(null)}
+                        onClick={() => { setSelectedId(b.code); setPanelMode("detail"); }}>
+                        <span className="sb-list-badge" style={{ background: "#1ba0d3" }}>{b.code}</span>
+                        <span className="sb-list-name">{b.name}</span>
+                      </button>
+                    ))}
+                </div>
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Shuttle stops" open={shuttleOpen} setOpen={setShuttleOpen}>
+                <div className="sb-list">
+                  {(window.SHUTTLE_STOPS || []).map(s => (
+                    <div key={s.id} className="sb-list-item" style={{ cursor: "default" }}>
+                      <span className="sb-list-badge" style={{ background: "#0E7C66" }} aria-hidden="true">⛟</span>
+                      <span className="sb-list-name">{s.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleSection>
+
+              {(window.POIS || []).length > 0 && (
+                <CollapsibleSection title="Points of interest" open={poiOpen} setOpen={setPoiOpen}>
+                  <ul className="sb-poi-list">
+                    {window.POIS.map((p, i) => (
+                      <li key={p.id || i} className="sb-poi-item">
+                        <div className="sb-poi-head">
+                          <span className="sb-list-badge" style={{ background: "#C8102E" }} aria-hidden="true">★</span>
+                          <span className="sb-poi-name">{p.name || "Point of interest"}</span>
+                        </div>
+                        {p.instructions && <p className="sb-poi-instructions">{p.instructions}</p>}
+                        {(p.events || []).length > 0 && (
+                          <ul className="sb-poi-events">
+                            {p.events.map((ev, j) => (
+                              <li key={j}>
+                                <strong>{ev.title || "Untitled event"}</strong>
+                                {ev.when && <span className="sb-poi-when"> · {ev.when}</span>}
+                                {ev.note && <div className="sb-poi-note">{ev.note}</div>}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        {p.mapsLink && /^https?:\/\//i.test(p.mapsLink) && (
+                          <a className="sb-btn small" href={p.mapsLink} target="_blank" rel="noopener noreferrer">
+                            <span style={{ marginRight: 6 }}>📱</span> Open in Maps
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </CollapsibleSection>
+              )}
             </>
           )}
         </div>
@@ -278,9 +364,9 @@ function Sidebar({
         <div className="sb-body">
           <SectionHeader>Plan a walk</SectionHeader>
           <div className="sb-route-form">
-            <RouteField label="From" value={routeFromId} onChange={setRouteFromId} accent="#0E7C66" placeholder="Pick a starting point" />
+            <RouteField label="From" kind="from" value={routeFromId} onChange={setRouteFromId} accent="#0E7C66" placeholder="Parking, shuttle stop, or point of interest" />
             <button className="sb-swap" onClick={swapFromTo} title="Swap" aria-label="Swap from and to">⇅</button>
-            <RouteField label="To" value={routeToId} onChange={setRouteToId} accent="#C8102E" placeholder="Pick a destination" />
+            <RouteField label="To" kind="to" value={routeToId} onChange={setRouteToId} accent="#C8102E" placeholder="Pick a destination building" />
             <div className="sb-route-actions">
               <button className="sb-btn primary" onClick={computeRoute} disabled={!routeFromId || !routeToId}>
                 Get directions
@@ -344,6 +430,21 @@ function SectionHeader({ children }) {
   return <div className="sb-section">{children}</div>;
 }
 
+function CollapsibleSection({ title, open, setOpen, children, id }) {
+  return (
+    <div className="sb-collapsible" id={id}>
+      <button type="button"
+        className={`sb-section sb-section-toggle ${open ? "open" : "closed"}`}
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}>
+        <span className="sb-section-caret" aria-hidden="true">{open ? "▾" : "▸"}</span>
+        {title}
+      </button>
+      {open && <div className="sb-collapsible-body">{children}</div>}
+    </div>
+  );
+}
+
 function Toggle({ label, checked, onChange }) {
   return (
     <label className="sb-toggle">
@@ -354,13 +455,27 @@ function Toggle({ label, checked, onChange }) {
   );
 }
 
-function RouteField({ label, value, onChange, accent, placeholder }) {
+function RouteField({ label, value, onChange, accent, placeholder, kind = "to" }) {
   const [open, setOpen] = useState2(false);
   const [q, setQ] = useState2("");
 
-  const items = useMemo(() => [
-    ...window.BUILDINGS.map(b => ({ id: `B_${b.code}`, label: `${b.code} · ${b.name}`, name: b.name, code: b.code })),
-  ], []);
+  const items = useMemo(() => {
+    if (kind === "from") {
+      // Arrival points: parking lots, shuttle stops, points of interest
+      const parking = window.BUILDINGS
+        .filter(b => b.cat === "parking")
+        .map(b => ({ id: `B_${b.code}`, label: `🅿 ${b.code} · ${b.name}`, group: "Parking" }));
+      const shuttles = (window.SHUTTLE_STOPS || [])
+        .map(s => ({ id: `S_${s.id}`, label: `⛟ ${s.name}`, group: "Shuttle" }));
+      const buses = (window.BUS_STOPS || [])
+        .map(b => ({ id: `BUS_${b.id}`, label: `🚌 ${b.name}`, group: "Bus" }));
+      const pois = (window.POIS || [])
+        .map(p => ({ id: `POI_${p.id}`, label: `★ ${p.name || "Point of interest"}`, group: "POI" }));
+      return [...parking, ...shuttles, ...buses, ...pois];
+    }
+    // Destinations: all buildings
+    return window.BUILDINGS.map(b => ({ id: `B_${b.code}`, label: `${b.code} · ${b.name}` }));
+  }, [kind, window.POIS, window.SHUTTLE_STOPS, window.BUILDINGS]);
 
   const filtered = q ? items.filter(it => it.label.toLowerCase().includes(q.toLowerCase())).slice(0, 8) : items.slice(0, 12);
 

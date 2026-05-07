@@ -11,7 +11,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "showCrosswalks": true,
   "showPaths": true,
   "imageOpacity": 1,
-  "editMode": false
+  "editMode": false,
+  "reduceMotion": false
 }/*EDITMODE-END*/;
 
 const THEMES = {
@@ -45,6 +46,13 @@ function App() {
 
   useE(() => { setRoute(null); }, [routeFromId, routeToId]);
 
+  // Reduce-motion: respect explicit toggle, fall back to OS preference.
+  useE(() => {
+    const prefersReduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const on = !!tweaks.reduceMotion || prefersReduce;
+    document.documentElement.setAttribute("data-reduce-motion", on ? "1" : "0");
+  }, [tweaks.reduceMotion]);
+
   return (
     <div className="app">
       <window.Sidebar
@@ -57,6 +65,7 @@ function App() {
         showShuttle={tweaks.showShuttle} setShowShuttle={(v) => setTweak("showShuttle", v)}
         showPois={tweaks.showPois} setShowPois={(v) => setTweak("showPois", v)}
         showLabels={tweaks.showLabels} setShowLabels={(v) => setTweak("showLabels", v)}
+        reduceMotion={tweaks.reduceMotion} setReduceMotion={(v) => setTweak("reduceMotion", v)}
         panelMode={panelMode} setPanelMode={setPanelMode}
         theme={theme}
       />

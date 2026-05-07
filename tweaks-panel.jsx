@@ -41,6 +41,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 const __TWEAKS_STYLE = `
+  .twk-launcher{position:fixed;right:16px;bottom:16px;z-index:2147483646;
+    width:44px;height:44px;border-radius:50%;border:0;cursor:pointer;
+    background:#022851;color:#FFBF00;font-size:20px;font-weight:700;
+    box-shadow:0 6px 20px rgba(2,40,81,.35),0 0 0 1px rgba(255,255,255,.25) inset;
+    display:grid;place-items:center;transition:transform .15s ease}
+  .twk-launcher:hover{transform:scale(1.06)}
   .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
     max-height:calc(100vh - 32px);display:flex;flex-direction:column;
     background:rgba(250,249,247,.78);color:#29261b;
@@ -227,7 +233,13 @@ function TweaksPanel({ title = 'Tweaks', children }) {
     window.addEventListener('mouseup', up);
   };
 
-  if (!open) return null;
+  if (!open) return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <button className="twk-launcher" aria-label="Open tweaks panel"
+              onClick={() => setOpen(true)}>✦</button>
+    </>
+  );
   return (
     <>
       <style>{__TWEAKS_STYLE}</style>

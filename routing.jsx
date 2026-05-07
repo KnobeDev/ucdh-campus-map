@@ -147,6 +147,14 @@ function buildGraph() {
     const snapped = snapToWalkable(s.x, s.y);
     nodes[`S_${s.id}`] = { x: snapped.x, y: snapped.y, neighbors: [], shuttle: s };
   }
+  for (const p of window.POIS || []) {
+    const snapped = snapToWalkable(p.x, p.y);
+    nodes[`POI_${p.id}`] = { x: snapped.x, y: snapped.y, neighbors: [], poi: p };
+  }
+  for (const b of window.BUS_STOPS || []) {
+    const snapped = snapToWalkable(b.x, b.y);
+    nodes[`BUS_${b.id}`] = { x: snapped.x, y: snapped.y, neighbors: [], bus: b };
+  }
 
   // 5) Connect special nodes (named, building, shuttle) to nearby grid
   const gridList = Object.entries(nodes).filter(([id]) => id.startsWith("g_"));

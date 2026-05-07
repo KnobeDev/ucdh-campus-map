@@ -16,6 +16,7 @@ const EDIT_MODES = [
   { id: "paths",     label: "Paths",      help: "Click an edge to cycle Walk → Car → Mixed. Or click two waypoints to add a new path with the current type." },
   { id: "entrances", label: "Entrances",  help: "Click on the map to add a building entrance. Use the inspector to mark accessible (♿) and assign to a building." },
   { id: "crosswalks",label: "Crosswalks", help: "Click on the map to mark a crosswalk. Drag to move; rotate using the inspector." },
+  { id: "pois",      label: "POIs",       help: "Click on the map to drop a point of interest. Use the inspector to set its name, visitor instructions, upcoming events, and an Apple/Google Maps link so visitors can open the location on their phone." },
   { id: "shuttle",   label: "Shuttle",    help: "Drag a shuttle stop to reposition it." },
 ];
 
@@ -37,6 +38,7 @@ function EditOverlay({
   const shuttle = window.SHUTTLE_STOPS;
   const entrances = window.ENTRANCES;
   const crosswalks = window.CROSSWALKS;
+  const pois = window.POIS || [];
   const edgeMeta = window.EDGE_META || {};
   // Keep handles in sync with stored pins (subscribes to pin store)
   const pins = window.useRoutePins ? window.useRoutePins(routeFromId, routeToId) : [];
@@ -74,6 +76,8 @@ function EditOverlay({
         window.editStore.updateEntrance(drag.id, { x: Math.round(drag.orig.x + dx), y: Math.round(drag.orig.y + dy) });
       } else if (drag.kind === "crosswalk") {
         window.editStore.updateCrosswalk(drag.id, { x: Math.round(drag.orig.x + dx), y: Math.round(drag.orig.y + dy) });
+      } else if (drag.kind === "poi") {
+        window.editStore.updatePOI(drag.id, { x: Math.round(drag.orig.x + dx), y: Math.round(drag.orig.y + dy) });
       } else if (drag.kind === "polyMove") {
         const moved = drag.orig.map(([px, py]) => [Math.round(px + dx), Math.round(py + dy)]);
         window.editStore.moveBuilding(drag.code, { points: moved });
@@ -110,6 +114,9 @@ function EditOverlay({
     } else if (mode === "crosswalks") {
       const id = window.editStore.addCrosswalk(Math.round(p.x), Math.round(p.y), { angle: 0 });
       setEditTargetId({ kind: "crosswalk", id });
+    } else if (mode === "pois") {
+      const id = window.editStore.addPOI(Math.round(p.x), Math.round(p.y));
+      setEditTargetId({ kind: "poi", id });
     } else {
       setEditTargetId(null);
       setEdgePickFirst(null);
@@ -132,6 +139,9 @@ function EditOverlay({
       } else if (editTargetId.kind === "crosswalk") {
         window.editStore.deleteCrosswalk(editTargetId.id);
         setEditTargetId(null);
+      } else if (editTargetId.kind === "poi") {
+        window.editStore.deletePOI(editTargetId.id);
+        setEditTargetId(null);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -152,7 +162,7 @@ function EditOverlay({
       <rect data-bg="1" x="0" y="0" width={window.MAP_IMG.w} height={window.MAP_IMG.h}
             fill="transparent"
             onMouseDown={onSvgClick}
-            style={{ cursor: (mode === "addnode" || mode === "entrances" || mode === "crosswalks") ? "crosshair" : "default" }} />
+            style={{ cursor: (mode === "addnode" || mode === "entrances" || mode === "crosswalks" || mode === "pois") ? "crosshair" : "default" }} />
 
       {/* HOTSPOTS */}
       {mode === "hotspots" && buildings.map(b => {
@@ -349,6 +359,26 @@ function EditOverlay({
         );
       })}
 
+      {/* POIs (visible in pois edit mode) */}
+      {mode === "pois" && pois.map(poi => {
+        const isTgt = editTargetId?.kind === "poi" && editTargetId.id === poi.id;
+        return (
+          <g key={poi.id} style={{ cursor: "move" }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              setEditTargetId({ kind: "poi", id: poi.id });
+              const p = svgPoint(svgRef.current, e.clientX, e.clientY);
+              setDrag({ kind: "poi", id: poi.id, start: p, orig: { x: poi.x, y: poi.y } });
+            }}>
+            <POIMarker x={poi.x} y={poi.y} selected={isTgt} />
+            <text x={poi.x + 14} y={poi.y + 4} fontSize="11" fontWeight="700" fill="#022851"
+                  style={{ paintOrder: "stroke", stroke: "white", strokeWidth: 3 }} pointerEvents="none">
+              {poi.name || "POI"}
+            </text>
+          </g>
+        );
+      })}
+
       {/* CROSSWALKS */}
       {(mode === "crosswalks" || mode === "paths" || mode === "waypoints") && crosswalks.map(xw => {
         const isTgt = editTargetId?.kind === "crosswalk" && editTargetId.id === xw.id;
@@ -527,6 +557,20 @@ function CrosswalkMarker({ selected }) {
   );
 }
 window.CrosswalkMarker = CrosswalkMarker;
+
+function POIMarker({ x, y, selected }) {
+  // A red star/pin: outer halo when selected
+  return (
+    <g pointerEvents="none">
+      {selected && <circle cx={x} cy={y} r="12" fill="rgba(200,16,46,0.18)" />}
+      <circle cx={x} cy={y} r="9" fill="#C8102E"
+        stroke={selected ? "#022851" : "white"} strokeWidth="2" />
+      <text x={x} y={y + 1} textAnchor="middle" dominantBaseline="middle"
+        fontSize="11" fontWeight="800" fill="white">★</text>
+    </g>
+  );
+}
+window.POIMarker = POIMarker;
 
 // ---- Building shape helpers ----
 // Returns SVG <path> d-string covering either polygon or rect form

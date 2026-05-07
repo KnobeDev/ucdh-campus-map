@@ -101,12 +101,15 @@ function CampusMap({
 
         {/* Base map image */}
         <image href={window.MAP_IMG.src} x="0" y="0" width={W} height={H}
-               style={{ filter: theme.imgFilter || "none" }} />
+               style={{ filter: ((() => {
+                 const parts = [];
+                 if (theme.imgFilter && theme.imgFilter !== "none") parts.push(theme.imgFilter);
+                 if (filters.size > 0) parts.push("saturate(0.35) brightness(1.05)");
+                 return parts.length ? parts.join(" ") : "none";
+               })()) }} />
 
-        {/* Dim overlay when filters active */}
-        {filters.size > 0 && (
-          <rect x="0" y="0" width={W} height={H} fill="white" opacity="0.55" pointerEvents="none" />
-        )}
+        {/* When filters are active, the PNG is desaturated above (CSS filter)
+            so matched buildings stand out via their colored hotspot overlays. */}
 
         {/* Hotspots — hidden during hotspots edit submode (overlay handles them) */}
         {!(editMode && editSubMode === "hotspots") && window.BUILDINGS.map(b => {
@@ -132,9 +135,9 @@ function CampusMap({
                style={{ cursor:"pointer" }}>
               {/* Shape */}
               <path d={path}
-                fill={isSel ? `${catColor}30` : (isHov ? `${catColor}22` : (showHotspots ? `${catColor}11` : "transparent"))}
-                stroke={isSel ? "#022851" : (isHov ? catColor : (showHotspots ? `${catColor}55` : "transparent"))}
-                strokeWidth={isSel ? 3 : (isHov ? 2 : 1)}
+                fill={isSel ? `${catColor}40` : (isHov ? `${catColor}30` : (filters.size > 0 ? `${catColor}40` : (showHotspots ? `${catColor}11` : "transparent")))}
+                stroke={isSel ? "#022851" : (isHov ? catColor : (filters.size > 0 ? catColor : (showHotspots ? `${catColor}55` : "transparent")))}
+                strokeWidth={isSel ? 3 : (isHov ? 2 : (filters.size > 0 ? 2 : 1))}
                 strokeLinejoin="round" />
               {/* Code badge */}
               {(isSel || isHov || showLabels) && bbox.w >= 40 && (
@@ -197,16 +200,20 @@ function CampusMap({
           </g>
         ))}
 
-        {/* POIs */}
-        {showPois && (window.POIS || []).map(p => {
-          const colors = { emergency:"#C8102E", entrance:"#022851", transit:"#5A6470", amenity:"#0E7C66" };
-          return (
-            <g key={p.id} pointerEvents="none">
-              <circle cx={p.x} cy={p.y} r="6" fill="white" stroke={colors[p.kind]} strokeWidth="2" />
-              <circle cx={p.x} cy={p.y} r="2.5" fill={colors[p.kind]} />
-            </g>
-          );
-        })}
+        {/* POIs (user-added points of interest with optional events + maps link) */}
+        {showPois && (window.POIS || []).map(p => (
+          <g key={p.id} pointerEvents="none">
+            <circle cx={p.x} cy={p.y} r="9" fill="#C8102E" stroke="white" strokeWidth="2" />
+            <text x={p.x} y={p.y + 1} textAnchor="middle" dominantBaseline="middle"
+              fontSize="11" fontWeight="800" fill="white">★</text>
+            {p.name && (
+              <text x={p.x + 14} y={p.y + 4} fontSize="11" fontWeight="700" fill="#022851"
+                style={{ paintOrder: "stroke", stroke: "white", strokeWidth: 3 }}>
+                {p.name}
+              </text>
+            )}
+          </g>
+        ))}
 
         {/* Route */}
         {route && (
