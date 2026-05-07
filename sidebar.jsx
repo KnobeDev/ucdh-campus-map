@@ -311,7 +311,9 @@ function Sidebar({
                 Directions from here
               </button>
               <button className="sb-btn" onClick={() => {
-                const enc = encodeURIComponent(selected.name);
+                // Disambiguate from same-named places elsewhere — anchor to the UC Davis Health campus.
+                const query = selected.mapsQuery || `${selected.name}, UC Davis Health, Sacramento, CA`;
+                const enc = encodeURIComponent(query);
                 const ua = navigator.userAgent || "";
                 const isApple = /iPhone|iPad|iPod|Macintosh/.test(ua) && !/CrOS/.test(ua);
                 const url = isApple
