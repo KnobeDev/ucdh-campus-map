@@ -192,7 +192,8 @@ function simplifyPath(points) {
   for (let i = 1; i < points.length - 1; i++) {
     const a = out[out.length - 1], b = points[i], c = points[i + 1];
     const cross = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x);
-    if (Math.abs(cross) > 0.5) out.push(b);
+    // Always keep user-pinned points so the pin marker can render and be alt-clickable
+    if (b.pinned || Math.abs(cross) > 0.5) out.push(b);
   }
   out.push(points[points.length - 1]);
   return out;
