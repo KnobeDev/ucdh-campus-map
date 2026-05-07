@@ -2,6 +2,8 @@
 
 Interactive digital wayfinding map for the UC Davis Health Sacramento campus.
 
+**Live demo:** https://jdhori.github.io/ucdh-campus-map/
+
 A self-contained React prototype (no build step — uses `babel-standalone`) that
 overlays interactive hotspots on the official campus map PNG. Search by clinic
 or department, plot walking routes that avoid building footprints, and hand off
@@ -25,7 +27,7 @@ to native maps on phone.
 
 ```bash
 ./serve.sh
-# then open http://localhost:8092/Campus%20Map.html
+# then open http://localhost:8092/
 ```
 
 Or any static server (`python3 -m http.server`, `npx serve`, etc.) pointed at this directory.
@@ -34,7 +36,7 @@ Or any static server (`python3 -m http.server`, `npx serve`, etc.) pointed at th
 
 | File | Purpose |
 |---|---|
-| `Campus Map.html` | Entry point |
+| `index.html` | Entry point |
 | `app.jsx` | Top-level component, tweaks panel state |
 | `data.jsx` | 50+ buildings, parking, shuttle stops, base graph |
 | `map.jsx` | SVG overlay on the inlined campus PNG |
