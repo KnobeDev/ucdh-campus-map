@@ -1,0 +1,13 @@
+.DS_Store
+node_modules/
+.vscode/
+.idea/
+.claude/
+*.log
+
+# Local server scratch
+.cache/
+
+# Throwaway screenshots / sketches from design iteration
+uploads/Screenshot *.png
+uploads/draw-*.png
