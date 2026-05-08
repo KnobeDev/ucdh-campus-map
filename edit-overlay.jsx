@@ -18,6 +18,7 @@ const EDIT_MODES = [
   { id: "crosswalks",label: "Crosswalks", help: "Click on the map to mark a crosswalk. Drag to move; rotate using the inspector." },
   { id: "pois",      label: "POIs",       help: "Click on the map to drop a point of interest. Use the inspector to set its name, visitor instructions, upcoming events, and an Apple/Google Maps link so visitors can open the location on their phone." },
   { id: "shuttle",   label: "Shuttle",    help: "Drag a shuttle stop to reposition it." },
+  { id: "construction", label: "Construction", help: "Drag a zone to move. Drag corners to reshape; click a midpoint to add a vertex; alt-click a corner to remove. Set name + end date in the inspector. After end date passes the zone auto-clears and routing re-opens through the area." },
 ];
 
 function svgPoint(svg, clientX, clientY) {
@@ -40,6 +41,7 @@ function EditOverlay({
   const crosswalks = window.CROSSWALKS;
   const pois = window.POIS || [];
   const edgeMeta = window.EDGE_META || {};
+  const zones = window.CONSTRUCTION_ZONES || [];
   // Keep handles in sync with stored pins (subscribes to pin store)
   const pins = window.useRoutePins ? window.useRoutePins(routeFromId, routeToId) : [];
 
@@ -83,6 +85,15 @@ function EditOverlay({
         window.editStore.moveBuilding(drag.code, { points: moved });
       } else if (drag.kind === "polyVtx") {
         window.editStore.setPolygonPoint(drag.code, drag.idx, drag.orig.x + dx, drag.orig.y + dy);
+      } else if (drag.kind === "czMove") {
+        window.editStore.set(e => {
+          const z = (e.constructionZones || {})[drag.id];
+          if (!z) return e;
+          const pts = drag.orig.map(([px, py]) => [Math.round(px + dx), Math.round(py + dy)]);
+          return { ...e, constructionZones: { ...e.constructionZones, [drag.id]: { ...z, points: pts } } };
+        });
+      } else if (drag.kind === "czVtx") {
+        window.editStore.setConstructionZonePoint(drag.id, drag.idx, drag.orig.x + dx, drag.orig.y + dy);
       } else if (drag.kind === "routePin") {
         window.routePinStore.move(drag.fromId, drag.toId, drag.idx,
           Math.round(drag.orig.x + dx), Math.round(drag.orig.y + dy));
@@ -375,6 +386,67 @@ function EditOverlay({
                   style={{ paintOrder: "stroke", stroke: "white", strokeWidth: 3 }} pointerEvents="none">
               {poi.name || "POI"}
             </text>
+          </g>
+        );
+      })}
+
+      {/* CONSTRUCTION ZONES — editable polygons (drag, reshape, alt-click vertex to remove) */}
+      {mode === "construction" && zones.map(z => {
+        if (!z.points || z.points.length < 3) return null;
+        const isTgt = editTargetId?.kind === "constructionZone" && editTargetId.id === z.id;
+        const ptsAttr = z.points.map(p => p.join(",")).join(" ");
+        const cx = z.points.reduce((s, p) => s + p[0], 0) / z.points.length;
+        const cy = z.points.reduce((s, p) => s + p[1], 0) / z.points.length;
+        return (
+          <g key={z.id}>
+            <polygon points={ptsAttr}
+              fill={isTgt ? "rgba(255,199,44,0.55)" : "url(#czStripes)"}
+              stroke={isTgt ? "#7A0019" : "#7A0019"}
+              strokeWidth={isTgt ? 2.5 : 1.5}
+              style={{ cursor: "move" }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                setEditTargetId({ kind: "constructionZone", id: z.id });
+                const p = svgPoint(svgRef.current, e.clientX, e.clientY);
+                setDrag({ kind: "czMove", id: z.id, start: p, orig: z.points.map(pt => [...pt]) });
+              }} />
+            <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle"
+              fontSize="10" fontWeight="800" fill="#7A0019"
+              stroke="#FFF8E0" strokeWidth="2.5" paintOrder="stroke" pointerEvents="none">
+              {z.name ? z.name.toUpperCase().slice(0, 26) : "CONSTRUCTION"}
+            </text>
+            {/* Vertex + midpoint handles only on the selected zone to keep the canvas clean */}
+            {isTgt && z.points.map((pt, i) => {
+              const next = z.points[(i + 1) % z.points.length];
+              const mid = [(pt[0] + next[0]) / 2, (pt[1] + next[1]) / 2];
+              return (
+                <g key={"czh" + i}>
+                  <circle cx={mid[0]} cy={mid[1]} r="4"
+                    fill="white" stroke="#7A0019" strokeWidth="1.5" opacity="0.6"
+                    style={{ cursor: "copy" }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      window.editStore.insertConstructionZonePoint(z.id, i, mid[0], mid[1]);
+                      const p = svgPoint(svgRef.current, e.clientX, e.clientY);
+                      setDrag({ kind: "czVtx", id: z.id, idx: i + 1, start: p, orig: { x: mid[0], y: mid[1] } });
+                    }} />
+                  <rect x={pt[0] - HANDLE_R} y={pt[1] - HANDLE_R} width={HANDLE_R * 2} height={HANDLE_R * 2}
+                    fill="white" stroke="#7A0019" strokeWidth="2"
+                    style={{ cursor: "move" }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      if (e.altKey || e.metaKey) {
+                        window.editStore.deleteConstructionZonePoint(z.id, i);
+                        return;
+                      }
+                      const p = svgPoint(svgRef.current, e.clientX, e.clientY);
+                      setDrag({ kind: "czVtx", id: z.id, idx: i, start: p, orig: { x: pt[0], y: pt[1] } });
+                    }}>
+                    <title>Drag to move · Alt-click to remove (min 3 vertices)</title>
+                  </rect>
+                </g>
+              );
+            })}
           </g>
         );
       })}

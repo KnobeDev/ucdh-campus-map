@@ -863,6 +863,22 @@ html[data-reduce-motion="1"] *::after {
   text-align: center;
 }
 .edit-insp-name { font-weight: 700; color: var(--uc-blue); }
+
+/* Construction marker controls inside the building inspector — visually separated from
+   the rest of the inspector row by a yellow caution border so the destructive nature
+   of the action (closing the building / blocking routes) is obvious. */
+.edit-construction {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px 10px;
+  background: #FFF8E0;
+  border: 1px dashed #B8860B;
+  border-radius: 6px;
+}
 .edit-insp-shape {
   font-size: 10px;
   color: var(--text-subtle);

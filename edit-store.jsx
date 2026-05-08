@@ -55,7 +55,7 @@ function readEdits() {
     }
     if (!raw) return defaultEdits();
     const parsed = JSON.parse(raw);
-    return { ...defaultEdits(), ...parsed };
+    return pruneExpiredZones({ ...defaultEdits(), ...parsed });
   } catch {
     return defaultEdits();
   }
@@ -67,7 +67,29 @@ function defaultEdits() {
     shuttle:{},
     entrances:{}, crosswalks:{},
     pois:{},
+    // Construction zones — temporary closures; route around them.
+    // Shape: { id, name, points:[[x,y],...], startDate:"YYYY-MM-DD"|null,
+    //          endDate:"YYYY-MM-DD"|null, affects:[buildingCodes], notes }
+    constructionZones:{},
   };
+}
+
+// Drop construction zones whose endDate is in the past so the routing graph
+// auto-recovers without a manual purge. Called on every read.
+function pruneExpiredZones(edits) {
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD lexicographic compare
+  const zones = edits.constructionZones || {};
+  const keep = {};
+  let removed = 0;
+  for (const [id, z] of Object.entries(zones)) {
+    if (z.endDate && z.endDate < today) { removed++; continue; }
+    keep[id] = z;
+  }
+  if (removed > 0) {
+    edits.constructionZones = keep;
+    try { localStorage.setItem(EDIT_STORAGE_KEY, JSON.stringify(edits)); } catch {}
+  }
+  return edits;
 }
 function writeEdits(e) {
   try { localStorage.setItem(EDIT_STORAGE_KEY, JSON.stringify(e)); } catch {}
@@ -101,6 +123,12 @@ function applyEdits(edits) {
   window.ENTRANCES  = Object.values(edits.entrances || {});
   window.CROSSWALKS = Object.values(edits.crosswalks || {});
   window.POIS       = Object.values(edits.pois || {});
+  // Construction zones — only the ones not yet expired. pruneExpiredZones in
+  // readEdits already drops stale ones on disk, but a defensive filter here
+  // protects against future codepaths writing without going through readEdits.
+  const today = new Date().toISOString().slice(0, 10);
+  window.CONSTRUCTION_ZONES = Object.values(edits.constructionZones || {})
+    .filter(z => !z.endDate || z.endDate >= today);
 }
 
 function edgeKey(e) {
@@ -326,6 +354,72 @@ const editStore = {
     this.set(e => {
       const pp = { ...(e.pois || {}) }; delete pp[id];
       return { ...e, pois: pp };
+    });
+  },
+
+  // ---- Construction Zones ----
+  // Polygon shape: { id, name, points:[[x,y],...], startDate, endDate, affects:[codes], notes }
+  addConstructionZone(points, opts = {}) {
+    const id = uid("cz");
+    this.set(e => ({ ...e, constructionZones: { ...(e.constructionZones || {}),
+      [id]: {
+        id,
+        name: opts.name || "Construction zone",
+        points: points.map(p => [+p[0], +p[1]]),
+        startDate: opts.startDate || null,
+        endDate: opts.endDate || null,
+        affects: opts.affects || [],
+        notes: opts.notes || "",
+      }
+    }}));
+    return id;
+  },
+  updateConstructionZone(id, partial) {
+    this.set(e => {
+      const cur = (e.constructionZones || {})[id];
+      if (!cur) return e;
+      return { ...e, constructionZones: { ...e.constructionZones, [id]: { ...cur, ...partial } } };
+    });
+  },
+  deleteConstructionZone(id) {
+    this.set(e => {
+      const cz = { ...(e.constructionZones || {}) }; delete cz[id];
+      return { ...e, constructionZones: cz };
+    });
+  },
+  // Polygon vertex manipulation for construction zones — mirrors building polygon helpers.
+  // Construction often blocks only a portion of a building, so editors need to trim or
+  // reshape the auto-generated polygon after marking a building as under construction.
+  setConstructionZonePoint(id, idx, x, y) {
+    this.set(e => {
+      const z = (e.constructionZones || {})[id];
+      if (!z || !z.points) return e;
+      const pts = z.points.map((p, i) => i === idx ? [Math.round(x), Math.round(y)] : p);
+      return { ...e, constructionZones: { ...e.constructionZones, [id]: { ...z, points: pts } } };
+    });
+  },
+  insertConstructionZonePoint(id, idx, x, y) {
+    this.set(e => {
+      const z = (e.constructionZones || {})[id];
+      if (!z || !z.points) return e;
+      const pts = [...z.points.slice(0, idx + 1), [Math.round(x), Math.round(y)], ...z.points.slice(idx + 1)];
+      return { ...e, constructionZones: { ...e.constructionZones, [id]: { ...z, points: pts } } };
+    });
+  },
+  deleteConstructionZonePoint(id, idx) {
+    this.set(e => {
+      const z = (e.constructionZones || {})[id];
+      if (!z || !z.points || z.points.length <= 3) return e; // keep min 3 vertices
+      const pts = z.points.filter((_, i) => i !== idx);
+      return { ...e, constructionZones: { ...e.constructionZones, [id]: { ...z, points: pts } } };
+    });
+  },
+  moveConstructionZonePolygon(id, dx, dy) {
+    this.set(e => {
+      const z = (e.constructionZones || {})[id];
+      if (!z || !z.points) return e;
+      const pts = z.points.map(p => [Math.round(p[0] + dx), Math.round(p[1] + dy)]);
+      return { ...e, constructionZones: { ...e.constructionZones, [id]: { ...z, points: pts } } };
     });
   },
 

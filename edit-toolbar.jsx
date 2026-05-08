@@ -31,6 +31,10 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
       const c = window.CROSSWALKS.find(x => x.id === editTargetId.id);
       return c && { kind:"crosswalk", id: editTargetId.id, data: c };
     }
+    if (editTargetId.kind === "constructionZone") {
+      const z = (window.CONSTRUCTION_ZONES || []).find(x => x.id === editTargetId.id);
+      return z && { kind:"constructionZone", id: editTargetId.id, data: z };
+    }
     if (editTargetId.kind === "poi") {
       const p = (window.POIS || []).find(x => x.id === editTargetId.id);
       return p && { kind:"poi", id: editTargetId.id, data: p };
@@ -99,6 +103,32 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
         </div>
         <div className="edit-tb-right">
           <span className="edit-tb-count">{editsCount} edit{editsCount === 1 ? "" : "s"}</span>
+          <button className="edit-tb-btn primary" title="Download these edits as default-edits.json with a fresh version stamp. After committing the file, every visitor's stale localStorage gets replaced on their next load." onClick={() => {
+            // Apply: download the canonical default-edits.json so the user can commit it
+            // to the repo and have these edits become the baseline for all visitors. The
+            // file name matches what default-edits-loader.js fetches, making the swap a
+            // straight drop-in replacement.
+            //
+            // Stamp a `_version` field with the current ISO timestamp. The loader will
+            // compare this to localStorage's stored version and trigger a full reset of
+            // any user-cached overrides whose keys we now ship as defaults — so editors
+            // can publish updates without remembering to bump a constant in the loader.
+            try {
+              const edits = JSON.parse(window.editStore.exportJSON());
+              edits._version = "applied-" + new Date().toISOString().replace(/[:.]/g, "-");
+              const text = JSON.stringify(edits, null, 2);
+              const blob = new Blob([text], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "default-edits.json";
+              document.body.appendChild(a); a.click();
+              setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
+            } catch (err) {
+              alert("Couldn't download default-edits.json: " + (err.message || err));
+            }
+          }}>
+            ✓ Apply
+          </button>
           <button className="edit-tb-btn" onClick={() => {
             setExportText(window.editStore.exportJSON());
             // also offer file download
@@ -133,7 +163,7 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
           <button className="edit-tb-btn danger" onClick={() => { if (confirm("Reset all edits? This cannot be undone.")) window.editStore.reset(); }}>
             Reset
           </button>
-          <button className="edit-tb-btn primary" onClick={onClose}>Done</button>
+          <button className="edit-tb-btn" onClick={onClose}>Done</button>
         </div>
       </div>
       <div className="edit-tb-row edit-tb-help">
@@ -186,6 +216,7 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
               <button className="edit-tb-btn small" onClick={() => {
                 window.editStore.set(e => { const nn = {...e.buildings}; delete nn[target.data.code]; return {...e, buildings: nn}; });
               }}>Reset</button>
+              <ConstructionControls building={target.data} edits={edits} />
             </>
           )}
           {target.kind === "node" && (
@@ -260,6 +291,37 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
               <button className="edit-tb-btn small danger" onClick={() => {
                 window.editStore.deleteCrosswalk(target.id);
                 setEditTargetId(null);
+              }}>Delete</button>
+            </>
+          )}
+          {target.kind === "constructionZone" && (
+            <>
+              <div className="edit-insp-title">
+                <span className="edit-insp-code" style={{ background: "#7A0019" }}>🚧</span>
+                <span className="edit-insp-name">{target.data.name || "Construction zone"}</span>
+                <span className="edit-insp-shape">{target.data.points?.length || 0} pts</span>
+              </div>
+              <TextField label="Name" value={target.data.name || ""} width={200}
+                onChange={(v) => window.editStore.updateConstructionZone(target.id, { name: v })} />
+              <label className="edit-num">
+                <span>Start</span>
+                <input type="date" value={target.data.startDate || ""} style={{ width: 130 }}
+                  onChange={(e) => window.editStore.updateConstructionZone(target.id, { startDate: e.target.value })} />
+              </label>
+              <label className="edit-num">
+                <span>End</span>
+                <input type="date" value={target.data.endDate || ""} style={{ width: 130 }}
+                  onChange={(e) => window.editStore.updateConstructionZone(target.id, { endDate: e.target.value })} />
+              </label>
+              <TextField label="Affects" value={(target.data.affects || []).join(", ")} width={140}
+                onChange={(v) => window.editStore.updateConstructionZone(target.id, {
+                  affects: v.split(",").map(s => s.trim()).filter(Boolean)
+                })} />
+              <button className="edit-tb-btn small danger" onClick={() => {
+                if (confirm("Delete this construction zone?")) {
+                  window.editStore.deleteConstructionZone(target.id);
+                  setEditTargetId(null);
+                }
               }}>Delete</button>
             </>
           )}
@@ -343,6 +405,72 @@ function SelectField({ label, value, onChange, options, width = 140 }) {
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </label>
+  );
+}
+
+// Construction controls inside the building inspector. Lets editors mark a hotspot as
+// under construction with an end date — the construction zone is created using the
+// building's current polygon (or rect, expanded to a 4-corner polygon) so routing has
+// an obstacle to avoid. After endDate passes, edit-store.pruneExpiredZones drops the
+// zone automatically on next read and routing reopens through the area.
+function ConstructionControls({ building, edits }) {
+  const zones = edits.constructionZones || {};
+  const existing = Object.values(zones).find(z => (z.affects || []).includes(building.code));
+  const [end, setEnd] = React.useState(existing?.endDate || "");
+  const [name, setName] = React.useState(existing?.name || `${building.name} construction`);
+  React.useEffect(() => {
+    setEnd(existing?.endDate || "");
+    setName(existing?.name || `${building.name} construction`);
+  }, [building.code, existing?.id]);
+
+  const polyForBuilding = () => {
+    if (building.points && building.points.length >= 3) {
+      return building.points.map(p => [p[0], p[1]]);
+    }
+    return [
+      [building.x, building.y], [building.x + building.w, building.y],
+      [building.x + building.w, building.y + building.h], [building.x, building.y + building.h],
+    ];
+  };
+
+  const apply = () => {
+    if (!end) { alert("Pick an end date first."); return; }
+    if (existing) {
+      window.editStore.updateConstructionZone(existing.id, { endDate: end, name, points: polyForBuilding() });
+    } else {
+      window.editStore.addConstructionZone(polyForBuilding(), {
+        name,
+        startDate: new Date().toISOString().slice(0, 10),
+        endDate: end,
+        affects: [building.code],
+      });
+    }
+  };
+  const remove = () => {
+    if (existing && confirm(`Remove construction marker on ${building.name}?`)) {
+      window.editStore.deleteConstructionZone(existing.id);
+    }
+  };
+
+  return (
+    <div className="edit-construction">
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#7A0019", marginRight: 6 }}>
+        🚧 {existing ? "Construction active" : "Mark as construction"}
+      </div>
+      <TextField label="Name" value={name} width={160} onChange={setName} />
+      <label className="edit-num">
+        <span>End date</span>
+        <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} style={{ width: 130 }} />
+      </label>
+      <button className="edit-tb-btn small primary" onClick={apply}>
+        {existing ? "Update" : "Apply construction"}
+      </button>
+      {existing && (
+        <button className="edit-tb-btn small danger" onClick={remove}>
+          Remove
+        </button>
+      )}
+    </div>
   );
 }
 

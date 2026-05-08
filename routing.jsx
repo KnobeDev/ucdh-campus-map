@@ -65,6 +65,24 @@ function buildGraph() {
     aabb: buildingAABB(b, GRID_MARGIN + 4),
   }));
 
+  // Construction zones — treat as obstacles for the duration of the closure.
+  // window.CONSTRUCTION_ZONES is pre-filtered to active-only by edit-store.
+  for (const z of (window.CONSTRUCTION_ZONES || [])) {
+    if (!z.points || z.points.length < 3) continue;
+    const poly = z.points.map(p => ({ x: p[0], y: p[1] }));
+    const xs = poly.map(p => p.x), ys = poly.map(p => p.y);
+    obstaclePolys.push({
+      code: `CZ_${z.id}`,
+      poly: inflatePoly(poly, GRID_MARGIN),
+      aabb: {
+        x1: Math.min(...xs) - GRID_MARGIN - 4,
+        y1: Math.min(...ys) - GRID_MARGIN - 4,
+        x2: Math.max(...xs) + GRID_MARGIN + 4,
+        y2: Math.max(...ys) + GRID_MARGIN + 4,
+      },
+    });
+  }
+
   const W = (window.MAP_IMG?.w) || 1212;
   const H = (window.MAP_IMG?.h) || 1084;
 

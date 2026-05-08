@@ -1,148 +1,155 @@
-// Campus data — coordinates calibrated to campus-map.png (1212x1084) via color-cluster detection.
-// All x/y/w/h are in PNG pixel space. SVG uses viewBox="0 0 1212 1084" so coordinates match directly.
+// Campus data — auto-rescaled from PNG (1212x1084) to SVG (919x792) viewport.
+// All x/y/w/h are in SVG-viewport pixel space. Fine-tune via edit mode.
 
-const MAP_IMG = { w: 1212, h: 1084, src: "campus-map.png" };
+const MAP_IMG = { w: 919, h: 792, src: "campus-map.svg" };
 
 const BUILDINGS = [
   // ============ NORTH-WEST CLUSTER ============
   // Cypress Building (yellow K) — top
-  { code: "K",  name: "Cypress Building",                 cat: "admin",     x: 290, y: 127, w: 48,  h: 38, label: "Cypress" },
+  { code: "K",  name: "Cypress Building",                 cat: "admin",     x: 131.3, y: 74.0, w: 35.2,  h: 28.3, label: "Cypress" },
   // Medical Records (yellow N, small block north of Cypress)
-  { code: "N",  name: "Medical Records",                  cat: "admin",     x: 225, y: 107, w: 30,  h: 52, label: "Medical Records" },
+  { code: "N",  name: "Medical Records",                  cat: "admin",     x: 182.0, y: 75.2, w: 21.9,  h: 38.7, label: "Medical Records" },
   // Patient Support Services Building (yellow, between Cypress and Med Center)
-  { code: "PS", name: "Patient Support Services Building",cat: "admin",     x: 260, y: 127, w: 88,  h: 48, label: "Patient Support" },
+  { code: "PS", name: "Patient Support Services Building",cat: "admin",     x: 197.3, y: 86.2, w: 64.5,  h: 35.8, label: "Patient Support" },
   // P1 staff parking (beige)
-  { code: "P1", name: "Parking 1 (staff only)",           cat: "parking",   x: 245, y: 178, w: 50,  h: 48, label: "P1" },
+  { code: "P1", name: "Parking 1 (staff only)",           cat: "parking",   x: 198.9, y: 117.8, w: 36.6,  h: 35.8, label: "P1" },
 
   // ============ MEDICAL CENTER CORE ============
-  { code: "T",  name: "Medical Center",                   cat: "hospital",  x: 300, y: 188, w: 232, h: 144, label: "Medical Center" },
+  { code: "T",  name: "Medical Center",                   cat: "hospital",  x: 210.1, y: 150.9, w: 170.1, h: 107.2, label: "Medical Center" },
   // California Tower attached to right of Med Center
-  { code: "U",  name: "California Tower",                 cat: "hospital",  x: 470, y: 240, w: 75,  h: 92, label: "Cal Tower" },
+  { code: "U",  name: "California Tower",                 cat: "hospital",  x: 374.8, y: 176.2, w: 55.0,  h: 68.5, label: "Cal Tower" },
   // Pathology Building (small navy block north of Med Center)
-  { code: "I",  name: "Pathology Building",               cat: "research",  x: 420, y: 195, w: 60,  h: 45, label: "Pathology" },
+  { code: "I",  name: "Pathology Building",               cat: "research",  x: 418.0, y: 232.2, w: 44.0,  h: 33.5, label: "Pathology" },
   // North Addition (W) — small navy block
-  { code: "W",  name: "North Addition",                   cat: "hospital",  x: 360, y: 155, w: 65,  h: 40, label: "North Addition" },
+  { code: "W",  name: "North Addition",                   cat: "hospital",  x: 283.4, y: 120.6, w: 47.7,  h: 29.7, label: "North Addition" },
 
   // ============ EAST OF MEDICAL CENTER ============
   // Cancer Center North (cyan)
-  { code: "M",  name: "Comprehensive Cancer Center North",cat: "clinic",    x: 591, y: 301, w: 64,  h: 41, label: "Cancer N" },
+  { code: "M",  name: "Comprehensive Cancer Center North",cat: "clinic",    x: 630.0, y: 348.7, w: 46.9,  h: 30.6, label: "Cancer N" },
   // Cancer Center South (cyan, just below)
-  { code: "L",  name: "Comprehensive Cancer Center South",cat: "clinic",    x: 574, y: 338, w: 71,  h: 40, label: "Cancer S" },
+  { code: "L",  name: "Comprehensive Cancer Center South",cat: "clinic",    x: 425.6, y: 320.0, w: 52.0,  h: 29.7, label: "Cancer S" },
   // P5 (dark gray, contractor) — between Cancer & 48X
-  { code: "P5", name: "Parking 5 (contractor only)",      cat: "parking",   x: 670, y: 290, w: 105, h: 50, label: "P5" },
+  { code: "P5", name: "Parking 5 (contractor only)",      cat: "parking",   x: 514.6, y: 205.4, w: 77.0, h: 37.2, label: "P5" },
   // P4 (bright green parking lot) + 48X Complex share rectangle (P4 top, 48X bottom)
-  { code: "P4", name: "Parking 4",                        cat: "parking",   x: 777, y: 307, w: 110, h: 35, label: "P4" },
-  { code: "A",  name: "48X Complex",                      cat: "clinic",    x: 777, y: 348, w: 110, h: 36, label: "48X Complex" },
+  { code: "P4", name: "Parking 4",                        cat: "parking",   x: 592.4, y: 217.1, w: 80.6, h: 26.1, label: "P4" },
+  { code: "A",  name: "48X Complex",                      cat: "clinic",    x: 582.1, y: 242.3, w: 80.6, h: 26.8, label: "48X Complex" },
 
   // ============ FAR-WEST CLUSTER ============
   // Behavioral Health Center (cyan, far left)
-  { code: "Y",  name: "Behavioral Health Center",         cat: "clinic",    x: 95,  y: 200, w: 90,  h: 35, label: "Behavioral Health" },
+  { code: "Y",  name: "Behavioral Health Center",         cat: "clinic",    x: 59.0,  y: 148.9, w: 65.9,  h: 26.1, label: "Behavioral Health" },
   // Children's Behavioral Health (cyan, below)
-  { code: "Z",  name: "Children's Behavioral Health",     cat: "clinic",    x: 130, y: 250, w: 95,  h: 50, label: "Children's BH" },
+  { code: "Z",  name: "Children's Behavioral Health",     cat: "clinic",    x: 88.5, y: 176.1, w: 69.6,  h: 37.2, label: "Children's BH" },
   // Hotel Med Park (yellow-orange, mid-left)
-  { code: "Hp", name: "Hotel Med Park",                   cat: "external",  x: 200, y: 320, w: 80,  h: 35, label: "Hotel Med Park" },
+  { code: "Hp", name: "Hotel Med Park",                   cat: "external",  x: 164.3, y: 265.6, w: 58.7,  h: 26.1, label: "Hotel Med Park" },
   // Sherman Building (small)
-  { code: "Sh", name: "Sherman Building",                 cat: "admin",     x: 195, y: 270, w: 75,  h: 32, label: "Sherman" },
+  { code: "Sh", name: "Sherman Building",                 cat: "admin",     x: 154.0, y: 229.5, w: 55.0,  h: 23.8, label: "Sherman" },
   // Davis I & II
-  { code: "D1", name: "Davis I Building",                 cat: "admin",     x: 215, y: 365, w: 80,  h: 30, label: "Davis I" },
-  { code: "D2", name: "Davis II Building",                cat: "admin",     x: 215, y: 400, w: 80,  h: 30, label: "Davis II" },
+  { code: "D1", name: "Davis I Building",                 cat: "admin",     x: 179.3, y: 290.1, w: 58.7,  h: 22.3, label: "Davis I" },
+  { code: "D2", name: "Davis II Building",                cat: "admin",     x: 193.3, y: 312.1, w: 58.7,  h: 22.3, label: "Davis II" },
   // Western Fairs Building
-  { code: "WF", name: "Western Fairs Building",           cat: "admin",     x: 230, y: 442, w: 80,  h: 35, label: "Western Fairs" },
+  { code: "WF", name: "Western Fairs Building",           cat: "admin",     x: 194.2, y: 332.6, w: 58.7,  h: 26.1, label: "Western Fairs" },
   // Ticon I (small bldg between Western Fairs and main)
-  { code: "T1", name: "Ticon I",                          cat: "admin",     x: 290, y: 478, w: 50,  h: 30, label: "Ticon I" },
+  { code: "T1", name: "ABMCO",                            cat: "admin",     x: 238.1, y: 356.2, w: 36.6,  h: 22.3, label: "ABMCO" },
+  { code: "SFC",name: "Student Fitness Center",           cat: "amenity",   x: 253,   y: 380,   w: 36,    h: 18,   label: "Student Fitness Center" },
   // Ticon II (top-far-left)
-  { code: "T2", name: "Ticon II",                         cat: "admin",     x: 80,  y: 30,  w: 60,  h: 30, label: "Ticon II" },
+  { code: "T2", name: "Ticon II",                         cat: "admin",     x: 234.4,  y: 356.2,  w: 44.0,  h: 22.3, label: "Ticon II" },
 
   // ============ MEDICAL CENTER NORTH (small bldgs above Med Ctr) ============
   // Gratitude Garden (small, NW of Med Ctr)
-  { code: "GG", name: "Gratitude Garden",                 cat: "amenity",   x: 360, y: 130, w: 55,  h: 22, label: "Gratitude Garden" },
+  { code: "GG", name: "Gratitude Garden",                 cat: "amenity",   x: 251.7, y: 104.7, w: 40.3,  h: 16.4, label: "Gratitude Garden" },
   // Police (small, between Cypress and Pathology)
-  { code: "PO", name: "Police / Public Safety",           cat: "admin",     x: 348, y: 130, w: 36,  h: 38, label: "Police" },
+  { code: "PO", name: "Police / Public Safety",           cat: "admin",     x: 284.8, y: 107.5, w: 26.4,  h: 28.3, label: "Police" },
 
   // ============ P3 PARKING (green, hospital main) ============
-  { code: "P3", name: "Parking 3 (hospital main)",        cat: "parking",   x: 298, y: 297, w: 71,  h: 80, label: "P3" },
+  { code: "P3", name: "Parking 3 (hospital main)",        cat: "parking",   x: 236.1, y: 197.6, w: 52.0,  h: 59.6, label: "P3" },
 
   // ============ CENTER-EAST: Shriners + courtyard area ============
   // Shriners Hospital (gray)
-  { code: "SH", name: "Shriners Hospital",                cat: "external",  x: 388, y: 425, w: 80,  h: 80, label: "Shriners Hospital" },
+  { code: "SH", name: "Shriners Hospital",                cat: "external",  x: 314.7, y: 313.8, w: 58.7,  h: 59.6, label: "Shriners Hospital" },
   // Shriners Parking Garage (gray)
-  { code: "SPG",name: "Shriners Parking Garage",          cat: "external",  x: 478, y: 425, w: 60,  h: 80, label: "Shriners Parking" },
+  { code: "SPG",name: "Shriners Parking Garage",          cat: "external",  x: 380.6, y: 313.8, w: 44.0,  h: 59.6, label: "Shriners Parking" },
   // Courtyard by Marriott (gray)
-  { code: "CM", name: "Courtyard by Marriott",            cat: "external",  x: 458, y: 510, w: 100, h: 50, label: "Courtyard Marriott" },
+  { code: "CM", name: "Courtyard by Marriott",            cat: "external",  x: 334.7, y: 364.7, w: 73.3, h: 37.2, label: "Courtyard Marriott" },
   // Glassrock (yellow, mid)
-  { code: "V",  name: "Glassrock Building",               cat: "admin",     x: 304, y: 480, w: 51,  h: 33, label: "Glassrock" },
+  { code: "V",  name: "Glassrock Building",               cat: "admin",     x: 298.8, y: 375.5, w: 37.4,  h: 24.6, label: "Glassrock" },
   // Cancer Survivor Park (small light-green, mid)
-  { code: "CSP",name: "Cancer Survivor Park",             cat: "amenity",   x: 360, y: 520, w: 100, h: 50, label: "Cancer Survivor Park" },
+  { code: "CSP",name: "Cancer Survivor Park",             cat: "amenity",   x: 316.9, y: 416.4, w: 73.3, h: 37.2, label: "Cancer Survivor Park" },
   // Oak Park Research (yellow X)
-  { code: "X",  name: "Oak Park Research Building",       cat: "research",  x: 365, y: 628, w: 44,  h: 43, label: "Oak Park Research" },
+  { code: "X",  name: "Oak Park Research Building",       cat: "research",  x: 277.4, y: 465.3, w: 32.3,  h: 32.0, label: "Oak Park Research" },
 
   // ============ CENTER: Education / Vanderhoef / Research ============
   // Center for Health and Technology (orange G — large block)
-  { code: "G",  name: "Center for Health and Technology", cat: "education", x: 571, y: 415, w: 96,  h: 61, label: "Center Health & Tech" },
+  { code: "G",  name: "Center for Health and Technology", cat: "education", x: 453.5, y: 282.9, w: 70.4,  h: 45.4, label: "Center Health & Tech" },
   // Education Building / Medical Library (orange E)
-  { code: "E",  name: "Education Building / Medical Library",cat: "education",x: 698, y: 489, w: 60, h: 60, label: "Education" },
+  { code: "E",  name: "Education Building / Medical Library",cat: "education",x: 546.2, y: 355.0, w: 44.0, h: 44.6, label: "Education" },
   // Administrative Support Building (yellow B) — large
-  { code: "B",  name: "Administrative Support Building",  cat: "admin",     x: 772, y: 648, w: 112, h: 81, label: "Admin Support" },
+  { code: "B",  name: "Administrative Support Building",  cat: "admin",     x: 512.8, y: 282.8, w: 82.1, h: 60.3, label: "Admin Support" },
   // Vanderhoef Commons (dark green — outdoor fitness court)
-  { code: "VC", name: "Vanderhoef Commons",               cat: "amenity",   x: 642, y: 482, w: 51,  h: 67, label: "Vanderhoef" },
+  { code: "VC", name: "Vanderhoef Commons",               cat: "amenity",   x: 485.3, y: 346.4, w: 37.4,  h: 49.9, label: "Vanderhoef" },
   // Betty Irene Moore Hall (yellow D, below Vanderhoef)
-  { code: "D",  name: "Betty Irene Moore Hall",           cat: "education", x: 605, y: 570, w: 75,  h: 50, label: "Betty Irene Moore" },
+  { code: "D",  name: "Betty Irene Moore Hall",           cat: "education", x: 519.6, y: 374.3, w: 55.0,  h: 37.2, label: "Betty Irene Moore" },
   // Imaging Research Center (small mid)
-  { code: "J",  name: "Imaging Research Center",          cat: "research",  x: 560, y: 460, w: 35,  h: 30, label: "Imaging Research" },
+  { code: "J",  name: "Imaging Research Center",          cat: "research",  x: 534.3, y: 252.5, w: 25.6,  h: 22.3, label: "Imaging Research" },
   // Research 1, 2, 3 (cluster)
-  { code: "O",  name: "Research 1",                       cat: "research",  x: 482, y: 555, w: 60,  h: 32, label: "R1" },
-  { code: "Pb", name: "Research 2",                       cat: "research",  x: 482, y: 595, w: 60,  h: 32, label: "R2" },
-  { code: "Pc", name: "Research 3",                       cat: "research",  x: 482, y: 635, w: 60,  h: 30, label: "R3" },
+  { code: "O",  name: "Research 1",                       cat: "research",  x: 363.7, y: 410.6, w: 44.0,  h: 23.8, label: "R1" },
+  { code: "Pb", name: "Research 2",                       cat: "research",  x: 367.6, y: 439.0, w: 44.0,  h: 23.8, label: "R2" },
+  { code: "Pc", name: "Research 3",                       cat: "research",  x: 363.5, y: 468.6, w: 44.0,  h: 22.3, label: "R3" },
 
   // ============ ACC + EYE INSTITUTE ============
   // Lawrence J. Ellison ACC (cyan)
-  { code: "K2", name: "Lawrence J. Ellison Ambulatory Care Center", cat: "clinic", x: 803, y: 473, w: 71, h: 122, label: "ACC" },
+  { code: "K2", name: "Lawrence J. Ellison Ambulatory Care Center", cat: "clinic", x: 619.0, y: 349.6, w: 52.0, h: 90.8, label: "ACC" },
   // Eye Institute (cyan, north of ACC)
-  { code: "EI", name: "Ernest E. Tschannen Eye Institute",cat: "clinic",    x: 801, y: 411, w: 130, h: 45, label: "Eye Institute" },
+  { code: "EI", name: "Ernest E. Tschannen Eye Institute",cat: "clinic",    x: 617.5, y: 303.4, w: 95.3, h: 33.5, label: "Eye Institute" },
   // Same Day Surgery Center (small cyan AA)
-  { code: "AA", name: "Same Day Surgery Center",          cat: "clinic",    x: 882, y: 599, w: 42,  h: 34, label: "Same Day Surgery" },
+  { code: "AA", name: "Same Day Surgery Center",          cat: "clinic",    x: 671.2, y: 438.4, w: 30.7,  h: 25.3, label: "Same Day Surgery" },
   // P2 (vertical green parking column right of ACC)
-  { code: "P2", name: "Parking 2",                        cat: "parking",   x: 887, y: 494, w: 48,  h: 103, label: "P2" },
+  { code: "P2", name: "Parking 2",                        cat: "parking",   x: 674.3, y: 355.2, w: 35.2,  h: 76.7, label: "P2" },
 
   // ============ CENTRAL PLANT / FACILITIES (mid-east) ============
-  { code: "S",  name: "Facilities Support Services",      cat: "admin",     x: 699, y: 657, w: 64,  h: 50, label: "Facilities" },
-  { code: "CP", name: "Central Plant",                    cat: "admin",     x: 772, y: 648, w: 112, h: 81, label: "Central Plant" }, // utility building — not walkable
+  { code: "S",  name: "Facilities Support Services",      cat: "admin",     x: 500.2, y: 488.6, w: 46.9,  h: 37.2, label: "Facilities" },
+  { code: "CP", name: "Central Plant",                    cat: "admin",     x: 566.4, y: 469.5, w: 82.1, h: 60.3, label: "Central Plant" }, // utility building — not walkable
 
   // ============ AGGIE SQUARE AREA ============
-  // Aggie Square (large gray block, central-bottom)
-  { code: "C",  name: "Aggie Square",                     cat: "admin",     x: 380, y: 580, w: 175, h: 130, label: "Aggie Square" },
+  // Aggie Square — split into 5 sub-buildings. C is the original parent code; the
+  // remaining four use working names (AS2-AS5) and can be renamed via Edit Mode once
+  // the SVG-labeled tenants are confirmed.
+  { code: "C",   name: "Aggie Square",                    cat: "admin",     x: 304.8, y: 416.4, w: 128.3, h: 96.8, label: "Aggie Sq" },
+  { code: "AS2", name: "Aggie Square - Lab East",         cat: "research",  x: 432,   y: 480,   w: 36,    h: 24,   label: "Lab East" },
+  { code: "AS3", name: "Aggie Square - Building 3",       cat: "admin",     x: 400,   y: 460,   w: 36,    h: 28,   label: "AS3" },
+  { code: "AS4", name: "Aggie Square - Building 4",       cat: "admin",     x: 400,   y: 510,   w: 36,    h: 28,   label: "AS4" },
+  { code: "AS5", name: "Aggie Square - Building 5",       cat: "admin",     x: 440,   y: 510,   w: 36,    h: 28,   label: "AS5" },
   // Aggie Square Parking (green block)
-  { code: "P6", name: "Aggie Square Parking",             cat: "parking",   x: 558, y: 712, w: 211, h: 54, label: "P6" },
+  { code: "P6", name: "Aggie Square Parking",             cat: "parking",   x: 439.3, y: 527.5, w: 154.7, h: 40.2, label: "P6" },
 
   // ============ FAR-EAST: MIND, P7, Ronald McDonald, Kiwanis ============
   // MIND Institute (cyan, far right)
-  { code: "V2", name: "MIND Institute",                   cat: "clinic",    x: 1041,y: 705, w: 64,  h: 67, label: "MIND Institute" },
+  { code: "V2", name: "MIND Institute",                   cat: "clinic",    x: 785.2,y: 511.0, w: 46.9,  h: 49.9, label: "MIND Institute" },
   // MIND Lab (small near MIND Institute)
-  { code: "ML", name: "MIND Lab",                         cat: "research",  x: 987, y: 678, w: 30,  h: 32, label: "MIND Lab" },
+  { code: "ML", name: "MIND Lab",                         cat: "research",  x: 745.6, y: 500.1, w: 21.9,  h: 23.8, label: "MIND Lab" },
   // P7 (beige staff parking)
-  { code: "P7", name: "Parking 7 (staff only)",           cat: "parking",   x: 1128,y: 699, w: 53,  h: 104, label: "P7" },
+  { code: "P7", name: "Parking 7 (staff only)",           cat: "parking",   x: 853.6,y: 502.3, w: 38.9,  h: 77.4, label: "P7" },
   // Ronald McDonald House (gray Z, far right)
-  { code: "RM", name: "Ronald McDonald House",            cat: "external",  x: 1080,y: 540, w: 90,  h: 75, label: "Ronald McDonald" },
+  { code: "RM", name: "Ronald McDonald House",            cat: "external",  x: 738.8,y: 395.1, w: 65.9,  h: 55.8, label: "Ronald McDonald" },
   // Kiwanis Family House (small, far right)
-  { code: "KF", name: "Kiwanis Family House",             cat: "external",  x: 1080,y: 700, w: 80,  h: 35, label: "Kiwanis Family" },
+  { code: "KF", name: "Kiwanis Family House",             cat: "external",  x: 794.6,y: 600.6, w: 58.7,  h: 26.1, label: "Kiwanis Family" },
 
   // ============ SOUTH BUILDINGS ============
   // Institute for Regenerative Cures / CTSC (yellow Q)
-  { code: "Q",  name: "Institute for Regenerative Cures / CTSC", cat: "research", x: 508, y: 826, w: 106, h: 65, label: "Inst. Regen Cures" },
+  { code: "Q",  name: "Institute for Regenerative Cures / CTSC", cat: "research", x: 398.0, y: 600.0, w: 77.7, h: 48.4, label: "Inst. Regen Cures" },
   // UC Davis Rehabilitation Hospital (navy BB) — south
-  { code: "BB", name: "UC Davis Rehabilitation Hospital", cat: "hospital",  x: 685, y: 868, w: 76,  h: 57, label: "Rehab Hospital" },
+  { code: "BB", name: "UC Davis Rehabilitation Hospital", cat: "hospital",  x: 512.5, y: 651.9, w: 55.7,  h: 42.4, label: "Rehab Hospital" },
   // Language Academy of Sacramento (gray, south-mid)
-  { code: "LA", name: "Language Academy of Sacramento",   cat: "external",  x: 685, y: 770, w: 100, h: 50, label: "Language Academy" },
+  { code: "LA", name: "Language Academy of Sacramento",   cat: "external",  x: 519.6, y: 569.4, w: 73.3, h: 37.2, label: "Language Academy" },
   // California Department of Justice (gray, south-east, large)
-  { code: "DOJ",name: "California Department of Justice", cat: "external",  x: 800, y: 800, w: 200, h: 140, label: "Dept. of Justice" },
+  { code: "DOJ",name: "California Department of Justice", cat: "external",  x: 598.4, y: 589.4, w: 146.7, h: 104.2, label: "Dept. of Justice" },
   // Sacramento Employment Development (small, far-south-east)
-  { code: "SED",name: "Sacramento Employment Development Office", cat: "external", x: 1080, y: 840, w: 100, h: 60, label: "Sac Employment Dev" },
+  { code: "SED",name: "Sacramento Employment Development Office", cat: "external", x: 799.1, y: 634.8, w: 73.3, h: 44.6, label: "Sac Employment Dev" },
   // Broadway Building (yellow F, bottom-right)
-  { code: "F",  name: "Broadway Building",                cat: "admin",     x: 939, y: 988, w: 111, h: 38, label: "Broadway Building" },
+  { code: "F",  name: "Broadway Building",                cat: "admin",     x: 715.4, y: 730.1, w: 81.4, h: 28.3, label: "Broadway Building" },
 
   // ============ MISC ============
   // Water Tower
-  { code: "WT", name: "Water Tower",                      cat: "admin",     x: 700, y: 250, w: 35,  h: 40, label: "Water Tower" },
+  { code: "WT", name: "Water Tower",                      cat: "admin",     x: 460.3, y: 181.2, w: 25.6,  h: 29.7, label: "Water Tower" },
 ];
 
 const PARKING_BUILDING_CODES = new Set(BUILDINGS.filter(b => b.cat === "parking").map(p => p.code));
@@ -199,50 +206,50 @@ const DEPARTMENTS = [
 // Streets: Stockton Blvd (diagonal NW→SE), 2nd Ave, 3rd Ave, Y St, X St, Broadway, 45th, 48th, 49th, 50th
 const GRAPH_NODES = {
   // Stockton Blvd (diagonal)
-  "stk_top":   { x: 200, y: 100 },
-  "stk_mid":   { x: 280, y: 380 },
-  "stk_low":   { x: 410, y: 800 },
-  "stk_bot":   { x: 510, y: 950 },
+  "stk_top":   { x: 176.9, y: 72.0 },
+  "stk_mid":   { x: 235.5, y: 280.3 },
+  "stk_low":   { x: 330.8, y: 593.0 },
+  "stk_bot":   { x: 404.1, y: 704.7 },
   // X Street (~y=380, mid-east)
-  "x_45":      { x: 460, y: 385 },
-  "x_st":      { x: 720, y: 385 },
-  "x_49":      { x: 935, y: 385 },
-  "x_50":      { x: 1050,y: 385 },
+  "x_45":      { x: 367.5, y: 284.1 },
+  "x_st":      { x: 558.1, y: 284.1 },
+  "x_49":      { x: 715.8, y: 284.1 },
+  "x_50":      { x: 800.1,y: 284.1 },
   // Y Street (~y=505)
-  "y_45":      { x: 360, y: 510 },
-  "y_st":      { x: 720, y: 505 },
-  "y_49":      { x: 935, y: 505 },
+  "y_45":      { x: 294.2, y: 377.1 },
+  "y_st":      { x: 558.1, y: 373.4 },
+  "y_49":      { x: 715.8, y: 373.4 },
   // 2nd Ave (~y=550, runs through Aggie Sq)
-  "a2_st":     { x: 720, y: 555 },
-  "a2_49":     { x: 935, y: 555 },
+  "a2_st":     { x: 558.1, y: 410.6 },
+  "a2_49":     { x: 715.8, y: 410.6 },
   // 3rd Ave (~y=755)
-  "a3_st":     { x: 660, y: 760 },
-  "a3_49":     { x: 935, y: 760 },
-  "a3_50":     { x: 1100,y: 760 },
+  "a3_st":     { x: 514.1, y: 563.2 },
+  "a3_49":     { x: 715.8, y: 563.2 },
+  "a3_50":     { x: 836.7,y: 563.2 },
   // Broadway (~y=970)
-  "bw_st":     { x: 660, y: 970 },
-  "bw_49":     { x: 935, y: 970 },
+  "bw_st":     { x: 514.1, y: 719.5 },
+  "bw_49":     { x: 715.8, y: 719.5 },
   // Internal building access nodes (snap-points near building entrances)
-  "n_med":     { x: 416, y: 295 }, // Medical Center main entrance
-  "n_cancer":  { x: 615, y: 320 }, // Cancer Center
-  "n_acc":     { x: 838, y: 535 }, // ACC main
-  "n_eye":     { x: 866, y: 433 }, // Eye Institute
-  "n_mind":    { x: 1073,y: 738 }, // MIND
-  "n_aggie":   { x: 467, y: 645 }, // Aggie Square
-  "n_aggiep":  { x: 663, y: 740 }, // Aggie Sq Parking
-  "n_p3":      { x: 333, y: 337 }, // P3
-  "n_p2":      { x: 911, y: 545 }, // P2
-  "n_p4":      { x: 832, y: 325 }, // P4
-  "n_p7":      { x: 1154,y: 750 }, // P7
-  "n_p6":      { x: 663, y: 740 }, // P6 same as aggiep
-  "n_p1":      { x: 270, y: 200 }, // P1
-  "n_p5":      { x: 720, y: 315 }, // P5
-  "n_rehab":   { x: 723, y: 895 }, // Rehab BB
-  "n_irc":     { x: 561, y: 858 }, // Inst Regen Cures
-  "n_brdwy":   { x: 994, y: 1007 },// Broadway Building
-  "n_addmin":  { x: 828, y: 690 }, // Admin Support
-  "n_chc":     { x: 619, y: 445 }, // CHT
-  "n_edu":     { x: 728, y: 519 }, // Education
+  "n_med":     { x: 335.2, y: 217.0 }, // Medical Center main entrance
+  "n_cancer":  { x: 481.1, y: 235.7 }, // Cancer Center
+  "n_acc":     { x: 644.6, y: 395.7 }, // ACC main
+  "n_eye":     { x: 665.1, y: 319.8 }, // Eye Institute
+  "n_mind":    { x: 816.9,y: 546.8 }, // MIND
+  "n_aggie":   { x: 372.6, y: 477.7 }, // Aggie Square
+  "n_aggiep":  { x: 516.3, y: 548.4 }, // Aggie Sq Parking
+  "n_p3":      { x: 274.4, y: 248.3 }, // P3
+  "n_p2":      { x: 698.2, y: 403.2 }, // P2
+  "n_p4":      { x: 640.3, y: 239.5 }, // P4
+  "n_p7":      { x: 876.3,y: 555.8 }, // P7
+  "n_p6":      { x: 516.3, y: 548.4 }, // P6 same as aggiep
+  "n_p1":      { x: 228.2, y: 146.3 }, // P1
+  "n_p5":      { x: 558.1, y: 231.9 }, // P5
+  "n_rehab":   { x: 560.3, y: 663.7 }, // Rehab BB
+  "n_irc":     { x: 441.6, y: 636.2 }, // Inst Regen Cures
+  "n_brdwy":   { x: 759.0, y: 747.0 },// Broadway Building
+  "n_addmin":  { x: 637.3, y: 511.1 }, // Admin Support
+  "n_chc":     { x: 484.1, y: 328.7 }, // CHT
+  "n_edu":     { x: 564.0, y: 383.8 }, // Education
 };
 
 // Graph edges (bidirectional) — connect nodes that share streets / are walkable neighbors
@@ -300,7 +307,7 @@ const BUILDING_ENTRY = {
   O:"n_aggie", Pb:"n_aggie", Pc:"n_aggie",
   K2:"n_acc", EI:"n_eye", AA:"n_acc",
   S:"n_addmin", CP:"n_addmin",
-  C:"n_aggie",
+  C:"n_aggie", AS2:"n_aggie", AS3:"n_aggie", AS4:"n_aggie", AS5:"n_aggie", SFC:"stk_mid",
   V2:"n_mind", ML:"n_mind", RM:"a2_49", KF:"a3_50",
   Q:"n_irc", BB:"n_rehab", LA:"a3_st", DOJ:"a3_49", SED:"a3_50", F:"n_brdwy",
   WT:"x_st",
@@ -310,12 +317,12 @@ const BUILDING_ENTRY = {
 
 // Shuttle stops (approximate, from VP/EP markers along Stockton)
 const SHUTTLE_STOPS = [
-  { id: "sh_acc",     name: "ACC / Eye Institute",     x: 800, y: 470 },
-  { id: "sh_med",     name: "Medical Center Main",     x: 410, y: 305 },
-  { id: "sh_cancer",  name: "Cancer Center",           x: 615, y: 380 },
-  { id: "sh_aggie",   name: "Aggie Square",            x: 470, y: 700 },
-  { id: "sh_mind",    name: "MIND Institute",          x: 1015,y: 760 },
-  { id: "sh_rehab",   name: "Rehab Hospital",          x: 720, y: 920 },
+  { id: "sh_acc",     name: "ACC / Eye Institute",     x: 616.8, y: 347.4 },
+  { id: "sh_med",     name: "Medical Center Main",     x: 330.8, y: 224.5 },
+  { id: "sh_cancer",  name: "Cancer Center",           x: 481.1, y: 280.3 },
+  { id: "sh_aggie",   name: "Aggie Square",            x: 374.8, y: 518.5 },
+  { id: "sh_mind",    name: "MIND Institute",          x: 774.4,y: 563.2 },
+  { id: "sh_rehab",   name: "Rehab Hospital",          x: 558.1, y: 682.3 },
 ];
 
 window.MAP_IMG = MAP_IMG;
@@ -331,9 +338,9 @@ window.SHUTTLE_STOPS = SHUTTLE_STOPS;
 
 // SacRT public-transit bus stops near the Sacramento campus (approximate positions)
 const BUS_STOPS = [
-  { id: "bus_stk_x",      name: "Stockton Blvd & X St (SacRT)",    x: 252, y: 395 },
-  { id: "bus_stk_y",      name: "Stockton Blvd & Y St (SacRT)",    x: 252, y: 505 },
-  { id: "bus_bw_49",      name: "Broadway & 49th St (SacRT)",      x: 904, y: 952 },
-  { id: "bus_xst_47",     name: "X St & 47th St (SacRT)",          x: 730, y: 392 },
+  { id: "bus_stk_x",      name: "Stockton Blvd & X St (SacRT)",    x: 215.0, y: 291.5 },
+  { id: "bus_stk_y",      name: "Stockton Blvd & Y St (SacRT)",    x: 215.0, y: 373.4 },
+  { id: "bus_bw_49",      name: "Broadway & 49th St (SacRT)",      x: 693.1, y: 706.2 },
+  { id: "bus_xst_47",     name: "X St & 47th St (SacRT)",          x: 565.4, y: 289.3 },
 ];
 window.BUS_STOPS = BUS_STOPS;

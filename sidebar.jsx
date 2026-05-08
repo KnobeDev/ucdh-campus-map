@@ -481,7 +481,32 @@ function RouteField({ label, value, onChange, accent, placeholder, kind = "to" }
 
   const filtered = q ? items.filter(it => it.label.toLowerCase().includes(q.toLowerCase())).slice(0, 8) : items.slice(0, 12);
 
-  const current = items.find(it => it.id === value);
+  // Resolve the chip label across ALL possible sources (buildings, parking, shuttles,
+  // buses, POIs) — not just `items`. Otherwise "Directions from here" on a building
+  // sets a valid `B_<code>` value that the dropdown can't match, and the field
+  // silently shows the placeholder while the state is in fact set correctly.
+  const current = (() => {
+    const inItems = items.find(it => it.id === value);
+    if (inItems) return inItems;
+    if (!value) return null;
+    if (value.startsWith("B_")) {
+      const b = window.BUILDINGS.find(x => x.code === value.slice(2));
+      if (b) return { id: value, label: `${b.cat === "parking" ? "🅿 " : ""}${b.code} · ${b.name}` };
+    }
+    if (value.startsWith("S_")) {
+      const s = (window.SHUTTLE_STOPS || []).find(x => x.id === value.slice(2));
+      if (s) return { id: value, label: `⛟ ${s.name}` };
+    }
+    if (value.startsWith("BUS_")) {
+      const b = (window.BUS_STOPS || []).find(x => x.id === value.slice(4));
+      if (b) return { id: value, label: `🚌 ${b.name}` };
+    }
+    if (value.startsWith("POI_")) {
+      const p = (window.POIS || []).find(x => x.id === value.slice(4));
+      if (p) return { id: value, label: `★ ${p.name || "Point of interest"}` };
+    }
+    return null;
+  })();
 
   return (
     <div className="sb-route-field">

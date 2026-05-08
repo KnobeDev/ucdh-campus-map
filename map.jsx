@@ -97,6 +97,11 @@ function CampusMap({
           <filter id="bldgGlow">
             <feGaussianBlur stdDeviation="2" />
           </filter>
+          {/* Diagonal hash for active construction zones */}
+          <pattern id="czStripes" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
+            <rect width="10" height="10" fill="#FFC72C" fillOpacity="0.35" />
+            <line x1="0" y1="0" x2="0" y2="10" stroke="#7A0019" strokeWidth="3" />
+          </pattern>
         </defs>
 
         {/* Base map image */}
@@ -176,6 +181,25 @@ function CampusMap({
             })}
           </g>
         )}
+
+        {/* Construction zones — striped polygons routed around */}
+        {!(editMode && editSubMode === "construction") && (window.CONSTRUCTION_ZONES || []).map(z => {
+          if (!z.points || z.points.length < 3) return null;
+          const ptsAttr = z.points.map(p => p.join(",")).join(" ");
+          const cx = z.points.reduce((s, p) => s + p[0], 0) / z.points.length;
+          const cy = z.points.reduce((s, p) => s + p[1], 0) / z.points.length;
+          return (
+            <g key={z.id} pointerEvents="none">
+              <polygon points={ptsAttr} fill="url(#czStripes)" stroke="#7A0019" strokeWidth="1.5" />
+              <title>{`Construction: ${z.name}${z.endDate ? " · until " + z.endDate : ""}`}</title>
+              <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle"
+                fontSize="10" fontWeight="800" fill="#7A0019"
+                stroke="#FFF8E0" strokeWidth="2.5" paintOrder="stroke">
+                CONSTRUCTION
+              </text>
+            </g>
+          );
+        })}
 
         {/* Crosswalks */}
         {showCrosswalks && !(editMode && editSubMode === "crosswalks") && (window.CROSSWALKS || []).map(xw => (
