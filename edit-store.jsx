@@ -62,6 +62,10 @@ function readEdits() {
 }
 function defaultEdits() {
   return {
+    // buildings entries override BASE_BUILDINGS by code: { x?, y?, w?, h?, points?, label?, name?, cat?, _deleted? }
+    // _deleted: true tombstones a base building so it stays gone across reloads.
+    // addedBuildings holds full records for user-created hotspots.
+    addedBuildings:{},
     buildings:{}, nodes:{}, addedNodes:{},
     addedEdges:[], removedEdges:[], edgeMeta:{},
     // shuttle entries override BASE_SHUTTLE: { x?, y?, name?, _deleted? }
@@ -101,11 +105,15 @@ function writeEdits(e) {
 }
 
 function applyEdits(edits) {
-  // Buildings
-  window.BUILDINGS = BASE_BUILDINGS.map(b => {
-    const o = edits.buildings[b.code];
-    return o ? { ...b, ...o } : b;
-  });
+  // Buildings: base list with overrides + tombstones, then user-added hotspots
+  const baseBuildings = BASE_BUILDINGS
+    .map(b => {
+      const o = edits.buildings[b.code];
+      return o ? { ...b, ...o } : b;
+    })
+    .filter(b => !b._deleted);
+  const addedBuildings = Object.values(edits.addedBuildings || {});
+  window.BUILDINGS = [...baseBuildings, ...addedBuildings];
   // Nodes: base + overrides + added
   const merged = {};
   for (const [k, v] of Object.entries(BASE_NODES)) {
@@ -167,8 +175,53 @@ const editStore = {
   reset() { writeEdits(defaultEdits()); applyEdits(defaultEdits()); notifyEdits(); },
 
   // ---- Buildings ----
+  // Internal: applies a transform fn to whichever bucket holds this code
+  // (added vs base override). Keeps every patcher below from having to repeat
+  // the dispatch logic.
+  _patchBuilding(e, code, fn) {
+    if (e.addedBuildings[code]) {
+      const next = fn(e.addedBuildings[code]);
+      return { ...e, addedBuildings: { ...e.addedBuildings, [code]: next } };
+    }
+    const cur = e.buildings[code] || {};
+    return { ...e, buildings: { ...e.buildings, [code]: fn(cur) } };
+  },
+  // ---- New: add / delete a hotspot ----
+  addBuilding(x, y, opts = {}) {
+    // Auto-pick a unique code that isn't already in BUILDINGS or addedBuildings
+    let code = opts.code;
+    if (!code) {
+      const used = new Set(window.BUILDINGS.map(b => b.code));
+      let n = 1;
+      while (used.has("X" + n)) n++;
+      code = "X" + n;
+    }
+    const w = Math.max(8, opts.w || 40);
+    const h = Math.max(8, opts.h || 30);
+    const record = {
+      code,
+      name: opts.name || "New hotspot",
+      cat: opts.cat || "external",
+      x: Math.round(x - w / 2),
+      y: Math.round(y - h / 2),
+      w, h,
+      label: opts.label || (opts.name || code),
+    };
+    this.set(e => ({ ...e, addedBuildings: { ...e.addedBuildings, [code]: record } }));
+    return code;
+  },
+  deleteBuilding(code) {
+    this.set(e => {
+      if (e.addedBuildings[code]) {
+        const a = { ...e.addedBuildings }; delete a[code];
+        return { ...e, addedBuildings: a };
+      }
+      // Tombstone for base buildings — preserves any prior overrides
+      return { ...e, buildings: { ...e.buildings, [code]: { ...(e.buildings[code]||{}), _deleted: true } } };
+    });
+  },
   moveBuilding(code, partial) {
-    this.set(e => ({ ...e, buildings: { ...e.buildings, [code]: { ...(e.buildings[code]||{}), ...partial } } }));
+    this.set(e => this._patchBuilding(e, code, cur => ({ ...cur, ...partial })));
   },
   setBuildingLabel(code, label) {
     this.moveBuilding(code, { label });
@@ -190,39 +243,37 @@ const editStore = {
     const xs = b.points.map(p => p[0]), ys = b.points.map(p => p[1]);
     const x = Math.round(Math.min(...xs)), y = Math.round(Math.min(...ys));
     const w = Math.round(Math.max(...xs) - x), h = Math.round(Math.max(...ys) - y);
-    this.set(e => {
-      const cur = e.buildings[code] || {};
+    this.set(e => this._patchBuilding(e, code, cur => {
       const next = { ...cur, x, y, w, h };
       delete next.points;
-      return { ...e, buildings: { ...e.buildings, [code]: next } };
-    });
+      return next;
+    }));
   },
   setPolygonPoint(code, idx, x, y) {
-    this.set(e => {
-      const cur = e.buildings[code] || {};
+    this.set(e => this._patchBuilding(e, code, cur => {
       const base = window.BASE_BUILDINGS.find(x => x.code === code) || {};
       const points = (cur.points ? cur.points : (base.points || null) ||
         // synthesise from current rect
         (() => { const b = window.BUILDINGS.find(x => x.code === code);
           return [[b.x,b.y],[b.x+b.w,b.y],[b.x+b.w,b.y+b.h],[b.x,b.y+b.h]]; })()
       ).map((p, i) => i === idx ? [Math.round(x), Math.round(y)] : [...p]);
-      return { ...e, buildings: { ...e.buildings, [code]: { ...cur, points } } };
-    });
+      return { ...cur, points };
+    }));
   },
   insertPolygonPoint(code, afterIdx, x, y) {
-    this.set(e => {
-      const cur = e.buildings[code] || {};
+    this.set(e => this._patchBuilding(e, code, cur => {
       const points = (cur.points || []).slice();
       points.splice(afterIdx + 1, 0, [Math.round(x), Math.round(y)]);
-      return { ...e, buildings: { ...e.buildings, [code]: { ...cur, points } } };
-    });
+      return { ...cur, points };
+    }));
   },
   deletePolygonPoint(code, idx) {
     this.set(e => {
-      const cur = e.buildings[code] || {};
+      const bucket = e.addedBuildings[code] ? "addedBuildings" : "buildings";
+      const cur = e[bucket][code] || {};
       if (!cur.points || cur.points.length <= 3) return e;
       const points = cur.points.filter((_, i) => i !== idx);
-      return { ...e, buildings: { ...e.buildings, [code]: { ...cur, points } } };
+      return { ...e, [bucket]: { ...e[bucket], [code]: { ...cur, points } } };
     });
   },
 

@@ -72,6 +72,7 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
 
   const editsCount =
     Object.keys(edits.buildings).length +
+    Object.keys(edits.addedBuildings || {}).length +
     Object.keys(edits.nodes).length +
     Object.keys(edits.addedNodes).length +
     edits.addedEdges.length +
@@ -198,8 +199,14 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
                     : "rectangle"}
                 </span>
               </div>
+              <TextField label="Name" value={target.data.name || ""} width={220}
+                onChange={(v) => updateBuilding({ name: v })} />
               <TextField label="Label" value={target.data.label || ""} width={180}
                 onChange={(v) => updateBuilding({ label: v })} />
+              <SelectField label="Category" value={target.data.cat || "external"} width={160}
+                options={Object.entries(window.CATEGORIES).map(([key, val]) => ({ value: key, label: val.label }))
+                  .concat([{ value: "parking", label: "Parking" }])}
+                onChange={(v) => updateBuilding({ cat: v })} />
               {!(target.data.points && target.data.points.length >= 3) && (
                 <>
                   <NumField label="X" value={target.data.x} onChange={(v) => updateBuilding({ x:v })} />
@@ -216,9 +223,24 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
                   ▭ Back to rectangle
                 </button>
               )}
-              <button className="edit-tb-btn small" onClick={() => {
-                window.editStore.set(e => { const nn = {...e.buildings}; delete nn[target.data.code]; return {...e, buildings: nn}; });
-              }}>Reset</button>
+              {edits.addedBuildings && edits.addedBuildings[target.data.code] ? (
+                <button className="edit-tb-btn small danger" onClick={() => {
+                  if (!confirm(`Delete hotspot "${target.data.name}"?`)) return;
+                  window.editStore.deleteBuilding(target.data.code);
+                  setEditTargetId(null);
+                }}>Delete</button>
+              ) : (
+                <>
+                  <button className="edit-tb-btn small" onClick={() => {
+                    window.editStore.set(e => { const nn = {...e.buildings}; delete nn[target.data.code]; return {...e, buildings: nn}; });
+                  }}>Reset</button>
+                  <button className="edit-tb-btn small danger" onClick={() => {
+                    if (!confirm(`Hide base hotspot "${target.data.name}"? It will stay hidden across reloads. Reset edits to bring it back.`)) return;
+                    window.editStore.deleteBuilding(target.data.code);
+                    setEditTargetId(null);
+                  }}>Hide base</button>
+                </>
+              )}
               <ConstructionControls building={target.data} edits={edits} />
             </>
           )}

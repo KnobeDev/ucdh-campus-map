@@ -9,7 +9,7 @@
 //   "shuttle"   — drag shuttle stops
 
 const EDIT_MODES = [
-  { id: "hotspots",  label: "Hotspots",   help: "Drag to move. Drag a corner to resize. Convert to a polygon for irregular shapes; then drag corners (alt-click to remove), or click any midpoint dot to add a vertex." },
+  { id: "hotspots",  label: "Hotspots",   help: "Click empty map to add a hotspot. Drag to move; corner to resize. Convert to polygon for irregular shapes — drag corners (alt-click to remove), or click any midpoint dot to add a vertex. Inspector edits name, code, category." },
   { id: "routes",    label: "Routes",     help: "Pick a From and To in the sidebar to show a route. Drag any corner to pin the route through that point. Click on the path to drop a new pin. Alt-click a pin to remove it. Use “Reset route” to clear." },
   { id: "waypoints", label: "Waypoints",  help: "Drag a waypoint to move. Click two waypoints to toggle an edge between them. Edit the label in the inspector." },
   { id: "addnode",   label: "+ Waypoint", help: "Click anywhere on the map to drop a new waypoint." },
@@ -131,6 +131,9 @@ function EditOverlay({
     } else if (mode === "shuttle") {
       const id = window.editStore.addShuttle(Math.round(p.x), Math.round(p.y));
       setEditTargetId({ kind: "shuttle", id });
+    } else if (mode === "hotspots") {
+      const code = window.editStore.addBuilding(Math.round(p.x), Math.round(p.y));
+      setEditTargetId({ kind: "building", code });
     } else {
       setEditTargetId(null);
       setEdgePickFirst(null);
@@ -152,6 +155,9 @@ function EditOverlay({
         setEditTargetId(null);
       } else if (editTargetId.kind === "crosswalk") {
         window.editStore.deleteCrosswalk(editTargetId.id);
+        setEditTargetId(null);
+      } else if (editTargetId.kind === "building" && edits.addedBuildings && edits.addedBuildings[editTargetId.code]) {
+        window.editStore.deleteBuilding(editTargetId.code);
         setEditTargetId(null);
       } else if (editTargetId.kind === "shuttle") {
         window.editStore.deleteShuttle(editTargetId.id);
@@ -179,7 +185,7 @@ function EditOverlay({
       <rect data-bg="1" x="0" y="0" width={window.MAP_IMG.w} height={window.MAP_IMG.h}
             fill="transparent"
             onMouseDown={onSvgClick}
-            style={{ cursor: (mode === "addnode" || mode === "entrances" || mode === "crosswalks" || mode === "pois" || mode === "shuttle") ? "crosshair" : "default" }} />
+            style={{ cursor: (mode === "addnode" || mode === "entrances" || mode === "crosswalks" || mode === "pois" || mode === "shuttle" || mode === "hotspots") ? "crosshair" : "default" }} />
 
       {/* HOTSPOTS */}
       {mode === "hotspots" && buildings.map(b => {
