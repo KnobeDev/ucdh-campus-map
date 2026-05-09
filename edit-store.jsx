@@ -64,7 +64,12 @@ function defaultEdits() {
   return {
     buildings:{}, nodes:{}, addedNodes:{},
     addedEdges:[], removedEdges:[], edgeMeta:{},
+    // shuttle entries override BASE_SHUTTLE: { x?, y?, name?, _deleted? }
+    // _deleted: true tombstones a base stop (kept in storage so it stays gone
+    // across reloads even though BASE_SHUTTLE still has it).
     shuttle:{},
+    // user-added shuttle stops (full records keyed by id)
+    addedShuttle:{},
     entrances:{}, crosswalks:{},
     pois:{},
     // Construction zones — temporary closures; route around them.
@@ -114,11 +119,15 @@ function applyEdits(edits) {
   const baseEdges = BASE_EDGES.filter(e => !removed.has(edgeKey(e)));
   window.GRAPH_EDGES = [...baseEdges, ...edits.addedEdges];
   window.EDGE_META = { ...edits.edgeMeta };
-  // Shuttle stops
-  window.SHUTTLE_STOPS = BASE_SHUTTLE.map(s => {
-    const o = edits.shuttle[s.id];
-    return o ? { ...s, ...o } : s;
-  });
+  // Shuttle stops: base list with overrides + tombstones, then user-added
+  const baseStops = BASE_SHUTTLE
+    .map(s => {
+      const o = edits.shuttle[s.id];
+      return o ? { ...s, ...o } : s;
+    })
+    .filter(s => !s._deleted);
+  const addedStops = Object.values(edits.addedShuttle || {});
+  window.SHUTTLE_STOPS = [...baseStops, ...addedStops];
   // Entrances + crosswalks + POIs (purely user-added)
   window.ENTRANCES  = Object.values(edits.entrances || {});
   window.CROSSWALKS = Object.values(edits.crosswalks || {});
@@ -283,6 +292,38 @@ const editStore = {
     this.set(e => {
       const k = edgeKey([a,b]);
       return { ...e, edgeMeta: { ...e.edgeMeta, [k]: { ...(e.edgeMeta[k]||{}), type } } };
+    });
+  },
+
+  // ---- Shuttle stops ----
+  // Adds a brand-new stop. Returns the new id.
+  addShuttle(x, y, opts = {}) {
+    const id = uid("stop");
+    const name = opts.name || "New shuttle stop";
+    this.set(e => ({ ...e, addedShuttle: { ...e.addedShuttle,
+      [id]: { id, x: Math.round(x), y: Math.round(y), name }
+    }}));
+    return id;
+  },
+  // Patches a stop. Routes base-stop edits through `shuttle{}`, added-stop
+  // edits through `addedShuttle{}`. Caller doesn't need to know which.
+  updateShuttle(id, partial) {
+    this.set(e => {
+      if (e.addedShuttle[id]) {
+        return { ...e, addedShuttle: { ...e.addedShuttle, [id]: { ...e.addedShuttle[id], ...partial } } };
+      }
+      return { ...e, shuttle: { ...e.shuttle, [id]: { ...(e.shuttle[id]||{}), ...partial } } };
+    });
+  },
+  // Removes a stop. Added stops are dropped outright; base stops get a
+  // tombstone so they stay removed on reload.
+  deleteShuttle(id) {
+    this.set(e => {
+      if (e.addedShuttle[id]) {
+        const a = { ...e.addedShuttle }; delete a[id];
+        return { ...e, addedShuttle: a };
+      }
+      return { ...e, shuttle: { ...e.shuttle, [id]: { ...(e.shuttle[id]||{}), _deleted: true } } };
     });
   },
 

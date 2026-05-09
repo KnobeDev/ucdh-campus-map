@@ -57,7 +57,9 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
   };
   const updateShuttle = (patch) => {
     if (!target || target.kind !== "shuttle") return;
-    window.editStore.set(e => ({ ...e, shuttle: { ...e.shuttle, [target.data.id]: { ...(e.shuttle[target.data.id]||{}), ...patch } } }));
+    // Route through the store API so base-stop edits go to `shuttle{}` and
+    // added-stop edits go to `addedShuttle{}` automatically.
+    window.editStore.updateShuttle(target.data.id, patch);
   };
   const updateEntrance = (patch) => {
     if (!target || target.kind !== "entrance") return;
@@ -76,6 +78,7 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
     edits.removedEdges.length +
     Object.keys(edits.edgeMeta || {}).length +
     Object.keys(edits.shuttle).length +
+    Object.keys(edits.addedShuttle || {}).length +
     Object.keys(edits.entrances || {}).length +
     Object.keys(edits.crosswalks || {}).length +
     Object.keys(edits.pois || {}).length;
@@ -243,8 +246,15 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
                 <span className="edit-insp-code">S</span>
                 <span className="edit-insp-name">{target.data.name}</span>
               </div>
+              <TextField label="Name" value={target.data.name || ""} width={220}
+                onChange={(v) => window.editStore.updateShuttle(target.data.id, { name: v })} />
               <NumField label="X" value={target.data.x} onChange={(v) => updateShuttle({ x:v })} />
               <NumField label="Y" value={target.data.y} onChange={(v) => updateShuttle({ y:v })} />
+              <button className="edit-insp-delete" onClick={() => {
+                if (!confirm(`Delete shuttle stop "${target.data.name}"?`)) return;
+                window.editStore.deleteShuttle(target.data.id);
+                setEditTargetId(null);
+              }}>Delete</button>
             </>
           )}
           {target.kind === "entrance" && (

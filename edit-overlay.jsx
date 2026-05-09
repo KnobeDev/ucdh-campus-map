@@ -17,7 +17,7 @@ const EDIT_MODES = [
   { id: "entrances", label: "Entrances",  help: "Click on the map to add a building entrance. Use the inspector to mark accessible (♿) and assign to a building." },
   { id: "crosswalks",label: "Crosswalks", help: "Click on the map to mark a crosswalk. Drag to move; rotate using the inspector." },
   { id: "pois",      label: "POIs",       help: "Click on the map to drop a point of interest. Use the inspector to set its name, visitor instructions, upcoming events, and an Apple/Google Maps link so visitors can open the location on their phone." },
-  { id: "shuttle",   label: "Shuttle",    help: "Drag a shuttle stop to reposition it." },
+  { id: "shuttle",   label: "Shuttle",    help: "Click empty map to add a stop. Drag to reposition. Use the inspector to rename or delete." },
   { id: "construction", label: "Construction", help: "Drag a zone to move. Drag corners to reshape; click a midpoint to add a vertex; alt-click a corner to remove. Set name + end date in the inspector. After end date passes the zone auto-clears and routing re-opens through the area." },
 ];
 
@@ -73,7 +73,7 @@ function EditOverlay({
       } else if (drag.kind === "node") {
         window.editStore.moveNode(drag.id, Math.round(drag.orig.x + dx), Math.round(drag.orig.y + dy));
       } else if (drag.kind === "shuttle") {
-        window.editStore.set(e => ({ ...e, shuttle: { ...e.shuttle, [drag.id]: { x: Math.round(drag.orig.x + dx), y: Math.round(drag.orig.y + dy) } } }));
+        window.editStore.updateShuttle(drag.id, { x: Math.round(drag.orig.x + dx), y: Math.round(drag.orig.y + dy) });
       } else if (drag.kind === "entrance") {
         window.editStore.updateEntrance(drag.id, { x: Math.round(drag.orig.x + dx), y: Math.round(drag.orig.y + dy) });
       } else if (drag.kind === "crosswalk") {
@@ -128,6 +128,9 @@ function EditOverlay({
     } else if (mode === "pois") {
       const id = window.editStore.addPOI(Math.round(p.x), Math.round(p.y));
       setEditTargetId({ kind: "poi", id });
+    } else if (mode === "shuttle") {
+      const id = window.editStore.addShuttle(Math.round(p.x), Math.round(p.y));
+      setEditTargetId({ kind: "shuttle", id });
     } else {
       setEditTargetId(null);
       setEdgePickFirst(null);
@@ -149,6 +152,9 @@ function EditOverlay({
         setEditTargetId(null);
       } else if (editTargetId.kind === "crosswalk") {
         window.editStore.deleteCrosswalk(editTargetId.id);
+        setEditTargetId(null);
+      } else if (editTargetId.kind === "shuttle") {
+        window.editStore.deleteShuttle(editTargetId.id);
         setEditTargetId(null);
       } else if (editTargetId.kind === "poi") {
         window.editStore.deletePOI(editTargetId.id);
@@ -173,7 +179,7 @@ function EditOverlay({
       <rect data-bg="1" x="0" y="0" width={window.MAP_IMG.w} height={window.MAP_IMG.h}
             fill="transparent"
             onMouseDown={onSvgClick}
-            style={{ cursor: (mode === "addnode" || mode === "entrances" || mode === "crosswalks" || mode === "pois") ? "crosshair" : "default" }} />
+            style={{ cursor: (mode === "addnode" || mode === "entrances" || mode === "crosswalks" || mode === "pois" || mode === "shuttle") ? "crosshair" : "default" }} />
 
       {/* HOTSPOTS */}
       {mode === "hotspots" && buildings.map(b => {
