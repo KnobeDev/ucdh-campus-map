@@ -11,6 +11,8 @@ function Sidebar({
   route, setRoute,
   showShuttle, setShowShuttle,
   showPois, setShowPois,
+  showEntrances, setShowEntrances,
+  showCrosswalks, setShowCrosswalks,
   showLabels, setShowLabels,
   reduceMotion, setReduceMotion,
   panelMode, setPanelMode, // 'browse' | 'route' | 'detail'
@@ -29,7 +31,7 @@ function Sidebar({
       id: b.code, kind: b.cat === "parking" ? "parking" : "building",
       code: b.code, name: b.name, cat: b.cat,
       sub: b.cat === "parking"
-        ? (window.PARKING_TYPES["P1 P5 P7".includes(b.code) ? "staff" : "patient"].label)
+        ? (window.PARKING_TYPES[window.parkingTypeOf(b)].label)
         : (window.CATEGORIES[b.cat]?.label || "Facility"),
     })),
     ...window.DEPARTMENTS.map(d => ({
@@ -143,7 +145,11 @@ function Sidebar({
           {results.length > 0 && (
             <div className="sb-results">
               {results.map(it => {
-                const color = it.cat === "parking" ? "#1ba0d3" : (window.CATEGORIES[it.cat]?.color || "#5A6470");
+                // Search results store the building's `code` so we can ask for its
+                // parking sub-type color directly. Falls back gracefully when the
+                // item isn't a parking lot.
+                const bForLookup = it.cat === "parking" ? (window.BUILDINGS.find(b => b.code === it.code) || it) : null;
+                const color = it.cat === "parking" ? window.parkingColorOf(bForLookup) : (window.CATEGORIES[it.cat]?.color || "#5A6470");
                 return (
                   <button key={it.id} className="sb-result"
                     onMouseEnter={() => setHoveredId(it.code)}
@@ -197,6 +203,8 @@ function Sidebar({
                 <div className="sb-toggles">
                   <Toggle label="Shuttle stops" checked={showShuttle} onChange={setShowShuttle} />
                   <Toggle label="Points of interest" checked={showPois} onChange={setShowPois} />
+                  <Toggle label="Building entrances" checked={showEntrances} onChange={setShowEntrances} />
+                  <Toggle label="Crosswalks" checked={showCrosswalks} onChange={setShowCrosswalks} />
                   <Toggle label="Building names" checked={showLabels} onChange={setShowLabels} />
                   <Toggle label="Reduce animation" checked={!!reduceMotion} onChange={setReduceMotion} />
                 </div>
@@ -289,11 +297,11 @@ function Sidebar({
         <div className="sb-body">
           <button className="sb-back" onClick={() => setPanelMode("browse")}>‹ Back</button>
           <div className="sb-detail">
-            <div className="sb-detail-head" style={{ background: isParkingSelected ? "#1ba0d3" : (window.CATEGORIES[selected.cat]?.color || "#5A6470") }}>
+            <div className="sb-detail-head" style={{ background: isParkingSelected ? window.parkingColorOf(selected) : (window.CATEGORIES[selected.cat]?.color || "#5A6470") }}>
               <div className="sb-detail-code">{selected.code}</div>
               <div className="sb-detail-name">{selected.name}</div>
               <div className="sb-detail-cat">
-                {isParkingSelected ? window.PARKING_TYPES[selected.type || ("P1 P5 P7".includes(selected.code) ? "staff" : "patient")].label : (window.CATEGORIES[selected.cat]?.label || "Facility")}
+                {isParkingSelected ? window.PARKING_TYPES[window.parkingTypeOf(selected)].label : (window.CATEGORIES[selected.cat]?.label || "Facility")}
               </div>
             </div>
 

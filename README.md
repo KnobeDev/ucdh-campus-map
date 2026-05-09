@@ -12,14 +12,21 @@ to native maps on phone.
 ## Features
 
 - **Search** by building name, code, department, or clinic
-- **Wayfinding** — pick any From/To, get a routed walking path that avoids buildings (parking lots and parks are walkable)
-- **Polygon hotspots** matching real building footprints (50+ buildings, parking lots, shuttle stops, points of interest)
-- **Layer toggles** — shuttle stops, points of interest, building names, paths, entrances, crosswalks
-- **Filters** by category (Hospital, Clinic, Research, Education, Admin, Parking, …)
+- **Wayfinding** — pick any From/To, get a routed walking path that avoids buildings and active construction zones (parking lots and parks are walkable)
+- **Polygon hotspots** matching real building footprints (60+ buildings, parking lots, shuttle stops, bus stops, points of interest)
+- **SVG vector basemap** that scales cleanly at any zoom (campus-map.svg)
+- **Layer toggles** — shuttle stops, points of interest, building entrances, crosswalks, building names, plus a reduce-animation switch
+- **Category filters** (Hospital, Clinic, Research, Education, Admin, Amenity, Non-UC Davis) with the filter dim-overlay made transparent enough to keep the underlying basemap legible
+- **Parking sub-types** — patient/visitor (green), staff-only (beige), contractor-only (grey)
 - **Pan / zoom** with mouse wheel + drag
-- **Get directions on phone** — opens the destination in Apple Maps on iOS / macOS, Google Maps elsewhere
-- **Edit mode** — drag/resize hotspots, draw polygons, edit waypoints, mark entrances (♿) and crosswalks, export/import edits as JSON
-- **Default edits bundled** — polygon shapes ship as `default-edits.json`, auto-loaded on first visit
+- **Get directions on phone** — opens the destination in Apple Maps on iOS / macOS, Google Maps elsewhere; queries are anchored to "UC Davis Health, Sacramento, CA" so common building names don't collide with off-campus locations
+- **Construction zones** — striped overlay polygons that route the walker around them; auto-expire when their `endDate` passes; editable per-vertex like building polygons
+- **Full edit mode** — every map element is a first-class CRUD object:
+  - Hotspots (buildings) — click empty map to create, drag/resize/polygonize, edit name/label/category, delete or hide-base
+  - Shuttle stops — click to add, rename, drag, delete (base stops are tombstoned)
+  - Waypoints, paths, entrances (♿), crosswalks, points of interest
+  - Construction zones — full polygon editor with end-date scheduling
+- **Apply versioning** — the Apply button writes `default-edits.json` with a fresh `_version` stamp; the loader auto-resets stale `localStorage` on visitors' next page load, so each push is picked up automatically
 
 ## Running locally
 
@@ -49,7 +56,8 @@ Or any static server (`python3 -m http.server`, `npx serve`, etc.) pointed at th
 | `tweaks-panel.jsx` | Theme + layer toggles |
 | `default-edits.json` | Bundled polygon shapes / overrides |
 | `default-edits-loader.js` | Seeds localStorage with defaults on first load |
-| `campus-map-inline.js` | Base64-inlined campus map PNG |
+| `campus-map.svg` | Vector campus map background |
+| `campus-map-inline.js` | Base64-inlined PNG fallback (kept for revert) |
 | `styles.css` | All styling |
 
 ## License

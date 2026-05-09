@@ -165,10 +165,14 @@ const CATEGORIES = {
   external:  { label: "Non-UC Davis",      color: "#727272" },
 };
 
-// Parking sub-types
+// Parking sub-types — colors chosen to be distinct from the building palette
+//   patient   → green   (general visitor parking)
+//   staff     → beige   (staff-only)
+//   contractor→ grey    (contractor-only)
 const PARKING_TYPES = {
-  staff:   { label: "Staff only",          color: "#C8B27A" },
-  patient: { label: "Patient & Visitor",   color: "#1ba0d3" },
+  staff:      { label: "Staff only",                color: "#C8B27A" },
+  patient:    { label: "Patient & Visitor",         color: "#5DA831" },
+  contractor: { label: "Contractor only",           color: "#727272" },
 };
 
 // Departments / clinics — point users to a building
@@ -330,6 +334,19 @@ window.BUILDINGS = BUILDINGS;
 window.PARKING_BUILDING_CODES = PARKING_BUILDING_CODES;
 window.CATEGORIES = CATEGORIES;
 window.PARKING_TYPES = PARKING_TYPES;
+
+// Resolve a parking building to its sub-type. Reads an explicit `type` field
+// when present (set via default-edits.json), otherwise falls back to a code
+// heuristic. Centralized so map.jsx + sidebar.jsx share one source of truth.
+window.parkingTypeOf = function (b) {
+  if (b && typeof b.type === "string" && PARKING_TYPES[b.type]) return b.type;
+  if (b && b.code === "P5") return "contractor";
+  if (b && (b.code === "P1" || b.code === "P7")) return "staff";
+  return "patient";
+};
+window.parkingColorOf = function (b) {
+  return PARKING_TYPES[window.parkingTypeOf(b)].color;
+};
 window.DEPARTMENTS = DEPARTMENTS;
 window.GRAPH_NODES = GRAPH_NODES;
 window.GRAPH_EDGES = GRAPH_EDGES;

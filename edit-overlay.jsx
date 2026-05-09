@@ -371,6 +371,8 @@ function EditOverlay({
               const p = svgPoint(svgRef.current, e.clientX, e.clientY);
               setDrag({ kind: "entrance", id: en.id, start: p, orig: { x: en.x, y: en.y } });
             }}>
+            {/* Larger invisible hit area so the label and a generous halo around the marker are clickable */}
+            {interactive && <circle cx={en.x} cy={en.y} r="14" fill="transparent" />}
             <EntranceMarker x={en.x} y={en.y} accessible={en.accessible} selected={isTgt} />
             {(isTgt || en.label) && (
               <text x={en.x + 14} y={en.y + 4} fontSize="11" fontWeight="700" fill="#022851"
@@ -600,8 +602,11 @@ function EditOverlay({
 function EntranceMarker({ x, y, accessible, selected }) {
   const fill = accessible ? "#0072CE" : "#022851";
   const r = selected ? 11 : 9;
+  // No pointerEvents="none" here — the parent <g> in edit-overlay relies on
+  // child hit areas to receive mousedown. Read-only call sites (map.jsx)
+  // wrap the marker in their own non-interactive <g>.
   return (
-    <g pointerEvents="none">
+    <g>
       <circle cx={x} cy={y} r={r} fill={fill} stroke="white" strokeWidth="2" />
       {accessible ? (
         // Wheelchair glyph

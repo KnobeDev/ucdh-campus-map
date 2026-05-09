@@ -132,7 +132,9 @@ function CampusMap({
               <path d={path} fill="transparent" />
             </g>
           );
-          const catColor = (window.CATEGORIES[b.cat] || window.PARKING_TYPES.patient).color;
+          const catColor = b.cat === "parking"
+            ? window.parkingColorOf(b)
+            : (window.CATEGORIES[b.cat]?.color || "#5A6470");
           return (
             <g key={b.code}
                onMouseEnter={() => onHover(b.code)} onMouseLeave={() => onHover(null)}

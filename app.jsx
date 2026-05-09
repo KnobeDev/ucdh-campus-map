@@ -64,6 +64,8 @@ function App() {
         route={route} setRoute={setRoute}
         showShuttle={tweaks.showShuttle} setShowShuttle={(v) => setTweak("showShuttle", v)}
         showPois={tweaks.showPois} setShowPois={(v) => setTweak("showPois", v)}
+        showEntrances={tweaks.showEntrances} setShowEntrances={(v) => setTweak("showEntrances", v)}
+        showCrosswalks={tweaks.showCrosswalks} setShowCrosswalks={(v) => setTweak("showCrosswalks", v)}
         showLabels={tweaks.showLabels} setShowLabels={(v) => setTweak("showLabels", v)}
         reduceMotion={tweaks.reduceMotion} setReduceMotion={(v) => setTweak("reduceMotion", v)}
         panelMode={panelMode} setPanelMode={setPanelMode}
