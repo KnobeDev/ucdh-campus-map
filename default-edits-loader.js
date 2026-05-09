@@ -62,7 +62,7 @@
   var isLegacyReset = FULL_RESET_VERSIONS[effectiveVersion] && seenVersion !== effectiveVersion;
   var isStaleAfterApply = !!(defaults && defaults._version) && seenVersion !== effectiveVersion;
   if (isLegacyReset || isStaleAfterApply) {
-    ["buildings","nodes","addedNodes","addedEdges","removedEdges","edgeMeta","shuttle","entrances","crosswalks","pois","constructionZones"].forEach(function (k) {
+    ["buildings","addedBuildings","nodes","addedNodes","addedEdges","removedEdges","edgeMeta","shuttle","addedShuttle","entrances","crosswalks","pois","constructionZones"].forEach(function (k) {
       delete existing[k];
     });
   }
@@ -78,16 +78,18 @@
   // so the first visit gets the bundled polygons/etc., and all subsequent edits stick.
   // Version-driven cleanup is handled by the PURGE list above.
   var merged = {
-    buildings:   mergeMaps(defaults.buildings || {}, existing.buildings || {}),
-    nodes:       mergeMaps(defaults.nodes || {}, existing.nodes || {}),
-    addedNodes:  mergeMaps(defaults.addedNodes || {}, existing.addedNodes || {}),
-    addedEdges:  mergeArrays(defaults.addedEdges, existing.addedEdges),
-    removedEdges:mergeArrays(defaults.removedEdges, existing.removedEdges),
-    edgeMeta:    mergeMaps(defaults.edgeMeta || {}, existing.edgeMeta || {}),
-    shuttle:     mergeMaps(defaults.shuttle || {}, existing.shuttle || {}),
-    entrances:   mergeMaps(defaults.entrances || {}, existing.entrances || {}),
-    crosswalks:  mergeMaps(defaults.crosswalks || {}, existing.crosswalks || {}),
-    pois:        mergeMaps(defaults.pois || {}, existing.pois || {}),
+    buildings:      mergeMaps(defaults.buildings || {}, existing.buildings || {}),
+    addedBuildings: mergeMaps(defaults.addedBuildings || {}, existing.addedBuildings || {}),
+    nodes:          mergeMaps(defaults.nodes || {}, existing.nodes || {}),
+    addedNodes:     mergeMaps(defaults.addedNodes || {}, existing.addedNodes || {}),
+    addedEdges:     mergeArrays(defaults.addedEdges, existing.addedEdges),
+    removedEdges:   mergeArrays(defaults.removedEdges, existing.removedEdges),
+    edgeMeta:       mergeMaps(defaults.edgeMeta || {}, existing.edgeMeta || {}),
+    shuttle:        mergeMaps(defaults.shuttle || {}, existing.shuttle || {}),
+    addedShuttle:   mergeMaps(defaults.addedShuttle || {}, existing.addedShuttle || {}),
+    entrances:      mergeMaps(defaults.entrances || {}, existing.entrances || {}),
+    crosswalks:     mergeMaps(defaults.crosswalks || {}, existing.crosswalks || {}),
+    pois:           mergeMaps(defaults.pois || {}, existing.pois || {}),
     constructionZones: mergeMaps(defaults.constructionZones || {}, existing.constructionZones || {}),
   };
 

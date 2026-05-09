@@ -1,5 +1,5 @@
 {
-  "_version": "applied-2026-05-09T08:26:47Z",
+  "addedBuildings": {},
   "buildings": {
     "T": {
       "label": "Custom Label",
@@ -252,8 +252,8 @@
           363
         ],
         [
-          276,
-          352
+          279,
+          354
         ],
         [
           284,
@@ -357,12 +357,12 @@
           267
         ],
         [
-          228,
-          277
+          227,
+          276
         ],
         [
           218,
-          283
+          282
         ]
       ]
     },
@@ -373,7 +373,7 @@
       "h": 17.8,
       "points": [
         [
-          310,
+          311,
           379
         ],
         [
@@ -395,6 +395,10 @@
         [
           316,
           390
+        ],
+        [
+          313,
+          385
         ]
       ],
       "cat": "clinic"
@@ -474,7 +478,7 @@
           409
         ],
         [
-          396,
+          397,
           392
         ],
         [
@@ -701,7 +705,41 @@
       "x": 468,
       "y": 182,
       "w": 25.6,
-      "h": 26.8
+      "h": 26.8,
+      "points": [
+        [
+          471,
+          186
+        ],
+        [
+          481,
+          182
+        ],
+        [
+          491,
+          185
+        ],
+        [
+          494,
+          195
+        ],
+        [
+          491,
+          206
+        ],
+        [
+          481,
+          209
+        ],
+        [
+          471,
+          205
+        ],
+        [
+          468,
+          195
+        ]
+      ]
     },
     "C": {
       "x": 342.2,
@@ -726,7 +764,8 @@
           495
         ]
       ],
-      "label": "Aggie Sq"
+      "label": "AS Anova",
+      "name": "Aggie Square - Anova"
     },
     "P6": {
       "x": 510,
@@ -994,12 +1033,12 @@
           387
         ],
         [
-          558,
+          559,
           387
         ],
         [
-          558,
-          379
+          559,
+          380
         ],
         [
           546,
@@ -1314,15 +1353,15 @@
         ],
         [
           660,
-          594
-        ],
-        [
-          722,
           595
         ],
         [
-          722,
-          609
+          723,
+          596
+        ],
+        [
+          723,
+          610
         ],
         [
           749,
@@ -1334,7 +1373,7 @@
         ],
         [
           732,
-          674
+          675
         ],
         [
           732,
@@ -1345,7 +1384,7 @@
           692
         ],
         [
-          687,
+          688,
           676
         ],
         [
@@ -1377,8 +1416,8 @@
           305
         ],
         [
-          704,
-          300
+          706,
+          301
         ],
         [
           710,
@@ -1439,11 +1478,11 @@
       "points": [
         [
           539,
-          198
+          199
         ],
         [
           597,
-          217
+          220
         ],
         [
           586,
@@ -1739,7 +1778,8 @@
           593,
           538
         ]
-      ]
+      ],
+      "name": "Central Utility Plant"
     },
     "B": {
       "x": 533,
@@ -1785,27 +1825,27 @@
       "points": [
         [
           527,
+          640
+        ],
+        [
+          584,
           641
         ],
         [
-          583,
-          641
+          584,
+          662
         ],
         [
-          583,
+          567,
           663
         ],
         [
-          566,
-          664
-        ],
-        [
-          566,
-          685
+          567,
+          684
         ],
         [
           527,
-          685
+          684
         ]
       ]
     },
@@ -1879,13 +1919,15 @@
           492
         ]
       ],
-      "label": "Hunt Building"
+      "label": "Hunt Building",
+      "name": "Aggie Square - Hunt Building"
     },
     "AS4": {
       "x": 387,
       "y": 534,
       "w": 26,
-      "h": 24
+      "h": 24,
+      "name": "400 Aggie Square"
     },
     "AS5": {
       "x": 434,
@@ -1973,7 +2015,9 @@
           437,
           480
         ]
-      ]
+      ],
+      "name": "Aggie Square - Lifelong Learning Building & East Lab",
+      "label": "AS LLB"
     },
     "AS3": {
       "x": 368,
@@ -2017,7 +2061,9 @@
           355,
           518
         ]
-      ]
+      ],
+      "name": "Aggie Square - Anova",
+      "label": "AS Anova"
     },
     "SFC": {
       "x": 302,
@@ -2121,17 +2167,117 @@
       "type": "car"
     }
   },
-  "shuttle": {},
-  "entrances": {
-    "ent_buo7n": {
-      "id": "ent_buo7n",
-      "x": 500,
-      "y": 500,
-      "accessible": true,
-      "building": "",
-      "label": "Test ADA"
+  "shuttle": {
+    "sh_aggie": {
+      "_deleted": true
+    },
+    "sh_med": {
+      "x": 316,
+      "y": 245,
+      "_deleted": true
+    },
+    "sh_rehab": {
+      "x": 586,
+      "y": 638,
+      "name": "Rehab Hospital Shuttle"
+    },
+    "sh_mind": {
+      "x": 798,
+      "y": 620,
+      "name": "MIND Institute Shuttle"
+    },
+    "sh_acc": {
+      "x": 609,
+      "y": 382,
+      "name": "ACC / Eye Institute Shuttle"
+    },
+    "sh_cancer": {
+      "x": 453,
+      "y": 283,
+      "name": "Cancer Center Shuttle"
     }
   },
+  "addedShuttle": {
+    "stop_l23k6": {
+      "id": "stop_l23k6",
+      "x": 317,
+      "y": 405,
+      "name": "Glassrock Shuttle"
+    },
+    "stop_6r4su": {
+      "id": "stop_6r4su",
+      "x": 438,
+      "y": 357,
+      "name": "45th & Y Shuttle"
+    },
+    "stop_8jexv": {
+      "id": "stop_8jexv",
+      "x": 468,
+      "y": 356,
+      "name": "Causeway Connection Bus Stop"
+    },
+    "stop_4jiue": {
+      "id": "stop_4jiue",
+      "x": 483,
+      "y": 640,
+      "name": "CTSC Shuttle"
+    },
+    "stop_uk6xe": {
+      "id": "stop_uk6xe",
+      "x": 463,
+      "y": 606,
+      "name": "Regenerative Cures Shuttle"
+    },
+    "stop_yp414": {
+      "id": "stop_yp414",
+      "x": 570,
+      "y": 457,
+      "name": "2nd Ave Shuttle"
+    },
+    "stop_3622p": {
+      "id": "stop_3622p",
+      "x": 651,
+      "y": 445,
+      "name": "Mri / CT Scan Shuttle"
+    },
+    "stop_8hqbb": {
+      "id": "stop_8hqbb",
+      "x": 688,
+      "y": 475,
+      "name": "Same Day Surgery Shuttle"
+    },
+    "stop_1jscj": {
+      "id": "stop_1jscj",
+      "x": 751,
+      "y": 414,
+      "name": "Ronald McDonald House Shuttle"
+    },
+    "stop_46kj0": {
+      "id": "stop_46kj0",
+      "x": 776,
+      "y": 611,
+      "name": "DOJ Shuttle"
+    },
+    "stop_84fgo": {
+      "id": "stop_84fgo",
+      "x": 768,
+      "y": 770,
+      "name": "Broadway Building Shuttle"
+    },
+    "stop_ym6dt": {
+      "id": "stop_ym6dt",
+      "x": 640,
+      "y": 297,
+      "name": "48C Complex Shuttle"
+    },
+    "stop_c09yq": {
+      "id": "stop_c09yq",
+      "x": 141,
+      "y": 126,
+      "name": "Behavioral Health Shuttle"
+    }
+  },
+  "entrances": {},
   "crosswalks": {},
   "pois": {},
   "constructionZones": {
@@ -2243,5 +2389,6 @@
       ],
       "notes": "Building closed for HVAC replacement."
     }
-  }
+  },
+  "_version": "applied-2026-05-09T09:12:07Z"
 }
