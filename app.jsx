@@ -3,16 +3,20 @@ const { useState: useS, useEffect: useE } = React;
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "theme": "uc-classic",
-  "showLabels": true,
-  "showShuttle": true,
-  "showPois": true,
-  "showEvents": true,
-  "showAccessibility": true,
-  "showParkingBikes": true,
-  "showValet": true,
+  // First-visit defaults: only Construction is on. Visitors can opt into
+  // additional overlays from the Layers panel; their choices stick via
+  // localStorage so they don't have to re-toggle on every load.
+  "showLabels": false,
+  "showShuttle": false,
+  "showPois": false,
+  "showEvents": false,
+  "showAccessibility": false,
+  "showParkingBikes": false,
+  "showValet": false,
+  "showConstruction": true,
   "showHotspots": true,
-  "showEntrances": true,
-  "showCrosswalks": true,
+  "showEntrances": false,
+  "showCrosswalks": false,
   "showPaths": true,
   "imageOpacity": 1,
   "editMode": false,
@@ -72,6 +76,7 @@ function App() {
         showAccessibility={tweaks.showAccessibility} setShowAccessibility={(v) => setTweak("showAccessibility", v)}
         showParkingBikes={tweaks.showParkingBikes} setShowParkingBikes={(v) => setTweak("showParkingBikes", v)}
         showValet={tweaks.showValet} setShowValet={(v) => setTweak("showValet", v)}
+        showConstruction={tweaks.showConstruction} setShowConstruction={(v) => setTweak("showConstruction", v)}
         showEntrances={tweaks.showEntrances} setShowEntrances={(v) => setTweak("showEntrances", v)}
         showCrosswalks={tweaks.showCrosswalks} setShowCrosswalks={(v) => setTweak("showCrosswalks", v)}
         showLabels={tweaks.showLabels} setShowLabels={(v) => setTweak("showLabels", v)}
@@ -93,6 +98,7 @@ function App() {
         showAccessibility={tweaks.showAccessibility}
         showParkingBikes={tweaks.showParkingBikes}
         showValet={tweaks.showValet}
+        showConstruction={tweaks.showConstruction}
         showLabels={tweaks.showLabels}
         showHotspots={tweaks.showHotspots}
         showEntrances={tweaks.showEntrances}

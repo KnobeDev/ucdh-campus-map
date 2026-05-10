@@ -7,7 +7,7 @@ function CampusMap({
   filters, route, routeFromId, routeToId, recomputeRoute,
   showShuttle, showPois, showLabels, showHotspots, theme,
   showEntrances, showCrosswalks, showPaths,
-  showEvents, showAccessibility, showParkingBikes, showValet,
+  showEvents, showAccessibility, showParkingBikes, showValet, showConstruction,
   editMode, editSubMode, editTargetId, setEditTargetId,
   edgePickFirst, setEdgePickFirst, pathTypeDefault,
 }) {
@@ -186,7 +186,7 @@ function CampusMap({
         )}
 
         {/* Construction zones — striped polygons routed around */}
-        {!(editMode && editSubMode === "construction") && (window.CONSTRUCTION_ZONES || []).map(z => {
+        {showConstruction && !(editMode && editSubMode === "construction") && (window.CONSTRUCTION_ZONES || []).map(z => {
           if (!z.points || z.points.length < 3) return null;
           const ptsAttr = z.points.map(p => p.join(",")).join(" ");
           const cx = z.points.reduce((s, p) => s + p[0], 0) / z.points.length;

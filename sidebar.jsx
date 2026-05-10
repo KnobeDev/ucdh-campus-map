@@ -15,6 +15,7 @@ function Sidebar({
   showAccessibility, setShowAccessibility,
   showParkingBikes, setShowParkingBikes,
   showValet, setShowValet,
+  showConstruction, setShowConstruction,
   showEntrances, setShowEntrances,
   showCrosswalks, setShowCrosswalks,
   showLabels, setShowLabels,
@@ -211,6 +212,7 @@ function Sidebar({
                   <Toggle label="Accessibility (♿ parking, drop/pickup)" checked={showAccessibility} onChange={setShowAccessibility} />
                   <Toggle label="Parking & bikes" checked={showParkingBikes} onChange={setShowParkingBikes} />
                   <Toggle label="Valet" checked={showValet} onChange={setShowValet} />
+                  <Toggle label="Construction" checked={showConstruction} onChange={setShowConstruction} />
                   <Toggle label="Building entrances" checked={showEntrances} onChange={setShowEntrances} />
                   <Toggle label="Crosswalks" checked={showCrosswalks} onChange={setShowCrosswalks} />
                   <Toggle label="Building names" checked={showLabels} onChange={setShowLabels} />
