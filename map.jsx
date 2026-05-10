@@ -7,6 +7,7 @@ function CampusMap({
   filters, route, routeFromId, routeToId, recomputeRoute,
   showShuttle, showPois, showLabels, showHotspots, theme,
   showEntrances, showCrosswalks, showPaths,
+  showEvents, showAccessibility, showParkingBikes, showValet,
   editMode, editSubMode, editTargetId, setEditTargetId,
   edgePickFirst, setEdgePickFirst, pathTypeDefault,
 }) {
