@@ -19,7 +19,15 @@
   function fetchDefaultsSync() {
     try {
       var xhr = new XMLHttpRequest();
-      xhr.open("GET", "default-edits.json?v=" + VERSION, false); // sync; bust cache when version bumps
+      // Always bust the browser cache. The static `?v=` worked the first time
+      // a constant was set, but if the file content changes without bumping
+      // VERSION (e.g. a fresh Apply with a new embedded _version), the browser
+      // keeps serving the old response. A per-load timestamp guarantees fresh
+      // reads — the embedded _version drives the actual reset logic below.
+      var url = "default-edits.json?v=" + VERSION + "&t=" + Date.now();
+      xhr.open("GET", url, false); // sync so localStorage is ready before React mounts
+      // Defense in depth: ask any cache (CDN/SW) for a revalidated copy.
+      try { xhr.setRequestHeader("Cache-Control", "no-cache"); } catch (e) {}
       xhr.send(null);
       if (xhr.status >= 200 && xhr.status < 300) return JSON.parse(xhr.responseText);
     } catch (e) { console.warn("default-edits load failed", e); }
