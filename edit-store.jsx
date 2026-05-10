@@ -158,6 +158,37 @@ window.edgeKey = edgeKey;
 const editListeners = new Set();
 function notifyEdits() { editListeners.forEach(cb => cb()); }
 
+// ---- Backup + dirty-state tracking ----
+// Auto-snapshots every mutation into a separate localStorage key so a stray
+// localStorage.clear() or stale-cache reset can be recovered. Counts mutations
+// since the last Apply so the unsaved-edits banner can warn the user before
+// they navigate away with un-published work.
+const BACKUP_KEY  = "ucd-campus-map-edits-v2-backups";
+const DIRTY_KEY   = "ucd-campus-map-edits-v2-dirty"; // count of mutations since last Apply
+const MAX_BACKUPS = 10;
+
+function readBackups() {
+  try { return JSON.parse(localStorage.getItem(BACKUP_KEY) || "[]"); } catch { return []; }
+}
+function writeBackups(list) {
+  try { localStorage.setItem(BACKUP_KEY, JSON.stringify(list.slice(0, MAX_BACKUPS))); } catch {}
+}
+function snapshot(state) {
+  const list = readBackups();
+  // Skip writing a duplicate of the most recent snapshot to avoid filling the
+  // ring buffer with no-op renders. Compare by JSON string.
+  const ser = JSON.stringify(state);
+  if (list.length && list[0].edits === ser) return;
+  list.unshift({ at: new Date().toISOString(), edits: ser });
+  writeBackups(list);
+}
+function readDirty() {
+  try { return parseInt(localStorage.getItem(DIRTY_KEY) || "0", 10) || 0; } catch { return 0; }
+}
+function writeDirty(n) {
+  try { localStorage.setItem(DIRTY_KEY, String(n)); } catch {}
+}
+
 function uid(prefix) {
   return prefix + "_" + Math.random().toString(36).slice(2, 7);
 }
@@ -169,10 +200,35 @@ const editStore = {
     const next = typeof updater === "function" ? updater(cur) : updater;
     writeEdits(next);
     applyEdits(next);
+    snapshot(next);
+    writeDirty(readDirty() + 1);
     notifyEdits();
   },
   subscribe(cb) { editListeners.add(cb); return () => editListeners.delete(cb); },
-  reset() { writeEdits(defaultEdits()); applyEdits(defaultEdits()); notifyEdits(); },
+  reset() { writeEdits(defaultEdits()); applyEdits(defaultEdits()); writeDirty(0); notifyEdits(); },
+
+  // ---- Backup API ----
+  // Number of mutations since the last Apply. Read by the unsaved-edits banner.
+  dirtyCount() { return readDirty(); },
+  // Mark current state as the published baseline (called by the Apply button).
+  markApplied() { writeDirty(0); notifyEdits(); },
+  // List of snapshot timestamps for the recovery UI.
+  listBackups() { return readBackups().map(s => ({ at: s.at })); },
+  // Restore the snapshot at index `i` in listBackups() output.
+  restoreBackup(i) {
+    const list = readBackups();
+    if (!list[i]) return false;
+    try {
+      const edits = JSON.parse(list[i].edits);
+      writeEdits(edits);
+      applyEdits(edits);
+      // Restoring is itself a mutation that diverges from the published
+      // baseline, so bump dirty so the banner reminds the user to Apply.
+      writeDirty(readDirty() + 1);
+      notifyEdits();
+      return true;
+    } catch { return false; }
+  },
 
   // ---- Buildings ----
   // Internal: applies a transform fn to whichever bucket holds this code

@@ -92,6 +92,7 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
 
   return (
     <div className="edit-toolbar">
+      <UnsavedBanner />
       <div className="edit-tb-row">
         <div className="edit-tb-left">
           <span className="edit-tb-badge">EDIT MODE</span>
@@ -127,6 +128,9 @@ function EditToolbar({ mode, setMode, editTargetId, setEditTargetId, onClose, pa
               a.href = url; a.download = "default-edits.json";
               document.body.appendChild(a); a.click();
               setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
+              // Mark current state as the published baseline. This drops the
+              // unsaved-edits counter to 0 so the banner stops nagging.
+              window.editStore.markApplied();
             } catch (err) {
               alert("Couldn't download default-edits.json: " + (err.message || err));
             }
@@ -581,6 +585,58 @@ function POIInspector({ poi, onChange, onDelete }) {
         </button>
       </div>
     </>
+  );
+}
+
+// ── UnsavedBanner ───────────────────────────────────────────────────────────
+// Persistent reminder that the editor has un-published changes. Sits at the
+// top of the edit toolbar so it's only visible when the user is actively
+// editing. Subscribes to editStore via useEdits() so dirty count updates
+// live without polling. The Restore submenu lists the rolling backups (snapshotted on every editStore.set) so a stray clear/reset is recoverable.
+function UnsavedBanner() {
+  window.useEdits(); // re-render on every store mutation so the count + backup list refresh
+  const [showRestore, setShowRestore] = React.useState(false);
+  const dirty = window.editStore.dirtyCount();
+  const backups = window.editStore.listBackups();
+  if (dirty <= 0 && backups.length === 0) return null;
+  return (
+    <div className="edit-tb-banner" role={dirty > 0 ? "alert" : undefined}>
+      <span className="edit-tb-banner-icon" aria-hidden="true">{dirty > 0 ? "⚠" : "✓"}</span>
+      <span className="edit-tb-banner-text">
+        {dirty > 0
+          ? <>You have <strong>{dirty}</strong> unsaved edit{dirty === 1 ? "" : "s"}. Click <strong>Apply</strong> in the toolbar to download <code>default-edits.json</code> and commit it so your work persists for everyone.</>
+          : <>All edits applied. <strong>{backups.length}</strong> backup{backups.length === 1 ? "" : "s"} available.</>
+        }
+      </span>
+      {backups.length > 0 && (
+        <div className="edit-tb-banner-restore">
+          <button className="edit-tb-btn small" onClick={() => setShowRestore(s => !s)}>
+            {showRestore ? "Hide backups" : "Restore backup…"}
+          </button>
+          {showRestore && (
+            <div className="edit-tb-banner-list" role="menu">
+              <small style={{ color: "#5A6470", padding: "4px 6px", display: "block" }}>
+                Newest first. Restoring loads that snapshot and re-marks the state as unsaved.
+              </small>
+              {backups.map((b, i) => {
+                const d = new Date(b.at);
+                const label = d.toLocaleString();
+                return (
+                  <button key={b.at + i} className="edit-tb-banner-item" onClick={() => {
+                    if (!confirm(`Restore backup from ${label}? Your current local edits will be replaced. (You can Apply afterwards to publish.)`)) return;
+                    window.editStore.restoreBackup(i);
+                    setShowRestore(false);
+                  }}>
+                    <span style={{ fontVariantNumeric: "tabular-nums" }}>{label}</span>
+                    {i === 0 && <span className="edit-tb-banner-tag">latest</span>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
