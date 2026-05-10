@@ -520,10 +520,15 @@ function POIInspector({ poi, onChange, onDelete }) {
   return (
     <>
       <div className="edit-insp-title">
-        <span className="edit-insp-code">★</span>
-        <span className="edit-insp-name">Point of interest</span>
+        <span className="edit-insp-code" style={{ background: window.poiTypeOf(poi).color }}>
+          {window.poiTypeOf(poi).icon}
+        </span>
+        <span className="edit-insp-name">{window.poiTypeOf(poi).label}</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 6, flex: "1 1 100%" }}>
+        <SelectField label="Type" value={poi.type || "general"} width={260}
+          options={Object.entries(window.POI_TYPES).map(([key, val]) => ({ value: key, label: `${val.icon}  ${val.label}` }))}
+          onChange={(v) => onChange({ type: v })} />
         <TextField label="Name" value={poi.name || ""} width={260}
           onChange={(v) => onChange({ name: v })} />
         <label className="edit-num" style={{ alignItems: "flex-start" }}>

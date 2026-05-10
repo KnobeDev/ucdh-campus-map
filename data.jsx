@@ -335,6 +335,30 @@ window.PARKING_BUILDING_CODES = PARKING_BUILDING_CODES;
 window.CATEGORIES = CATEGORIES;
 window.PARKING_TYPES = PARKING_TYPES;
 
+// Point-of-interest taxonomy. Each type maps to a single layer toggle
+// (so flipping the layer hides/shows every POI of that flavor) and carries
+// its own icon + color for the marker.
+//   layer keys must match the tweaks store flags:
+//     pois | events | accessibility | parkingBikes | valet
+const POI_TYPES = {
+  general:            { label: "Point of interest",      icon: "★",  color: "#C8102E", layer: "pois" },
+  event:              { label: "Event",                  icon: "🎉", color: "#7E388C", layer: "events" },
+  accessible_parking: { label: "Accessible parking",     icon: "♿", color: "#0072CE", layer: "accessibility" },
+  assisted_pickup:    { label: "Assisted drop / pickup", icon: "🚐", color: "#0072CE", layer: "accessibility" },
+  bike_locker:        { label: "Bike locker",            icon: "🚲", color: "#5DA831", layer: "parkingBikes" },
+  bike_repair:        { label: "Bike repair station",    icon: "🔧", color: "#5DA831", layer: "parkingBikes" },
+  charging:           { label: "EV charging",            icon: "⚡", color: "#1ba0d3", layer: "parkingBikes" },
+  employee_parking:   { label: "Employee parking",       icon: "E",  color: "#C8B27A", layer: "parkingBikes" },
+  no_through_traffic: { label: "No through traffic",     icon: "⛔", color: "#727272", layer: "parkingBikes" },
+  parking_meter:      { label: "Parking meter",          icon: "$",  color: "#5DA831", layer: "parkingBikes" },
+  valet:              { label: "Valet",                  icon: "V",  color: "#FFBF00", layer: "valet" },
+};
+window.POI_TYPES = POI_TYPES;
+// Resolve a POI to its type record (falls back to general for legacy POIs)
+window.poiTypeOf = function (p) {
+  return POI_TYPES[(p && p.type) || "general"] || POI_TYPES.general;
+};
+
 // Resolve a parking building to its sub-type. Reads an explicit `type` field
 // when present (set via default-edits.json), otherwise falls back to a code
 // heuristic. Centralized so map.jsx + sidebar.jsx share one source of truth.

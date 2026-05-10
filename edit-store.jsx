@@ -424,10 +424,15 @@ const editStore = {
   // POI shape: { id, x, y, name, instructions, events: [{title,when,note}], mapsLink }
   addPOI(x, y, opts = {}) {
     const id = uid("poi");
+    const type = (window.POI_TYPES && window.POI_TYPES[opts.type]) ? opts.type : "general";
+    // Default the name from the type label so a fresh, untitled POI still
+    // reads sensibly (e.g. "Bike locker") instead of the generic placeholder.
+    const defaultName = (window.POI_TYPES && window.POI_TYPES[type]?.label) || "Point of interest";
     this.set(e => ({ ...e, pois: { ...(e.pois || {}),
       [id]: {
         id, x, y,
-        name: opts.name || "New point of interest",
+        type,
+        name: opts.name || defaultName,
         instructions: opts.instructions || "",
         events: opts.events || [],
         mapsLink: opts.mapsLink || "",

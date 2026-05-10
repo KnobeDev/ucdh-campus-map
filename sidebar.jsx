@@ -11,6 +11,10 @@ function Sidebar({
   route, setRoute,
   showShuttle, setShowShuttle,
   showPois, setShowPois,
+  showEvents, setShowEvents,
+  showAccessibility, setShowAccessibility,
+  showParkingBikes, setShowParkingBikes,
+  showValet, setShowValet,
   showEntrances, setShowEntrances,
   showCrosswalks, setShowCrosswalks,
   showLabels, setShowLabels,
@@ -203,6 +207,10 @@ function Sidebar({
                 <div className="sb-toggles">
                   <Toggle label="Shuttle stops" checked={showShuttle} onChange={setShowShuttle} />
                   <Toggle label="Points of interest" checked={showPois} onChange={setShowPois} />
+                  <Toggle label="Events" checked={showEvents} onChange={setShowEvents} />
+                  <Toggle label="Accessibility (♿ parking, drop/pickup)" checked={showAccessibility} onChange={setShowAccessibility} />
+                  <Toggle label="Parking & bikes" checked={showParkingBikes} onChange={setShowParkingBikes} />
+                  <Toggle label="Valet" checked={showValet} onChange={setShowValet} />
                   <Toggle label="Building entrances" checked={showEntrances} onChange={setShowEntrances} />
                   <Toggle label="Crosswalks" checked={showCrosswalks} onChange={setShowCrosswalks} />
                   <Toggle label="Building names" checked={showLabels} onChange={setShowLabels} />

@@ -395,10 +395,10 @@ function EditOverlay({
               const p = svgPoint(svgRef.current, e.clientX, e.clientY);
               setDrag({ kind: "poi", id: poi.id, start: p, orig: { x: poi.x, y: poi.y } });
             }}>
-            <POIMarker x={poi.x} y={poi.y} selected={isTgt} />
+            <POIMarker x={poi.x} y={poi.y} selected={isTgt} type={poi.type} />
             <text x={poi.x + 14} y={poi.y + 4} fontSize="11" fontWeight="700" fill="#022851"
                   style={{ paintOrder: "stroke", stroke: "white", strokeWidth: 3 }} pointerEvents="none">
-              {poi.name || "POI"}
+              {poi.name || (window.POI_TYPES?.[poi.type]?.label) || "POI"}
             </text>
           </g>
         );
@@ -647,15 +647,22 @@ function CrosswalkMarker({ selected }) {
 }
 window.CrosswalkMarker = CrosswalkMarker;
 
-function POIMarker({ x, y, selected }) {
-  // A red star/pin: outer halo when selected
+function POIMarker({ x, y, selected, type }) {
+  // Resolve the type record so each POI category gets its own icon + color.
+  // Falls back to the legacy red ★ pin when no type is set.
+  const t = (window.POI_TYPES && window.POI_TYPES[type]) || (window.POI_TYPES && window.POI_TYPES.general)
+    || { color: "#C8102E", icon: "★" };
+  // Halo + body: type color, with a selection ring layered behind.
+  const isEmoji = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u26D4\u26A1]/u.test(t.icon);
   return (
-    <g pointerEvents="none">
-      {selected && <circle cx={x} cy={y} r="12" fill="rgba(200,16,46,0.18)" />}
-      <circle cx={x} cy={y} r="9" fill="#C8102E"
+    <g>
+      {selected && <circle cx={x} cy={y} r="12" fill={`${t.color}33`} />}
+      <circle cx={x} cy={y} r="9" fill={t.color}
         stroke={selected ? "#022851" : "white"} strokeWidth="2" />
-      <text x={x} y={y + 1} textAnchor="middle" dominantBaseline="middle"
-        fontSize="11" fontWeight="800" fill="white">★</text>
+      <text x={x} y={y + (isEmoji ? 1 : 1)} textAnchor="middle" dominantBaseline="middle"
+        fontSize={isEmoji ? "11" : "11"} fontWeight="800" fill="white" pointerEvents="none">
+        {t.icon}
+      </text>
     </g>
   );
 }

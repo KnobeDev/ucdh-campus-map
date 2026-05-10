@@ -6,6 +6,10 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "showLabels": true,
   "showShuttle": true,
   "showPois": true,
+  "showEvents": true,
+  "showAccessibility": true,
+  "showParkingBikes": true,
+  "showValet": true,
   "showHotspots": true,
   "showEntrances": true,
   "showCrosswalks": true,
@@ -64,6 +68,10 @@ function App() {
         route={route} setRoute={setRoute}
         showShuttle={tweaks.showShuttle} setShowShuttle={(v) => setTweak("showShuttle", v)}
         showPois={tweaks.showPois} setShowPois={(v) => setTweak("showPois", v)}
+        showEvents={tweaks.showEvents} setShowEvents={(v) => setTweak("showEvents", v)}
+        showAccessibility={tweaks.showAccessibility} setShowAccessibility={(v) => setTweak("showAccessibility", v)}
+        showParkingBikes={tweaks.showParkingBikes} setShowParkingBikes={(v) => setTweak("showParkingBikes", v)}
+        showValet={tweaks.showValet} setShowValet={(v) => setTweak("showValet", v)}
         showEntrances={tweaks.showEntrances} setShowEntrances={(v) => setTweak("showEntrances", v)}
         showCrosswalks={tweaks.showCrosswalks} setShowCrosswalks={(v) => setTweak("showCrosswalks", v)}
         showLabels={tweaks.showLabels} setShowLabels={(v) => setTweak("showLabels", v)}
@@ -81,6 +89,10 @@ function App() {
           if (routeFromId && routeToId) setRoute(window.buildRoute(routeFromId, routeToId));
         }}
         showShuttle={tweaks.showShuttle} showPois={tweaks.showPois}
+        showEvents={tweaks.showEvents}
+        showAccessibility={tweaks.showAccessibility}
+        showParkingBikes={tweaks.showParkingBikes}
+        showValet={tweaks.showValet}
         showLabels={tweaks.showLabels}
         showHotspots={tweaks.showHotspots}
         showEntrances={tweaks.showEntrances}

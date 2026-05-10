@@ -226,20 +226,29 @@ function CampusMap({
           </g>
         ))}
 
-        {/* POIs (user-added points of interest with optional events + maps link) */}
-        {showPois && (window.POIS || []).map(p => (
-          <g key={p.id} pointerEvents="none">
-            <circle cx={p.x} cy={p.y} r="9" fill="#C8102E" stroke="white" strokeWidth="2" />
-            <text x={p.x} y={p.y + 1} textAnchor="middle" dominantBaseline="middle"
-              fontSize="11" fontWeight="800" fill="white">★</text>
-            {p.name && (
-              <text x={p.x + 14} y={p.y + 4} fontSize="11" fontWeight="700" fill="#022851"
-                style={{ paintOrder: "stroke", stroke: "white", strokeWidth: 3 }}>
-                {p.name}
-              </text>
-            )}
-          </g>
-        ))}
+        {/* POIs — each type belongs to a layer; show only when its toggle is on.
+            Edit-overlay handles rendering+interaction in pois submode, so skip here. */}
+        {!(editMode && editSubMode === "pois") && (window.POIS || [])
+          .filter(p => {
+            const layer = (window.poiTypeOf ? window.poiTypeOf(p) : { layer: "pois" }).layer;
+            if (layer === "pois") return showPois;
+            if (layer === "events") return showEvents;
+            if (layer === "accessibility") return showAccessibility;
+            if (layer === "parkingBikes") return showParkingBikes;
+            if (layer === "valet") return showValet;
+            return showPois;
+          })
+          .map(p => (
+            <g key={p.id} pointerEvents="none">
+              <window.POIMarker x={p.x} y={p.y} selected={false} type={p.type} />
+              {p.name && (
+                <text x={p.x + 14} y={p.y + 4} fontSize="11" fontWeight="700" fill="#022851"
+                  style={{ paintOrder: "stroke", stroke: "white", strokeWidth: 3 }}>
+                  {p.name}
+                </text>
+              )}
+            </g>
+          ))}
 
         {/* Route */}
         {route && (
