@@ -359,6 +359,47 @@ window.poiTypeOf = function (p) {
   return POI_TYPES[(p && p.type) || "general"] || POI_TYPES.general;
 };
 
+// Build the visitor-facing maps URL for a POI. Picks Apple Maps on Apple
+// hardware, Google Maps elsewhere, and anchors the query to "UC Davis Health,
+// Sacramento, CA" so common building names ("Surgery Center", "MIND Lab")
+// don't collide with off-campus locations of the same name.
+//
+// Resolution order for the query string:
+//   1. poi.mapsQuery     — explicit place name or address typed in the editor
+//   2. linked building   — name + UC Davis Health anchor
+//   3. poi.name          — fallback to the POI's display name
+//
+// Backwards compat: if a legacy poi.mapsLink (literal URL) exists and no
+// mapsQuery/building is set, the literal link is honored as-is.
+window.buildPoiMapsUrl = function (poi) {
+  if (!poi) return null;
+  // Legacy literal URL takes precedence ONLY when no platform-aware fields exist
+  const hasNew = !!(poi.mapsQuery || poi.building);
+  if (!hasNew && poi.mapsLink && /^https?:\/\//i.test(poi.mapsLink)) {
+    return poi.mapsLink;
+  }
+  // Pick the query, anchored to UCDH for disambiguation.
+  let q = "";
+  if (poi.mapsQuery && poi.mapsQuery.trim()) {
+    q = poi.mapsQuery.trim();
+  } else if (poi.building) {
+    const b = (window.BUILDINGS || []).find(x => x.code === poi.building);
+    if (b) q = b.name;
+  }
+  if (!q) q = poi.name || "";
+  if (!q) return null;
+  // Append the campus anchor unless the user clearly already supplied one
+  // (e.g. they pasted a full address with a city).
+  const hasAnchor = /UC Davis Health|Sacramento|, CA\b|\d{5}(-\d{4})?$/i.test(q);
+  const query = hasAnchor ? q : `${q}, UC Davis Health, Sacramento, CA`;
+  const enc = encodeURIComponent(query);
+  const ua = (typeof navigator !== "undefined" && navigator.userAgent) || "";
+  const isApple = /iPhone|iPad|iPod|Macintosh/.test(ua) && !/CrOS/.test(ua);
+  return isApple
+    ? `https://maps.apple.com/?q=${enc}`
+    : `https://www.google.com/maps/search/?api=1&query=${enc}`;
+};
+
 // Resolve a parking building to its sub-type. Reads an explicit `type` field
 // when present (set via default-edits.json), otherwise falls back to a code
 // heuristic. Centralized so map.jsx + sidebar.jsx share one source of truth.

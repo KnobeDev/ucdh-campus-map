@@ -519,7 +519,6 @@ function POIInspector({ poi, onChange, onDelete }) {
   const addEvent = () => onChange({ events: [...events, { title: "", when: "", note: "" }] });
   const removeEvent = (idx) => onChange({ events: events.filter((_, i) => i !== idx) });
 
-  const linkValid = !poi.mapsLink || /^https?:\/\//i.test(poi.mapsLink);
 
   return (
     <>
@@ -542,17 +541,41 @@ function POIInspector({ poi, onChange, onDelete }) {
             onChange={(e) => onChange({ instructions: e.target.value })}
             style={{ width: 320, minHeight: 50, padding: "4px 6px", border: "1px solid #E5E0D5", borderRadius: 4, font: "inherit", fontSize: 12, resize: "vertical" }} />
         </label>
+        {/* Place name / address for visitor-facing Open in Maps button.
+            buildPoiMapsUrl() in data.jsx picks Apple Maps on Apple devices,
+            Google Maps elsewhere, and anchors the query to UC Davis Health,
+            Sacramento, CA so common names don't open the wrong location. */}
         <label className="edit-num" style={{ alignItems: "flex-start" }}>
-          <span style={{ paddingTop: 4 }}>Apple/Google Maps link</span>
+          <span style={{ paddingTop: 4 }}>Hosted at / near</span>
           <div style={{ display: "flex", flexDirection: "column", gap: 2, width: 320 }}>
-            <input type="url" value={poi.mapsLink || ""}
-              placeholder="https://maps.google.com/?q=… or https://maps.apple.com/?q=…"
-              onChange={(e) => onChange({ mapsLink: e.target.value })}
-              style={{ width: "100%", padding: "4px 6px", border: `1px solid ${linkValid ? "#E5E0D5" : "#C8102E"}`, borderRadius: 4, font: "inherit", fontSize: 12 }} />
+            <select value={poi.building || ""}
+              onChange={(e) => onChange({ building: e.target.value })}
+              style={{ width: "100%", padding: "4px 6px", border: "1px solid #E5E0D5", borderRadius: 4, font: "inherit", fontSize: 12, background: "white" }}>
+              <option value="">(none — use place name below)</option>
+              {(window.BUILDINGS || []).map(b => (
+                <option key={b.code} value={b.code}>{b.code} · {b.name}</option>
+              ))}
+            </select>
             <small style={{ color: "#5A6470", fontSize: 11 }}>
-              Visitors can tap this link to open the location on their phone's map app.
+              When set, the maps button uses this building's name as the search anchor.
             </small>
-            {!linkValid && <small style={{ color: "#C8102E", fontSize: 11 }}>Must start with http(s)://</small>}
+          </div>
+        </label>
+        <label className="edit-num" style={{ alignItems: "flex-start" }}>
+          <span style={{ paddingTop: 4 }}>Place name or address</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2, width: 320 }}>
+            <input type="text" value={poi.mapsQuery || ""}
+              placeholder="e.g. 'Same Day Surgery Center' or '2825 Stockton Blvd'"
+              onChange={(e) => onChange({ mapsQuery: e.target.value })}
+              style={{ width: "100%", padding: "4px 6px", border: "1px solid #E5E0D5", borderRadius: 4, font: "inherit", fontSize: 12 }} />
+            <small style={{ color: "#5A6470", fontSize: 11 }}>
+              Used when no building is selected. We add ", UC Davis Health, Sacramento, CA" automatically so visitors don't open a same-named place elsewhere.
+            </small>
+            {poi.mapsLink && /^https?:\/\//i.test(poi.mapsLink) && !(poi.mapsQuery || poi.building) && (
+              <small style={{ color: "#7A5500", fontSize: 11 }}>
+                Legacy maps link still active. Set a building or place name above to switch to platform-aware Open in Maps.
+              </small>
+            )}
           </div>
         </label>
         <NumField label="X" value={poi.x} onChange={(v) => onChange({ x: v })} />

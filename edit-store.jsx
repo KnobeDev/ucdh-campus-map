@@ -491,7 +491,9 @@ const editStore = {
         name: opts.name || defaultName,
         instructions: opts.instructions || "",
         events: opts.events || [],
-        mapsLink: opts.mapsLink || "",
+        building: opts.building || "",     // building this POI is hosted at / near
+        mapsQuery: opts.mapsQuery || "",   // fallback place name / address
+        mapsLink: opts.mapsLink || "",     // legacy: literal URL; kept for back-compat reads
       }
     }}));
     return id;

@@ -288,11 +288,19 @@ function Sidebar({
                             ))}
                           </ul>
                         )}
-                        {p.mapsLink && /^https?:\/\//i.test(p.mapsLink) && (
-                          <a className="sb-btn small" href={p.mapsLink} target="_blank" rel="noopener noreferrer">
-                            <span style={{ marginRight: 6 }}>📱</span> Open in Maps
-                          </a>
-                        )}
+                        {(() => {
+                          // Platform-aware Open in Maps: buildPoiMapsUrl picks
+                          // Apple vs Google based on the visitor's device and
+                          // anchors the query to UC Davis Health so common
+                          // names ("Surgery Center") don't open the wrong place.
+                          const url = window.buildPoiMapsUrl ? window.buildPoiMapsUrl(p) : null;
+                          if (!url) return null;
+                          return (
+                            <a className="sb-btn small" href={url} target="_blank" rel="noopener noreferrer">
+                              <span style={{ marginRight: 6 }}>📱</span> Open in Maps
+                            </a>
+                          );
+                        })()}
                       </li>
                     ))}
                   </ul>
