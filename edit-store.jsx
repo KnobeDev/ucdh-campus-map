@@ -189,6 +189,37 @@ function writeDirty(n) {
   try { localStorage.setItem(DIRTY_KEY, String(n)); } catch {}
 }
 
+// Coalesces rapid mutations (drag handlers, keystroke-by-keystroke text input)
+// into a single logical "edit". Without this, a vertex drag bumps the dirty
+// counter and snapshots the state once per mousemove frame — dozens of
+// "edits" for what the user perceives as one drag.
+//
+// Strategy: every editStore.set() schedules a commit timer. If another set
+// fires within COMMIT_WINDOW_MS, the timer resets. When the window finally
+// elapses with no new mutations, we record ONE dirty increment and ONE
+// snapshot of the most recent state. Live UI updates (applyEdits +
+// notifyEdits) still fire synchronously inside set(), so the map keeps
+// repainting in real time during the drag.
+//
+// 400ms is long enough that a fluent drag/keystroke counts as one edit,
+// short enough that the dirty count + banner feel responsive after release.
+const COMMIT_WINDOW_MS = 400;
+let commitTimer = null;
+let commitPendingState = null;
+function scheduleCommit(state) {
+  commitPendingState = state;
+  if (commitTimer) clearTimeout(commitTimer);
+  commitTimer = setTimeout(() => {
+    if (commitPendingState) {
+      snapshot(commitPendingState);
+      writeDirty(readDirty() + 1);
+      commitPendingState = null;
+      notifyEdits(); // re-render the banner with the new count
+    }
+    commitTimer = null;
+  }, COMMIT_WINDOW_MS);
+}
+
 function uid(prefix) {
   return prefix + "_" + Math.random().toString(36).slice(2, 7);
 }
@@ -198,11 +229,14 @@ const editStore = {
   set(updater) {
     const cur = readEdits();
     const next = typeof updater === "function" ? updater(cur) : updater;
+    // No-op guard: if the updater returned the same state (e.g. a forced
+    // re-render via set(e => ({...e})) or a useless patch), don't count it
+    // as an edit. Comparison is via JSON since edits hold only plain data.
+    const sameAsBefore = JSON.stringify(cur) === JSON.stringify(next);
     writeEdits(next);
     applyEdits(next);
-    snapshot(next);
-    writeDirty(readDirty() + 1);
     notifyEdits();
+    if (!sameAsBefore) scheduleCommit(next);
   },
   subscribe(cb) { editListeners.add(cb); return () => editListeners.delete(cb); },
   reset() { writeEdits(defaultEdits()); applyEdits(defaultEdits()); writeDirty(0); notifyEdits(); },
@@ -211,7 +245,15 @@ const editStore = {
   // Number of mutations since the last Apply. Read by the unsaved-edits banner.
   dirtyCount() { return readDirty(); },
   // Mark current state as the published baseline (called by the Apply button).
-  markApplied() { writeDirty(0); notifyEdits(); },
+  // Also flushes any pending debounced commit (snapshot + counter bump) so a
+  // mid-drag Apply doesn't leave an in-flight increment that would re-dirty
+  // the counter ~400ms later.
+  markApplied() {
+    if (commitTimer) { clearTimeout(commitTimer); commitTimer = null; }
+    if (commitPendingState) { snapshot(commitPendingState); commitPendingState = null; }
+    writeDirty(0);
+    notifyEdits();
+  },
   // List of snapshot timestamps for the recovery UI.
   listBackups() { return readBackups().map(s => ({ at: s.at })); },
   // Restore the snapshot at index `i` in listBackups() output.
