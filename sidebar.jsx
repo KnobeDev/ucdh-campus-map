@@ -20,7 +20,10 @@ function Sidebar({
   showCrosswalks, setShowCrosswalks,
   showLabels, setShowLabels,
   reduceMotion, setReduceMotion,
-  panelMode, setPanelMode, // 'browse' | 'route' | 'detail'
+  panelMode, setPanelMode, // 'browse' | 'route' | 'detail' | 'floorplan'
+  activeLevelId, setActiveLevelId,
+  floorRoute, setFloorRoute,
+  floorPlanEditMode, setFloorPlanEditMode,
   theme,
 }) {
   const [query, setQuery] = useState2("");
@@ -330,6 +333,15 @@ function Sidebar({
               }}>
                 <span style={{ marginRight: 6 }}>↝</span> Directions to here
               </button>
+              {window.getFloorPlanForBuilding && window.getFloorPlanForBuilding(selected.code) && (
+                // Floor plan is only available for buildings whose interior layout
+                // has been captured in floorplan.jsx (currently the Medical Center
+                // "T"). The button is offered as an explicit alternative to
+                // Directions for hospital wayfinding inside the building.
+                <button className="sb-btn" onClick={() => setPanelMode("floorplan")}>
+                  <span style={{ marginRight: 6 }}>▦</span> Floor plan
+                </button>
+              )}
               <button className="sb-btn" onClick={() => {
                 setRouteFromId(`${isParkingSelected ? "P" : "B"}_${selected.code}`);
                 setPanelMode("route");
@@ -386,6 +398,21 @@ function Sidebar({
             )}
           </div>
         </div>
+      )}
+
+      {panelMode === "floorplan" && selected && window.FloorPlanPanel && (
+        <window.FloorPlanPanel
+          buildingCode={selected.code}
+          setPanelMode={setPanelMode}
+          setRouteToId={setRouteToId}
+          setRouteFromId={setRouteFromId}
+          activeLevelId={activeLevelId}
+          setActiveLevelId={setActiveLevelId}
+          floorRoute={floorRoute}
+          setFloorRoute={setFloorRoute}
+          floorPlanEditMode={floorPlanEditMode}
+          setFloorPlanEditMode={setFloorPlanEditMode}
+        />
       )}
 
       {panelMode === "route" && (

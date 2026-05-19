@@ -3112,5 +3112,3058 @@
       "notes": ""
     }
   },
-  "_version": "applied-2026-05-13T05:27:43Z"
+  "floorplan": {
+    "T": {
+      "floors": {
+        "1": {
+          "boundary": [
+            [
+              188,
+              1239
+            ],
+            [
+              296,
+              1239
+            ],
+            [
+              298,
+              1220
+            ],
+            [
+              379,
+              1223
+            ],
+            [
+              378,
+              1242
+            ],
+            [
+              383,
+              1242
+            ],
+            [
+              383,
+              1232
+            ],
+            [
+              392,
+              1233
+            ],
+            [
+              386,
+              1195
+            ],
+            [
+              417,
+              1194
+            ],
+            [
+              424,
+              1224
+            ],
+            [
+              495,
+              1224
+            ],
+            [
+              495,
+              1219
+            ],
+            [
+              506,
+              1219
+            ],
+            [
+              506,
+              1224
+            ],
+            [
+              678,
+              1225
+            ],
+            [
+              711,
+              1270
+            ],
+            [
+              704,
+              1272
+            ],
+            [
+              712,
+              1282
+            ],
+            [
+              729,
+              1281
+            ],
+            [
+              797,
+              1372
+            ],
+            [
+              499,
+              1375
+            ],
+            [
+              503,
+              1393
+            ],
+            [
+              407,
+              1395
+            ],
+            [
+              404,
+              1372
+            ],
+            [
+              398,
+              1372
+            ],
+            [
+              396,
+              1356
+            ],
+            [
+              402,
+              1356
+            ],
+            [
+              401,
+              1342
+            ],
+            [
+              442,
+              1339
+            ],
+            [
+              439,
+              1316
+            ],
+            [
+              367,
+              1316
+            ],
+            [
+              371,
+              1372
+            ],
+            [
+              321,
+              1365
+            ],
+            [
+              321,
+              1359
+            ],
+            [
+              205,
+              1360
+            ],
+            [
+              205,
+              1355
+            ],
+            [
+              193,
+              1355
+            ],
+            [
+              192,
+              1360
+            ],
+            [
+              168,
+              1359
+            ],
+            [
+              174,
+              1336
+            ],
+            [
+              227,
+              1335
+            ],
+            [
+              229,
+              1313
+            ],
+            [
+              173,
+              1312
+            ]
+          ],
+          "nodes": {
+            "T_1_elev_main": {
+              "id": "T_1_elev_main",
+              "kind": "elevator",
+              "elevatorId": "T-main",
+              "x": 560,
+              "y": 1337,
+              "label": "Main elevators"
+            },
+            "T_1_room_n2": {
+              "id": "T_1_room_n2",
+              "kind": "room",
+              "roomN": 2,
+              "label": "Admissions",
+              "x": 571,
+              "y": 1332
+            },
+            "T_1_room_n3": {
+              "id": "T_1_room_n3",
+              "kind": "room",
+              "roomN": 3,
+              "label": "Assisted Patient Discharge",
+              "x": 519,
+              "y": 1331
+            },
+            "T_1_room_cafeteria": {
+              "id": "T_1_room_cafeteria",
+              "kind": "room",
+              "roomN": null,
+              "label": "Cafeteria",
+              "x": 434,
+              "y": 1380
+            },
+            "T_1_room_n4": {
+              "id": "T_1_room_n4",
+              "kind": "room",
+              "roomN": 4,
+              "label": "Cardiology and Vascular Medicine (ECHO, EKG)",
+              "x": 556,
+              "y": 1288
+            },
+            "T_1_room_n5": {
+              "id": "T_1_room_n5",
+              "kind": "room",
+              "roomN": 5,
+              "label": "Cashier's Office",
+              "x": 623,
+              "y": 1332
+            },
+            "T_1_room_n6": {
+              "id": "T_1_room_n6",
+              "kind": "room",
+              "roomN": 6,
+              "label": "Emergency",
+              "x": 701,
+              "y": 1362
+            },
+            "T_1_room_information-desk": {
+              "id": "T_1_room_information-desk",
+              "kind": "room",
+              "roomN": null,
+              "label": "Information Desk",
+              "x": 518,
+              "y": 1353
+            },
+            "T_1_room_n7": {
+              "id": "T_1_room_n7",
+              "kind": "room",
+              "roomN": 7,
+              "label": "Interventional Radiology and Neuroangiography",
+              "x": 317,
+              "y": 1244
+            },
+            "T_1_room_n8": {
+              "id": "T_1_room_n8",
+              "kind": "room",
+              "roomN": 8,
+              "label": "Meditation Room",
+              "x": 425,
+              "y": 1286
+            },
+            "T_1_room_n9": {
+              "id": "T_1_room_n9",
+              "kind": "room",
+              "roomN": 9,
+              "label": "Radiology \u2013 CT/MRI",
+              "x": 544,
+              "y": 1257
+            },
+            "T_1_room_n10": {
+              "id": "T_1_room_n10",
+              "kind": "room",
+              "roomN": 10,
+              "label": "Radiology Reception",
+              "x": 458,
+              "y": 1283
+            },
+            "fp_1_room_69dzd": {
+              "id": "fp_1_room_69dzd",
+              "kind": "room",
+              "x": 234,
+              "y": 1344,
+              "label": "Fetal Care Treatment Center"
+            },
+            "fp_1_room_zi3f9": {
+              "id": "fp_1_room_zi3f9",
+              "kind": "room",
+              "x": 238,
+              "y": 1241,
+              "label": "Apheresis"
+            },
+            "fp_1_room_6cwzj": {
+              "id": "fp_1_room_6cwzj",
+              "kind": "room",
+              "x": 346,
+              "y": 1314,
+              "label": "Dialysis Unit"
+            },
+            "fp_1_elevator_m2ko1": {
+              "id": "fp_1_elevator_m2ko1",
+              "kind": "elevator",
+              "x": 282,
+              "y": 1307,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_1_elevator_6cs5v": {
+              "id": "fp_1_elevator_6cs5v",
+              "kind": "elevator",
+              "x": 298,
+              "y": 1306,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_1_elevator_9ir5j": {
+              "id": "fp_1_elevator_9ir5j",
+              "kind": "elevator",
+              "x": 474,
+              "y": 1304,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_1_elevator_2zzbk": {
+              "id": "fp_1_elevator_2zzbk",
+              "kind": "elevator",
+              "x": 438,
+              "y": 1303,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_1_elevator_w0u6j": {
+              "id": "fp_1_elevator_w0u6j",
+              "kind": "elevator",
+              "x": 680,
+              "y": 1316,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_1_elevator_n36v6": {
+              "id": "fp_1_elevator_n36v6",
+              "kind": "elevator",
+              "x": 697,
+              "y": 1315,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_1_elevator_rrfqy": {
+              "id": "fp_1_elevator_rrfqy",
+              "kind": "elevator",
+              "x": 625,
+              "y": 1229,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_1_elevator_y3d14": {
+              "id": "fp_1_elevator_y3d14",
+              "kind": "elevator",
+              "x": 536,
+              "y": 1228,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_1_elevator_2wfln": {
+              "id": "fp_1_elevator_2wfln",
+              "kind": "elevator",
+              "x": 212,
+              "y": 1352,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            }
+          },
+          "edges": []
+        },
+        "2": {
+          "boundary": [
+            [
+              126,
+              1015
+            ],
+            [
+              169,
+              1016
+            ],
+            [
+              168,
+              1023
+            ],
+            [
+              209,
+              1024
+            ],
+            [
+              210,
+              1017
+            ],
+            [
+              203,
+              1017
+            ],
+            [
+              202,
+              1013
+            ],
+            [
+              281,
+              1014
+            ],
+            [
+              282,
+              1018
+            ],
+            [
+              326,
+              1017
+            ],
+            [
+              324,
+              1008
+            ],
+            [
+              436,
+              1008
+            ],
+            [
+              468,
+              1091
+            ],
+            [
+              480,
+              1091
+            ],
+            [
+              441,
+              995
+            ],
+            [
+              597,
+              994
+            ],
+            [
+              641,
+              1057
+            ],
+            [
+              651,
+              1056
+            ],
+            [
+              669,
+              1081
+            ],
+            [
+              679,
+              1080
+            ],
+            [
+              688,
+              1093
+            ],
+            [
+              681,
+              1094
+            ],
+            [
+              726,
+              1156
+            ],
+            [
+              427,
+              1155
+            ],
+            [
+              434,
+              1177
+            ],
+            [
+              341,
+              1176
+            ],
+            [
+              337,
+              1150
+            ],
+            [
+              328,
+              1150
+            ],
+            [
+              327,
+              1136
+            ],
+            [
+              335,
+              1135
+            ],
+            [
+              332,
+              1118
+            ],
+            [
+              379,
+              1118
+            ],
+            [
+              373,
+              1092
+            ],
+            [
+              320,
+              1093
+            ],
+            [
+              321,
+              1097
+            ],
+            [
+              305,
+              1097
+            ],
+            [
+              305,
+              1093
+            ],
+            [
+              270,
+              1093
+            ],
+            [
+              272,
+              1137
+            ],
+            [
+              269,
+              1137
+            ],
+            [
+              270,
+              1145
+            ],
+            [
+              251,
+              1146
+            ],
+            [
+              252,
+              1137
+            ],
+            [
+              205,
+              1136
+            ],
+            [
+              210,
+              1087
+            ],
+            [
+              203,
+              1087
+            ],
+            [
+              200,
+              1102
+            ],
+            [
+              183,
+              1102
+            ],
+            [
+              184,
+              1093
+            ],
+            [
+              155,
+              1093
+            ],
+            [
+              154,
+              1076
+            ],
+            [
+              113,
+              1075
+            ]
+          ],
+          "nodes": {
+            "T_2_elev_main": {
+              "id": "T_2_elev_main",
+              "kind": "elevator",
+              "elevatorId": "T-main",
+              "x": 490,
+              "y": 1115,
+              "label": "Main elevators"
+            },
+            "T_2_room_n11": {
+              "id": "T_2_room_n11",
+              "kind": "room",
+              "roomN": 11,
+              "label": "Blood Bank and Clinical Lab",
+              "x": 565,
+              "y": 1139
+            },
+            "T_2_room_n12": {
+              "id": "T_2_room_n12",
+              "kind": "room",
+              "roomN": 12,
+              "label": "Burn Unit",
+              "x": 655,
+              "y": 1115
+            },
+            "T_2_room_n13": {
+              "id": "T_2_room_n13",
+              "kind": "room",
+              "roomN": 13,
+              "label": "Children's Surgery Center",
+              "x": 467,
+              "y": 1120
+            },
+            "T_2_room_n14": {
+              "id": "T_2_room_n14",
+              "kind": "room",
+              "roomN": 14,
+              "label": "Respiratory Therapy",
+              "x": 550,
+              "y": 1096
+            },
+            "T_2_room_n15": {
+              "id": "T_2_room_n15",
+              "kind": "room",
+              "roomN": 15,
+              "label": "Surgery and Endoscopy Suite",
+              "x": 237,
+              "y": 1050
+            },
+            "T_2_room_n16": {
+              "id": "T_2_room_n16",
+              "kind": "room",
+              "roomN": 16,
+              "label": "Surgical Intensive Care Unit (SICU)",
+              "x": 232,
+              "y": 1099
+            },
+            "fp_2_elevator_ksbyd": {
+              "id": "fp_2_elevator_ksbyd",
+              "kind": "elevator",
+              "x": 136,
+              "y": 1029,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_2_elevator_0goc3": {
+              "id": "fp_2_elevator_0goc3",
+              "kind": "elevator",
+              "x": 208,
+              "y": 1080,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_2_elevator_6z4jx": {
+              "id": "fp_2_elevator_6z4jx",
+              "kind": "elevator",
+              "x": 232,
+              "y": 1085,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_2_elevator_5a5h4": {
+              "id": "fp_2_elevator_5a5h4",
+              "kind": "elevator",
+              "x": 366,
+              "y": 1038,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_2_elevator_9hpqq": {
+              "id": "fp_2_elevator_9hpqq",
+              "kind": "elevator",
+              "x": 372,
+              "y": 1080,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_2_elevator_9kqtl": {
+              "id": "fp_2_elevator_9kqtl",
+              "kind": "elevator",
+              "x": 406,
+              "y": 1079,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_2_elevator_shj4h": {
+              "id": "fp_2_elevator_shj4h",
+              "kind": "elevator",
+              "x": 468,
+              "y": 1003,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_2_elevator_04253": {
+              "id": "fp_2_elevator_04253",
+              "kind": "elevator",
+              "x": 603,
+              "y": 1086,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_2_elevator_p3afl": {
+              "id": "fp_2_elevator_p3afl",
+              "kind": "elevator",
+              "x": 620,
+              "y": 1085,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            }
+          },
+          "edges": []
+        },
+        "3": {
+          "boundary": [
+            [
+              359,
+              816
+            ],
+            [
+              505,
+              816
+            ],
+            [
+              548,
+              873
+            ],
+            [
+              556,
+              873
+            ],
+            [
+              573,
+              896
+            ],
+            [
+              582,
+              895
+            ],
+            [
+              590,
+              910
+            ],
+            [
+              585,
+              911
+            ],
+            [
+              629,
+              969
+            ],
+            [
+              563,
+              968
+            ],
+            [
+              547,
+              939
+            ],
+            [
+              520,
+              939
+            ],
+            [
+              537,
+              969
+            ],
+            [
+              472,
+              969
+            ],
+            [
+              458,
+              941
+            ],
+            [
+              434,
+              941
+            ],
+            [
+              444,
+              968
+            ],
+            [
+              346,
+              967
+            ],
+            [
+              352,
+              986
+            ],
+            [
+              265,
+              988
+            ],
+            [
+              262,
+              966
+            ],
+            [
+              254,
+              966
+            ],
+            [
+              252,
+              949
+            ],
+            [
+              260,
+              948
+            ],
+            [
+              257,
+              931
+            ],
+            [
+              301,
+              931
+            ],
+            [
+              295,
+              908
+            ],
+            [
+              244,
+              907
+            ],
+            [
+              244,
+              912
+            ],
+            [
+              228,
+              911
+            ],
+            [
+              228,
+              907
+            ],
+            [
+              196,
+              909
+            ],
+            [
+              199,
+              949
+            ],
+            [
+              192,
+              949
+            ],
+            [
+              192,
+              958
+            ],
+            [
+              175,
+              959
+            ],
+            [
+              175,
+              950
+            ],
+            [
+              131,
+              950
+            ],
+            [
+              134,
+              904
+            ],
+            [
+              127,
+              904
+            ],
+            [
+              129,
+              890
+            ],
+            [
+              192,
+              892
+            ],
+            [
+              192,
+              902
+            ],
+            [
+              227,
+              901
+            ],
+            [
+              225,
+              891
+            ],
+            [
+              263,
+              891
+            ],
+            [
+              256,
+              852
+            ],
+            [
+              240,
+              850
+            ],
+            [
+              238,
+              837
+            ],
+            [
+              336,
+              837
+            ],
+            [
+              363,
+              841
+            ],
+            [
+              363,
+              855
+            ],
+            [
+              340,
+              850
+            ],
+            [
+              358,
+              902
+            ],
+            [
+              329,
+              902
+            ],
+            [
+              331,
+              908
+            ],
+            [
+              385,
+              908
+            ],
+            [
+              381,
+              897
+            ],
+            [
+              392,
+              896
+            ]
+          ],
+          "nodes": {
+            "T_3_elev_main": {
+              "id": "T_3_elev_main",
+              "kind": "elevator",
+              "elevatorId": "T-main",
+              "x": 403,
+              "y": 929,
+              "label": "Main elevators"
+            },
+            "T_3_room_n17": {
+              "id": "T_3_room_n17",
+              "kind": "room",
+              "roomN": 17,
+              "label": "Birthing Suites",
+              "x": 312,
+              "y": 846
+            },
+            "T_3_room_n18": {
+              "id": "T_3_room_n18",
+              "kind": "room",
+              "roomN": 18,
+              "label": "Cardiothoracic Intensive Care Unit (CTICU)",
+              "x": 560,
+              "y": 930
+            },
+            "T_3_room_n19": {
+              "id": "T_3_room_n19",
+              "kind": "room",
+              "roomN": 19,
+              "label": "Main Operating Rooms",
+              "x": 472,
+              "y": 875
+            },
+            "T_3_room_n20": {
+              "id": "T_3_room_n20",
+              "kind": "room",
+              "roomN": 20,
+              "label": "Neurological Services Intensive Care Unit (NSICU)",
+              "x": 501,
+              "y": 933
+            },
+            "T_3_room_n21": {
+              "id": "T_3_room_n21",
+              "kind": "room",
+              "roomN": 21,
+              "label": "Post Anesthesia Care Unit (PACU)",
+              "x": 434,
+              "y": 898
+            },
+            "T_3_room_n22": {
+              "id": "T_3_room_n22",
+              "kind": "room",
+              "roomN": 22,
+              "label": "Surgery and ICU Waiting Room",
+              "x": 417,
+              "y": 935
+            },
+            "T_3_room_n23": {
+              "id": "T_3_room_n23",
+              "kind": "room",
+              "roomN": 23,
+              "label": "Women's Pavilion OB/GYN",
+              "x": 164,
+              "y": 912
+            },
+            "fp_3_elevator_yheiu": {
+              "id": "fp_3_elevator_yheiu",
+              "kind": "elevator",
+              "x": 529,
+              "y": 908,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_3_elevator_pxj29": {
+              "id": "fp_3_elevator_pxj29",
+              "kind": "elevator",
+              "x": 515,
+              "y": 909,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_3_elevator_b2oi8": {
+              "id": "fp_3_elevator_b2oi8",
+              "kind": "elevator",
+              "x": 455,
+              "y": 819,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_3_elevator_8nqdm": {
+              "id": "fp_3_elevator_8nqdm",
+              "kind": "elevator",
+              "x": 375,
+              "y": 817,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_3_elevator_hr0cc": {
+              "id": "fp_3_elevator_hr0cc",
+              "kind": "elevator",
+              "x": 293,
+              "y": 896,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_3_elevator_p3bnx": {
+              "id": "fp_3_elevator_p3bnx",
+              "kind": "elevator",
+              "x": 321,
+              "y": 896,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_3_elevator_hcfsf": {
+              "id": "fp_3_elevator_hcfsf",
+              "kind": "elevator",
+              "x": 144,
+              "y": 899,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_3_elevator_nd0vy": {
+              "id": "fp_3_elevator_nd0vy",
+              "kind": "elevator",
+              "x": 158,
+              "y": 899,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            }
+          },
+          "edges": []
+        },
+        "4": {
+          "boundary": [
+            [
+              134,
+              665
+            ],
+            [
+              161,
+              665
+            ],
+            [
+              157,
+              679
+            ],
+            [
+              230,
+              680
+            ],
+            [
+              227,
+              700
+            ],
+            [
+              240,
+              700
+            ],
+            [
+              238,
+              734
+            ],
+            [
+              299,
+              736
+            ],
+            [
+              299,
+              746
+            ],
+            [
+              337,
+              746
+            ],
+            [
+              335,
+              733
+            ],
+            [
+              377,
+              733
+            ],
+            [
+              371,
+              687
+            ],
+            [
+              354,
+              686
+            ],
+            [
+              352,
+              670
+            ],
+            [
+              466,
+              669
+            ],
+            [
+              499,
+              674
+            ],
+            [
+              498,
+              692
+            ],
+            [
+              472,
+              689
+            ],
+            [
+              491,
+              748
+            ],
+            [
+              452,
+              747
+            ],
+            [
+              453,
+              752
+            ],
+            [
+              446,
+              752
+            ],
+            [
+              448,
+              759
+            ],
+            [
+              428,
+              759
+            ],
+            [
+              428,
+              754
+            ],
+            [
+              360,
+              754
+            ],
+            [
+              360,
+              759
+            ],
+            [
+              340,
+              759
+            ],
+            [
+              340,
+              754
+            ],
+            [
+              303,
+              754
+            ],
+            [
+              306,
+              803
+            ],
+            [
+              301,
+              802
+            ],
+            [
+              301,
+              812
+            ],
+            [
+              280,
+              812
+            ],
+            [
+              281,
+              803
+            ],
+            [
+              226,
+              801
+            ],
+            [
+              229,
+              746
+            ],
+            [
+              223,
+              745
+            ],
+            [
+              225,
+              736
+            ],
+            [
+              229,
+              736
+            ],
+            [
+              231,
+              718
+            ],
+            [
+              151,
+              719
+            ],
+            [
+              147,
+              735
+            ],
+            [
+              120,
+              734
+            ]
+          ],
+          "nodes": {
+            "T_4_elev_main": {
+              "id": "T_4_elev_main",
+              "kind": "elevator",
+              "elevatorId": "T-main",
+              "x": 416,
+              "y": 740,
+              "label": "Main elevators"
+            },
+            "T_4_room_n24": {
+              "id": "T_4_room_n24",
+              "kind": "room",
+              "roomN": 24,
+              "label": "ENT / Internal Medicine Unit",
+              "x": 271,
+              "y": 750
+            },
+            "fp_4_elevator_55n95": {
+              "id": "fp_4_elevator_55n95",
+              "kind": "elevator",
+              "x": 450,
+              "y": 739,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_4_elevator_nr07t": {
+              "id": "fp_4_elevator_nr07t",
+              "kind": "elevator",
+              "x": 259,
+              "y": 742,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_4_elevator_le8rb": {
+              "id": "fp_4_elevator_le8rb",
+              "kind": "elevator",
+              "x": 244,
+              "y": 742,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_4_elevator_akqnx": {
+              "id": "fp_4_elevator_akqnx",
+              "kind": "elevator",
+              "x": 148,
+              "y": 698,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            }
+          },
+          "edges": []
+        },
+        "5": {
+          "boundary": [
+            [
+              128,
+              548
+            ],
+            [
+              137,
+              549
+            ],
+            [
+              139,
+              543
+            ],
+            [
+              227,
+              544
+            ],
+            [
+              224,
+              564
+            ],
+            [
+              238,
+              564
+            ],
+            [
+              236,
+              597
+            ],
+            [
+              293,
+              600
+            ],
+            [
+              293,
+              608
+            ],
+            [
+              331,
+              608
+            ],
+            [
+              330,
+              596
+            ],
+            [
+              372,
+              595
+            ],
+            [
+              365,
+              550
+            ],
+            [
+              348,
+              552
+            ],
+            [
+              346,
+              534
+            ],
+            [
+              451,
+              534
+            ],
+            [
+              493,
+              540
+            ],
+            [
+              491,
+              557
+            ],
+            [
+              464,
+              551
+            ],
+            [
+              483,
+              613
+            ],
+            [
+              450,
+              613
+            ],
+            [
+              451,
+              617
+            ],
+            [
+              439,
+              616
+            ],
+            [
+              440,
+              624
+            ],
+            [
+              419,
+              625
+            ],
+            [
+              389,
+              623
+            ],
+            [
+              390,
+              617
+            ],
+            [
+              356,
+              616
+            ],
+            [
+              356,
+              623
+            ],
+            [
+              333,
+              624
+            ],
+            [
+              333,
+              618
+            ],
+            [
+              300,
+              618
+            ],
+            [
+              302,
+              663
+            ],
+            [
+              290,
+              663
+            ],
+            [
+              291,
+              675
+            ],
+            [
+              275,
+              676
+            ],
+            [
+              276,
+              664
+            ],
+            [
+              224,
+              664
+            ],
+            [
+              226,
+              613
+            ],
+            [
+              220,
+              613
+            ],
+            [
+              220,
+              599
+            ],
+            [
+              227,
+              599
+            ],
+            [
+              228,
+              573
+            ],
+            [
+              224,
+              573
+            ],
+            [
+              222,
+              584
+            ],
+            [
+              128,
+              584
+            ],
+            [
+              129,
+              578
+            ],
+            [
+              120,
+              578
+            ]
+          ],
+          "nodes": {
+            "T_5_elev_main": {
+              "id": "T_5_elev_main",
+              "kind": "elevator",
+              "elevatorId": "T-main",
+              "x": 446,
+              "y": 605,
+              "label": "Main elevators"
+            },
+            "T_5_room_n25": {
+              "id": "T_5_room_n25",
+              "kind": "room",
+              "roomN": 25,
+              "label": "Medical Intensive Care Unit (MICU)",
+              "x": 265,
+              "y": 613
+            },
+            "T_5_room_n26": {
+              "id": "T_5_room_n26",
+              "kind": "room",
+              "roomN": 26,
+              "label": "Neonatal Intensive Care Unit (NICU)",
+              "x": 421,
+              "y": 565
+            },
+            "T_5_room_n27": {
+              "id": "T_5_room_n27",
+              "kind": "room",
+              "roomN": 27,
+              "label": "PM&R and Neurosciences",
+              "x": 196,
+              "y": 557
+            },
+            "fp_5_elevator_4qprf": {
+              "id": "fp_5_elevator_4qprf",
+              "kind": "elevator",
+              "x": 408,
+              "y": 606,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_5_elevator_yiq7j": {
+              "id": "fp_5_elevator_yiq7j",
+              "kind": "elevator",
+              "x": 254,
+              "y": 605,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_5_elevator_quppg": {
+              "id": "fp_5_elevator_quppg",
+              "kind": "elevator",
+              "x": 240,
+              "y": 605,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_5_elevator_c24o9": {
+              "id": "fp_5_elevator_c24o9",
+              "kind": "elevator",
+              "x": 145,
+              "y": 562,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            }
+          },
+          "edges": []
+        },
+        "6": {
+          "boundary": [
+            [
+              129,
+              405
+            ],
+            [
+              214,
+              405
+            ],
+            [
+              212,
+              423
+            ],
+            [
+              225,
+              424
+            ],
+            [
+              222,
+              457
+            ],
+            [
+              277,
+              458
+            ],
+            [
+              277,
+              466
+            ],
+            [
+              316,
+              466
+            ],
+            [
+              315,
+              454
+            ],
+            [
+              356,
+              455
+            ],
+            [
+              349,
+              412
+            ],
+            [
+              332,
+              411
+            ],
+            [
+              331,
+              395
+            ],
+            [
+              426,
+              393
+            ],
+            [
+              471,
+              401
+            ],
+            [
+              470,
+              417
+            ],
+            [
+              445,
+              411
+            ],
+            [
+              463,
+              472
+            ],
+            [
+              431,
+              473
+            ],
+            [
+              432,
+              477
+            ],
+            [
+              421,
+              476
+            ],
+            [
+              421,
+              482
+            ],
+            [
+              405,
+              483
+            ],
+            [
+              374,
+              479
+            ],
+            [
+              375,
+              476
+            ],
+            [
+              339,
+              475
+            ],
+            [
+              340,
+              480
+            ],
+            [
+              318,
+              480
+            ],
+            [
+              318,
+              474
+            ],
+            [
+              285,
+              475
+            ],
+            [
+              286,
+              518
+            ],
+            [
+              280,
+              519
+            ],
+            [
+              281,
+              529
+            ],
+            [
+              260,
+              530
+            ],
+            [
+              261,
+              521
+            ],
+            [
+              211,
+              522
+            ],
+            [
+              214,
+              470
+            ],
+            [
+              209,
+              470
+            ],
+            [
+              209,
+              459
+            ],
+            [
+              214,
+              458
+            ],
+            [
+              217,
+              432
+            ],
+            [
+              212,
+              432
+            ],
+            [
+              211,
+              441
+            ],
+            [
+              119,
+              442
+            ]
+          ],
+          "nodes": {
+            "T_6_elev_main": {
+              "id": "T_6_elev_main",
+              "kind": "elevator",
+              "elevatorId": "T-main",
+              "x": 427,
+              "y": 461,
+              "label": "Main elevators"
+            },
+            "T_6_room_n28": {
+              "id": "T_6_room_n28",
+              "kind": "room",
+              "roomN": 28,
+              "label": "Cardiac Intensive Care Unit (CICU)",
+              "x": 266,
+              "y": 472
+            },
+            "T_6_room_n29": {
+              "id": "T_6_room_n29",
+              "kind": "room",
+              "roomN": 29,
+              "label": "Cardiac Services",
+              "x": 174,
+              "y": 429
+            },
+            "T_6_room_n30": {
+              "id": "T_6_room_n30",
+              "kind": "room",
+              "roomN": 30,
+              "label": "Cardiology",
+              "x": 385,
+              "y": 409
+            },
+            "fp_6_elevator_s6wdi": {
+              "id": "fp_6_elevator_s6wdi",
+              "kind": "elevator",
+              "x": 389,
+              "y": 462,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_6_elevator_o7nfy": {
+              "id": "fp_6_elevator_o7nfy",
+              "kind": "elevator",
+              "x": 240,
+              "y": 464,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_6_elevator_li26w": {
+              "id": "fp_6_elevator_li26w",
+              "kind": "elevator",
+              "x": 225,
+              "y": 464,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_6_elevator_5tgy8": {
+              "id": "fp_6_elevator_5tgy8",
+              "kind": "elevator",
+              "x": 135,
+              "y": 422,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            }
+          },
+          "edges": []
+        },
+        "7": {
+          "boundary": [
+            [
+              126,
+              276
+            ],
+            [
+              212,
+              276
+            ],
+            [
+              211,
+              297
+            ],
+            [
+              223,
+              298
+            ],
+            [
+              221,
+              326
+            ],
+            [
+              277,
+              327
+            ],
+            [
+              277,
+              334
+            ],
+            [
+              315,
+              333
+            ],
+            [
+              314,
+              324
+            ],
+            [
+              353,
+              324
+            ],
+            [
+              346,
+              284
+            ],
+            [
+              329,
+              284
+            ],
+            [
+              327,
+              267
+            ],
+            [
+              434,
+              265
+            ],
+            [
+              466,
+              270
+            ],
+            [
+              465,
+              287
+            ],
+            [
+              439,
+              283
+            ],
+            [
+              458,
+              339
+            ],
+            [
+              425,
+              338
+            ],
+            [
+              426,
+              342
+            ],
+            [
+              416,
+              343
+            ],
+            [
+              417,
+              349
+            ],
+            [
+              371,
+              348
+            ],
+            [
+              371,
+              342
+            ],
+            [
+              334,
+              341
+            ],
+            [
+              335,
+              347
+            ],
+            [
+              314,
+              347
+            ],
+            [
+              314,
+              342
+            ],
+            [
+              283,
+              343
+            ],
+            [
+              284,
+              385
+            ],
+            [
+              280,
+              385
+            ],
+            [
+              280,
+              393
+            ],
+            [
+              258,
+              394
+            ],
+            [
+              259,
+              384
+            ],
+            [
+              210,
+              385
+            ],
+            [
+              212,
+              337
+            ],
+            [
+              207,
+              337
+            ],
+            [
+              207,
+              327
+            ],
+            [
+              212,
+              326
+            ],
+            [
+              214,
+              304
+            ],
+            [
+              209,
+              304
+            ],
+            [
+              208,
+              312
+            ],
+            [
+              118,
+              313
+            ]
+          ],
+          "nodes": {
+            "T_7_elev_main": {
+              "id": "T_7_elev_main",
+              "kind": "elevator",
+              "elevatorId": "T-main",
+              "x": 422,
+              "y": 328,
+              "label": "Main elevators"
+            },
+            "T_7_room_n31": {
+              "id": "T_7_room_n31",
+              "kind": "room",
+              "roomN": 31,
+              "label": "Medical Surgery Intensive Care Unit (MSICU)",
+              "x": 264,
+              "y": 338
+            },
+            "T_7_room_n32": {
+              "id": "T_7_room_n32",
+              "kind": "room",
+              "roomN": 32,
+              "label": "Neurology",
+              "x": 183,
+              "y": 287
+            },
+            "T_7_room_n33": {
+              "id": "T_7_room_n33",
+              "kind": "room",
+              "roomN": 33,
+              "label": "Pediatrics",
+              "x": 377,
+              "y": 279
+            },
+            "T_7_room_n34": {
+              "id": "T_7_room_n34",
+              "kind": "room",
+              "roomN": 34,
+              "label": "Transfer and Receiving Unit (TRU-ICU)",
+              "x": 230,
+              "y": 342
+            },
+            "fp_7_elevator_w5sgr": {
+              "id": "fp_7_elevator_w5sgr",
+              "kind": "elevator",
+              "x": 135,
+              "y": 293,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_7_elevator_2jabj": {
+              "id": "fp_7_elevator_2jabj",
+              "kind": "elevator",
+              "x": 223,
+              "y": 330,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_7_elevator_thi8r": {
+              "id": "fp_7_elevator_thi8r",
+              "kind": "elevator",
+              "x": 237,
+              "y": 330,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_7_elevator_p8shl": {
+              "id": "fp_7_elevator_p8shl",
+              "kind": "elevator",
+              "x": 388,
+              "y": 330,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_7_room_pomvh": {
+              "id": "fp_7_room_pomvh",
+              "kind": "room",
+              "x": 147,
+              "y": 290,
+              "label": "NeuroScience Specialties & Epilepsy Monitoring Unit"
+            }
+          },
+          "edges": []
+        },
+        "8": {
+          "boundary": [
+            [
+              142,
+              150
+            ],
+            [
+              219,
+              150
+            ],
+            [
+              215,
+              169
+            ],
+            [
+              229,
+              169
+            ],
+            [
+              224,
+              198
+            ],
+            [
+              277,
+              195
+            ],
+            [
+              277,
+              205
+            ],
+            [
+              311,
+              204
+            ],
+            [
+              311,
+              195
+            ],
+            [
+              348,
+              194
+            ],
+            [
+              346,
+              156
+            ],
+            [
+              327,
+              157
+            ],
+            [
+              327,
+              142
+            ],
+            [
+              427,
+              140
+            ],
+            [
+              462,
+              147
+            ],
+            [
+              459,
+              160
+            ],
+            [
+              434,
+              157
+            ],
+            [
+              452,
+              210
+            ],
+            [
+              418,
+              210
+            ],
+            [
+              419,
+              213
+            ],
+            [
+              410,
+              214
+            ],
+            [
+              411,
+              219
+            ],
+            [
+              364,
+              219
+            ],
+            [
+              363,
+              212
+            ],
+            [
+              330,
+              211
+            ],
+            [
+              330,
+              215
+            ],
+            [
+              311,
+              216
+            ],
+            [
+              311,
+              213
+            ],
+            [
+              282,
+              213
+            ],
+            [
+              279,
+              254
+            ],
+            [
+              274,
+              254
+            ],
+            [
+              274,
+              263
+            ],
+            [
+              253,
+              263
+            ],
+            [
+              255,
+              254
+            ],
+            [
+              239,
+              253
+            ],
+            [
+              220,
+              254
+            ],
+            [
+              207,
+              253
+            ],
+            [
+              211,
+              241
+            ],
+            [
+              212,
+              231
+            ],
+            [
+              215,
+              220
+            ],
+            [
+              217,
+              207
+            ],
+            [
+              208,
+              206
+            ],
+            [
+              215,
+              182
+            ],
+            [
+              186,
+              183
+            ],
+            [
+              129,
+              183
+            ]
+          ],
+          "nodes": {
+            "T_8_elev_main": {
+              "id": "T_8_elev_main",
+              "kind": "elevator",
+              "elevatorId": "T-main",
+              "x": 242,
+              "y": 203,
+              "label": "Main elevators"
+            },
+            "T_8_room_n35": {
+              "id": "T_8_room_n35",
+              "kind": "room",
+              "roomN": 35,
+              "label": "Medical Surgery and Respiratory Care",
+              "x": 192,
+              "y": 171
+            },
+            "T_8_room_n36": {
+              "id": "T_8_room_n36",
+              "kind": "room",
+              "roomN": 36,
+              "label": "Oncology and Bone Marrow Transplant",
+              "x": 407,
+              "y": 153
+            },
+            "T_8_room_n37": {
+              "id": "T_8_room_n37",
+              "kind": "room",
+              "roomN": 37,
+              "label": "Transplant / Metabolic Special Care Unit",
+              "x": 259,
+              "y": 208
+            },
+            "fp_8_elevator_hty6c": {
+              "id": "fp_8_elevator_hty6c",
+              "kind": "elevator",
+              "x": 226,
+              "y": 202,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_8_elevator_fv2ba": {
+              "id": "fp_8_elevator_fv2ba",
+              "kind": "elevator",
+              "x": 146,
+              "y": 165,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_8_elevator_7rwkw": {
+              "id": "fp_8_elevator_7rwkw",
+              "kind": "elevator",
+              "x": 381,
+              "y": 199,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_8_elevator_bi17p": {
+              "id": "fp_8_elevator_bi17p",
+              "kind": "elevator",
+              "x": 413,
+              "y": 197,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            }
+          },
+          "edges": []
+        },
+        "10": {
+          "boundary": [
+            [
+              609,
+              536
+            ],
+            [
+              717,
+              534
+            ],
+            [
+              756,
+              540
+            ],
+            [
+              754,
+              557
+            ],
+            [
+              728,
+              553
+            ],
+            [
+              746,
+              611
+            ],
+            [
+              713,
+              611
+            ],
+            [
+              714,
+              616
+            ],
+            [
+              701,
+              616
+            ],
+            [
+              702,
+              622
+            ],
+            [
+              652,
+              622
+            ],
+            [
+              651,
+              615
+            ],
+            [
+              631,
+              615
+            ],
+            [
+              627,
+              551
+            ],
+            [
+              609,
+              549
+            ]
+          ],
+          "nodes": {
+            "T_10_elev_main": {
+              "id": "T_10_elev_main",
+              "kind": "elevator",
+              "elevatorId": "T-main",
+              "x": 668,
+              "y": 600,
+              "label": "Main elevators"
+            },
+            "T_10_room_n38": {
+              "id": "T_10_room_n38",
+              "kind": "room",
+              "roomN": 38,
+              "label": "Pediatric Intensive Care Unit / Pediatric Cardiac Intensive Care Unit (PICU/PCICU)",
+              "x": 686,
+              "y": 587
+            },
+            "fp_10_elevator_ejrf0": {
+              "id": "fp_10_elevator_ejrf0",
+              "kind": "elevator",
+              "x": 706,
+              "y": 600,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            }
+          },
+          "edges": []
+        },
+        "11": {
+          "boundary": [
+            [
+              611,
+              394
+            ],
+            [
+              718,
+              394
+            ],
+            [
+              755,
+              400
+            ],
+            [
+              754,
+              414
+            ],
+            [
+              726,
+              411
+            ],
+            [
+              743,
+              467
+            ],
+            [
+              709,
+              466
+            ],
+            [
+              710,
+              472
+            ],
+            [
+              698,
+              472
+            ],
+            [
+              699,
+              479
+            ],
+            [
+              650,
+              478
+            ],
+            [
+              650,
+              471
+            ],
+            [
+              631,
+              471
+            ],
+            [
+              628,
+              411
+            ],
+            [
+              610,
+              410
+            ]
+          ],
+          "nodes": {
+            "T_11_elev_main": {
+              "id": "T_11_elev_main",
+              "kind": "elevator",
+              "elevatorId": "T-main",
+              "x": 666,
+              "y": 457,
+              "label": "Main elevators"
+            },
+            "T_11_room_n39": {
+              "id": "T_11_room_n39",
+              "kind": "room",
+              "roomN": 39,
+              "label": "Trauma",
+              "x": 685,
+              "y": 444
+            },
+            "fp_11_elevator_9bepo": {
+              "id": "fp_11_elevator_9bepo",
+              "kind": "elevator",
+              "x": 705,
+              "y": 456,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            }
+          },
+          "edges": []
+        },
+        "12": {
+          "boundary": [
+            [
+              610,
+              270
+            ],
+            [
+              715,
+              268
+            ],
+            [
+              749,
+              276
+            ],
+            [
+              746,
+              288
+            ],
+            [
+              724,
+              286
+            ],
+            [
+              740,
+              341
+            ],
+            [
+              706,
+              340
+            ],
+            [
+              706,
+              345
+            ],
+            [
+              696,
+              345
+            ],
+            [
+              696,
+              351
+            ],
+            [
+              646,
+              349
+            ],
+            [
+              645,
+              343
+            ],
+            [
+              632,
+              344
+            ],
+            [
+              627,
+              284
+            ],
+            [
+              611,
+              285
+            ]
+          ],
+          "nodes": {
+            "T_12_elev_main": {
+              "id": "T_12_elev_main",
+              "kind": "elevator",
+              "elevatorId": "T-main",
+              "x": 664,
+              "y": 332,
+              "label": "Main elevators"
+            },
+            "T_12_room_n40": {
+              "id": "T_12_room_n40",
+              "kind": "room",
+              "roomN": 40,
+              "label": "Vascular / GI",
+              "x": 682,
+              "y": 318
+            },
+            "fp_12_elevator_jgr06": {
+              "id": "fp_12_elevator_jgr06",
+              "kind": "elevator",
+              "x": 701,
+              "y": 330,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            }
+          },
+          "edges": []
+        },
+        "14": {
+          "boundary": [
+            [
+              609,
+              143
+            ],
+            [
+              709,
+              141
+            ],
+            [
+              741,
+              148
+            ],
+            [
+              741,
+              159
+            ],
+            [
+              716,
+              156
+            ],
+            [
+              734,
+              210
+            ],
+            [
+              703,
+              209
+            ],
+            [
+              703,
+              214
+            ],
+            [
+              693,
+              214
+            ],
+            [
+              693,
+              219
+            ],
+            [
+              646,
+              219
+            ],
+            [
+              645,
+              213
+            ],
+            [
+              631,
+              213
+            ],
+            [
+              627,
+              156
+            ],
+            [
+              609,
+              157
+            ]
+          ],
+          "nodes": {
+            "T_14_elev_main": {
+              "id": "T_14_elev_main",
+              "kind": "elevator",
+              "elevatorId": "T-main",
+              "x": 661,
+              "y": 202,
+              "label": "Main elevators"
+            },
+            "T_14_room_n41": {
+              "id": "T_14_room_n41",
+              "kind": "room",
+              "roomN": 41,
+              "label": "Orthopaedics",
+              "x": 679,
+              "y": 189
+            },
+            "fp_14_elevator_rbju6": {
+              "id": "fp_14_elevator_rbju6",
+              "kind": "elevator",
+              "x": 698,
+              "y": 201,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            }
+          },
+          "edges": []
+        },
+        "LL": {
+          "boundary": [
+            [
+              223,
+              1488
+            ],
+            [
+              263,
+              1488
+            ],
+            [
+              267,
+              1467
+            ],
+            [
+              290,
+              1467
+            ],
+            [
+              288,
+              1479
+            ],
+            [
+              430,
+              1480
+            ],
+            [
+              427,
+              1464
+            ],
+            [
+              545,
+              1464
+            ],
+            [
+              548,
+              1471
+            ],
+            [
+              558,
+              1471
+            ],
+            [
+              555,
+              1463
+            ],
+            [
+              619,
+              1463
+            ],
+            [
+              639,
+              1508
+            ],
+            [
+              752,
+              1507
+            ],
+            [
+              753,
+              1523
+            ],
+            [
+              766,
+              1523
+            ],
+            [
+              777,
+              1545
+            ],
+            [
+              794,
+              1541
+            ],
+            [
+              810,
+              1563
+            ],
+            [
+              792,
+              1562
+            ],
+            [
+              783,
+              1552
+            ],
+            [
+              749,
+              1552
+            ],
+            [
+              753,
+              1561
+            ],
+            [
+              706,
+              1563
+            ],
+            [
+              700,
+              1551
+            ],
+            [
+              602,
+              1552
+            ],
+            [
+              607,
+              1566
+            ],
+            [
+              580,
+              1566
+            ],
+            [
+              595,
+              1618
+            ],
+            [
+              531,
+              1616
+            ],
+            [
+              536,
+              1634
+            ],
+            [
+              441,
+              1634
+            ],
+            [
+              437,
+              1578
+            ],
+            [
+              483,
+              1578
+            ],
+            [
+              479,
+              1556
+            ],
+            [
+              430,
+              1555
+            ],
+            [
+              431,
+              1563
+            ],
+            [
+              409,
+              1564
+            ],
+            [
+              408,
+              1555
+            ],
+            [
+              401,
+              1554
+            ],
+            [
+              405,
+              1607
+            ],
+            [
+              353,
+              1607
+            ],
+            [
+              354,
+              1599
+            ],
+            [
+              198,
+              1600
+            ],
+            [
+              207,
+              1559
+            ],
+            [
+              257,
+              1560
+            ],
+            [
+              261,
+              1535
+            ],
+            [
+              212,
+              1537
+            ]
+          ],
+          "nodes": {
+            "T_LL_elev_main": {
+              "id": "T_LL_elev_main",
+              "kind": "elevator",
+              "elevatorId": "T-main",
+              "x": 309,
+              "y": 1549,
+              "label": "Main elevators"
+            },
+            "T_LL_room_n1": {
+              "id": "T_LL_room_n1",
+              "kind": "room",
+              "roomN": 1,
+              "label": "Auditorium",
+              "x": 227,
+              "y": 1572
+            },
+            "fp_LL_room_l3d1g": {
+              "id": "fp_LL_room_l3d1g",
+              "kind": "room",
+              "x": 245,
+              "y": 1573,
+              "label": "Pulmonary Services Lab"
+            },
+            "fp_LL_elevator_1g2zk": {
+              "id": "fp_LL_elevator_1g2zk",
+              "kind": "elevator",
+              "x": 323,
+              "y": 1548,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_LL_elevator_5twwh": {
+              "id": "fp_LL_elevator_5twwh",
+              "kind": "elevator",
+              "x": 476,
+              "y": 1544,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_LL_elevator_2pk6k": {
+              "id": "fp_LL_elevator_2pk6k",
+              "kind": "elevator",
+              "x": 513,
+              "y": 1544,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_LL_elevator_4vodx": {
+              "id": "fp_LL_elevator_4vodx",
+              "kind": "elevator",
+              "x": 615,
+              "y": 1519,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_LL_elevator_eo1l6": {
+              "id": "fp_LL_elevator_eo1l6",
+              "kind": "elevator",
+              "x": 671,
+              "y": 1513,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_LL_elevator_jx614": {
+              "id": "fp_LL_elevator_jx614",
+              "kind": "elevator",
+              "x": 579,
+              "y": 1470,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_LL_elevator_8dux6": {
+              "id": "fp_LL_elevator_8dux6",
+              "kind": "elevator",
+              "x": 727,
+              "y": 1515,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_LL_elevator_iu6iu": {
+              "id": "fp_LL_elevator_iu6iu",
+              "kind": "elevator",
+              "x": 719,
+              "y": 1560,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_LL_elevator_01yei": {
+              "id": "fp_LL_elevator_01yei",
+              "kind": "elevator",
+              "x": 737,
+              "y": 1561,
+              "elevatorId": "T-main",
+              "label": "Elevator"
+            },
+            "fp_LL_room_9m9ps": {
+              "id": "fp_LL_room_9m9ps",
+              "kind": "room",
+              "x": 483,
+              "y": 1499,
+              "label": "Distribution"
+            },
+            "fp_LL_room_hbo5a": {
+              "id": "fp_LL_room_hbo5a",
+              "kind": "room",
+              "x": 348,
+              "y": 1542,
+              "label": "Prosthetics/Orthotics"
+            },
+            "fp_LL_room_sf5a8": {
+              "id": "fp_LL_room_sf5a8",
+              "kind": "room",
+              "x": 309,
+              "y": 1494,
+              "label": "Clinical Engineering"
+            },
+            "fp_LL_room_itd9d": {
+              "id": "fp_LL_room_itd9d",
+              "kind": "room",
+              "x": 369,
+              "y": 1532,
+              "label": "Environmental Services"
+            },
+            "fp_LL_room_rqsjd": {
+              "id": "fp_LL_room_rqsjd",
+              "kind": "room",
+              "x": 524,
+              "y": 1590,
+              "label": "Dietary"
+            },
+            "fp_LL_room_z6tnw": {
+              "id": "fp_LL_room_z6tnw",
+              "kind": "room",
+              "x": 581,
+              "y": 1494,
+              "label": "Central Processing"
+            },
+            "fp_LL_room_n0g7o": {
+              "id": "fp_LL_room_n0g7o",
+              "kind": "room",
+              "x": 672,
+              "y": 1528,
+              "label": "Graduate Medical Education/General Surgery Education"
+            }
+          },
+          "edges": []
+        }
+      }
+    }
+  },
+  "_version": "applied-2026-05-19T07:22:12Z"
 }

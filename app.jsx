@@ -39,6 +39,18 @@ function App() {
   const [routeToId, setRouteToId] = useS(null);
   const [route, setRoute] = useS(null);
   const [panelMode, setPanelMode] = useS("browse");
+  // Lifted so the sidebar floor browser and the floor-diagram in the map
+  // area stay in sync. Defaults to Level 1 (street level) — the entry floor
+  // users care about most often.
+  const [activeLevelId, setActiveLevelId] = useS("1");
+  // Multi-floor route computed by WalkingDirections; consumed by FloorPlanMap.
+  const [floorRoute, setFloorRoute] = useS(null);
+  // Which floor-plan editor sub-mode is active when edit mode is on.
+  const [editFloorMode, setEditFloorMode] = useS("nodes");
+  // Local edit toggle for the floor plan ONLY — independent of the
+  // global campus editor (tweaks.editMode). This lets a hospital ops user
+  // tune room positions without unleashing the full campus-map editor.
+  const [floorPlanEditMode, setFloorPlanEditMode] = useS(false);
 
   // Edit-mode state
   const [editSubMode, setEditSubMode] = useS("hotspots");
@@ -53,6 +65,20 @@ function App() {
   const theme = THEMES[tweaks.theme] || THEMES["uc-classic"];
 
   useE(() => { setRoute(null); }, [routeFromId, routeToId]);
+
+  // Drop any in-progress floor-plan route the moment the user leaves floor-
+  // plan mode or switches to a different building. Without this the red
+  // dashed polyline lingers in the SVG the next time the user re-enters
+  // floor-plan view — it looks like a "phantom path" they never asked for.
+  // Also turns off the local floor-plan editor so the user starts every
+  // visit in a clean read-only state.
+  useE(() => {
+    if (panelMode !== "floorplan") {
+      setFloorRoute(null);
+      setFloorPlanEditMode(false);
+    }
+  }, [panelMode]);
+  useE(() => { setFloorRoute(null); setFloorPlanEditMode(false); }, [selectedId]);
 
   // Reduce-motion: respect explicit toggle, fall back to OS preference.
   useE(() => {
@@ -82,8 +108,22 @@ function App() {
         showLabels={tweaks.showLabels} setShowLabels={(v) => setTweak("showLabels", v)}
         reduceMotion={tweaks.reduceMotion} setReduceMotion={(v) => setTweak("reduceMotion", v)}
         panelMode={panelMode} setPanelMode={setPanelMode}
+        activeLevelId={activeLevelId} setActiveLevelId={setActiveLevelId}
+        floorRoute={floorRoute} setFloorRoute={setFloorRoute}
+        floorPlanEditMode={floorPlanEditMode} setFloorPlanEditMode={setFloorPlanEditMode}
         theme={theme}
       />
+      {panelMode === "floorplan" && selectedId && window.getFloorPlanForBuilding(selectedId) && window.FloorPlanMap ? (
+        <window.FloorPlanMap
+          buildingCode={selectedId}
+          activeLevelId={activeLevelId}
+          setActiveLevelId={setActiveLevelId}
+          editMode={editMode || floorPlanEditMode}
+          editFloorMode={editFloorMode}
+          setEditFloorMode={setEditFloorMode}
+          route={floorRoute && floorRoute.ok ? floorRoute : null}
+        />
+      ) : (
       <window.CampusMap
         selectedId={selectedId} hoveredId={hoveredId}
         onHover={setHoveredId}
@@ -110,6 +150,7 @@ function App() {
         edgePickFirst={edgePickFirst} setEdgePickFirst={setEdgePickFirst}
         pathTypeDefault={pathTypeDefault}
       />
+      )}
       {editMode && window.EditToolbar && (
         <window.EditToolbar
           mode={editSubMode}

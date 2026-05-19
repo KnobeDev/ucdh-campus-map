@@ -70,7 +70,7 @@
   var isLegacyReset = FULL_RESET_VERSIONS[effectiveVersion] && seenVersion !== effectiveVersion;
   var isStaleAfterApply = !!(defaults && defaults._version) && seenVersion !== effectiveVersion;
   if (isLegacyReset || isStaleAfterApply) {
-    ["buildings","addedBuildings","nodes","addedNodes","addedEdges","removedEdges","edgeMeta","shuttle","addedShuttle","entrances","crosswalks","pois","constructionZones"].forEach(function (k) {
+    ["buildings","addedBuildings","nodes","addedNodes","addedEdges","removedEdges","edgeMeta","shuttle","addedShuttle","entrances","crosswalks","pois","constructionZones","floorplan"].forEach(function (k) {
       delete existing[k];
     });
   }
@@ -85,6 +85,13 @@
   // This means: defaults are only applied when the user has no entry for that key,
   // so the first visit gets the bundled polygons/etc., and all subsequent edits stick.
   // Version-driven cleanup is handled by the PURGE list above.
+  //
+  // Floor plan merge:
+  //   floorplan is shaped as { <buildingCode>: { floors: { <levelId>: {...} } } }.
+  //   We merge at the building level (existing entry wins), so a user who has
+  //   already customised one building's floors keeps everything; a user with no
+  //   floorplan data picks up the bundled defaults verbatim. Per-floor merging
+  //   happens at read time inside floorplan.jsx getFloors().
   var merged = {
     buildings:      mergeMaps(defaults.buildings || {}, existing.buildings || {}),
     addedBuildings: mergeMaps(defaults.addedBuildings || {}, existing.addedBuildings || {}),
@@ -99,6 +106,7 @@
     crosswalks:     mergeMaps(defaults.crosswalks || {}, existing.crosswalks || {}),
     pois:           mergeMaps(defaults.pois || {}, existing.pois || {}),
     constructionZones: mergeMaps(defaults.constructionZones || {}, existing.constructionZones || {}),
+    floorplan:      mergeMaps(defaults.floorplan || {}, existing.floorplan || {}),
   };
 
   try {

@@ -80,6 +80,14 @@ function defaultEdits() {
     // Shape: { id, name, points:[[x,y],...], startDate:"YYYY-MM-DD"|null,
     //          endDate:"YYYY-MM-DD"|null, affects:[buildingCodes], notes }
     constructionZones:{},
+    // Floor-plan edits — keyed by building code that has interior data
+    // (currently just "T"). Each entry is a map of levelId → { boundary,
+    // nodes, edges } where boundary is a polygon [[x,y], ...], nodes is a
+    // map of nodeId → { id, kind:"walk"|"room"|"elevator", x, y,
+    // elevatorId?, roomN?, label? }, and edges is an array of [nodeIdA,
+    // nodeIdB] pairs. Overrides REPLACE the seed for each field that's
+    // present; missing fields fall back to seedFloors in floorplan.jsx.
+    floorplan: {},
   };
 }
 
@@ -702,6 +710,118 @@ const editStore = {
       CROSSWALKS: window.CROSSWALKS.map(x => ({ ...x })),
     };
     return JSON.stringify(out, null, 2);
+  },
+
+  // ----- Floor plan editing -------------------------------------------------
+  // All floor-plan writes go through these helpers so we centralise the
+  // "lazy-init the override branch" boilerplate. The bucket path looks like:
+  //   edits.floorplan[buildingCode].floors[levelId] = { boundary, nodes, edges }
+  //
+  // Why we look up via window.getFloors() rather than the raw override:
+  // floor data is the union of seeded data (from MEDICAL_CENTER_DIAGRAM +
+  // auto-generated room nodes built in buildSeedFloors) and any persisted
+  // override. A user mutating a seeded room (e.g. moving Admissions) needs
+  // the operation to see the seeded room as the base, otherwise the move
+  // silently no-ops because the raw override only contains nodes the user
+  // has already touched. Pulling the full merged view as `base` here means
+  // the FIRST mutation on a seeded node materialises it into the override;
+  // subsequent edits stay in the override path.
+  _patchFloor(e, buildingCode, levelId, fn) {
+    const fp = e.floorplan || {};
+    const bld = fp[buildingCode] || { floors: {} };
+    const floors = bld.floors || {};
+    // Full merged view (seed ∪ override) — the operating-on-known-data base.
+    const merged = (window.getFloors && window.getFloors(buildingCode)) || {};
+    const m = merged[levelId];
+    const base = m
+      ? {
+          boundary: (m.boundary || []).map(p => [...p]),
+          nodes: JSON.parse(JSON.stringify(m.nodes || {})),
+          edges: (m.edges || []).map(x => [...x]),
+        }
+      : { boundary: [], nodes: {}, edges: [] };
+    const next = fn(base);
+    return {
+      ...e,
+      floorplan: {
+        ...fp,
+        [buildingCode]: {
+          ...bld,
+          floors: { ...floors, [levelId]: next },
+        },
+      },
+    };
+  },
+  // Replace the boundary polygon (e.g. after a vertex drag or polygon edit).
+  setFloorBoundary(buildingCode, levelId, points) {
+    this.set(e => this._patchFloor(e, buildingCode, levelId, f => ({ ...f, boundary: points })));
+  },
+  // Add a node. `opts` provides everything except id — id is generated here
+  // so callers can't accidentally collide with existing nodes on this floor.
+  addFloorNode(buildingCode, levelId, opts) {
+    const id = opts.id || uid(`fp_${levelId}_${opts.kind || "n"}`);
+    const node = { id, kind: opts.kind || "walk", x: opts.x, y: opts.y };
+    if (opts.elevatorId) node.elevatorId = opts.elevatorId;
+    if (opts.roomN != null) node.roomN = opts.roomN;
+    if (opts.label) node.label = opts.label;
+    this.set(e => this._patchFloor(e, buildingCode, levelId, f => ({
+      ...f,
+      nodes: { ...f.nodes, [id]: node },
+    })));
+    return id;
+  },
+  moveFloorNode(buildingCode, levelId, nodeId, x, y) {
+    this.set(e => this._patchFloor(e, buildingCode, levelId, f => {
+      const n = f.nodes[nodeId];
+      if (!n) return f;
+      return { ...f, nodes: { ...f.nodes, [nodeId]: { ...n, x, y } } };
+    }));
+  },
+  updateFloorNode(buildingCode, levelId, nodeId, patch) {
+    this.set(e => this._patchFloor(e, buildingCode, levelId, f => {
+      const n = f.nodes[nodeId];
+      if (!n) return f;
+      return { ...f, nodes: { ...f.nodes, [nodeId]: { ...n, ...patch } } };
+    }));
+  },
+  deleteFloorNode(buildingCode, levelId, nodeId) {
+    this.set(e => this._patchFloor(e, buildingCode, levelId, f => {
+      const nodes = { ...f.nodes }; delete nodes[nodeId];
+      const edges = f.edges.filter(([a, b]) => a !== nodeId && b !== nodeId);
+      return { ...f, nodes, edges };
+    }));
+  },
+  addFloorEdge(buildingCode, levelId, a, b) {
+    if (a === b) return;
+    this.set(e => this._patchFloor(e, buildingCode, levelId, f => {
+      // Treat edges as undirected — guard against [a,b] AND [b,a] duplicates.
+      const exists = f.edges.some(([x, y]) =>
+        (x === a && y === b) || (x === b && y === a));
+      if (exists) return f;
+      return { ...f, edges: [...f.edges, [a, b]] };
+    }));
+  },
+  removeFloorEdge(buildingCode, levelId, a, b) {
+    this.set(e => this._patchFloor(e, buildingCode, levelId, f => ({
+      ...f,
+      edges: f.edges.filter(([x, y]) =>
+        !((x === a && y === b) || (x === b && y === a))),
+    })));
+  },
+  // Wipe overrides for one floor and revert to the seed.
+  resetFloor(buildingCode, levelId) {
+    this.set(e => {
+      const fp = e.floorplan || {};
+      const bld = fp[buildingCode] || { floors: {} };
+      const floors = { ...bld.floors }; delete floors[levelId];
+      return {
+        ...e,
+        floorplan: {
+          ...fp,
+          [buildingCode]: { ...bld, floors },
+        },
+      };
+    });
   },
 };
 

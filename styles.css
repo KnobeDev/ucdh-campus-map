@@ -1076,3 +1076,676 @@ html[data-reduce-motion="1"] *::after {
   gap: 8px;
   flex-shrink: 0;
 }
+
+/* ---------- Floor plan panel ---------- */
+.sb-floorplan {
+  /* Tight enough that the level rail and rooms feel like one unit; visually
+     separates the in-building view from the wider directions flow. */
+  padding-top: 8px;
+}
+
+.fp-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 4px 16px;
+  border-bottom: 1px solid var(--panel-border);
+}
+.fp-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+.fp-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.25;
+}
+.fp-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.fp-meta-sub {
+  color: var(--text-subtle);
+}
+.fp-tower-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.fp-tower-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--uc-blue);
+  background: color-mix(in srgb, var(--uc-blue) 8%, white);
+  border: 1px solid color-mix(in srgb, var(--uc-blue) 18%, white);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+.fp-header-actions {
+  margin-top: 8px;
+}
+
+.fp-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 12px 0 8px;
+  background: white;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 0 8px;
+}
+.fp-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 9px 6px;
+  font: inherit;
+  color: var(--text);
+}
+.fp-search input::placeholder { color: var(--text-subtle); }
+.fp-search:focus-within {
+  border-color: var(--uc-blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--uc-blue) 18%, transparent);
+}
+
+.fp-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fp-level-rail {
+  /* Sticky chip rail so the user always knows which floor they're on
+     while scrolling through long room lists. The 8px gap keeps focus
+     rings from clipping under the sticky header. */
+  position: sticky;
+  top: 0;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 8px 2px;
+  margin: 0 -4px 8px;
+  background: linear-gradient(180deg, var(--panel) 60%, color-mix(in srgb, var(--panel) 0%, transparent) 100%);
+  z-index: 2;
+  scrollbar-width: thin;
+}
+.fp-chip {
+  appearance: none;
+  flex: 0 0 auto;
+  min-width: 38px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-border);
+  background: white;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.12s;
+}
+.fp-chip:hover {
+  color: var(--uc-blue);
+  border-color: var(--uc-blue);
+}
+.fp-chip.active {
+  background: var(--uc-blue);
+  color: white;
+  border-color: var(--uc-blue);
+  box-shadow: 0 2px 6px rgba(2, 40, 81, 0.18);
+}
+.fp-chip:focus-visible {
+  outline: 2px solid var(--uc-gold);
+  outline-offset: 2px;
+}
+
+.fp-level {
+  background: white;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 12px 12px 6px;
+}
+.fp-level-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--panel-border);
+}
+.fp-level-head h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--uc-blue);
+  letter-spacing: 0.01em;
+}
+.fp-level-count {
+  font-size: 11px;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.fp-rooms {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fp-room {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 6px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  width: 100%;
+  font: inherit;
+  color: var(--text);
+  cursor: default;
+}
+button.fp-room { cursor: pointer; }
+button.fp-room:hover,
+button.fp-room:focus-visible {
+  background: #FAFAF7;
+  outline: none;
+}
+button.fp-room:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--uc-blue);
+}
+.fp-room-search {
+  border: 1px solid var(--panel-border);
+  background: white;
+}
+.fp-room-emphasis .fp-room-name { color: var(--accent); font-weight: 700; }
+
+.fp-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--uc-blue);
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.fp-badge-empty {
+  background: transparent;
+  color: var(--text-subtle);
+  border: 1px dashed var(--panel-border);
+}
+.fp-room-emphasis .fp-badge { background: var(--accent); }
+
+.fp-room-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.35;
+}
+.fp-room-name { font-size: 13px; font-weight: 500; }
+.fp-room-level {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.fp-phones {
+  margin-top: 14px;
+  background: white;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+}
+.fp-phones > summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--uc-blue);
+  list-style: none;
+  padding: 4px 0;
+}
+.fp-phones > summary::marker { content: ""; }
+.fp-phones > summary::-webkit-details-marker { display: none; }
+.fp-phones > summary::after {
+  content: "▸";
+  margin-left: 6px;
+  display: inline-block;
+  transition: transform 0.12s;
+  color: var(--text-subtle);
+}
+.fp-phones[open] > summary::after { transform: rotate(90deg); }
+
+.fp-phone-list {
+  list-style: none;
+  margin: 6px 0 4px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+}
+.fp-phone-list li {
+  display: contents;
+}
+.fp-phone-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+.fp-phone-number {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--uc-blue);
+  text-decoration: none;
+  padding: 4px 0;
+  font-variant-numeric: tabular-nums;
+}
+.fp-phone-number:hover { text-decoration: underline; }
+
+.fp-footnote {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--text-subtle);
+  font-style: italic;
+}
+
+/* ---------- Floor-plan diagram (map area replacement) ---------- */
+.fpmap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #EAE7DD;
+  overflow: hidden;
+  /* Subtle inset gives the diagram a "frame" against the cream wall and
+     keeps it from butting against the tweaks panel. */
+  box-shadow: inset 0 0 0 1px rgba(2, 40, 81, 0.04);
+}
+.fpmap-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+}
+.fpmap-svg:active { cursor: grabbing; }
+
+.fpmap-zoom {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  z-index: 4;
+}
+.fpmap-zoom button {
+  appearance: none;
+  background: white;
+  border: none;
+  border-bottom: 1px solid var(--panel-border);
+  width: 38px; height: 38px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+}
+.fpmap-zoom button:last-child { border-bottom: none; }
+.fpmap-zoom button:hover { background: #FAFAF7; color: var(--uc-blue); }
+.fpmap-zoom button:focus-visible {
+  outline: 2px solid var(--uc-gold);
+  outline-offset: -2px;
+}
+
+.fpmap-legend {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  box-shadow: var(--shadow-sm);
+  z-index: 4;
+  max-width: 60%;
+}
+.fpmap-legend-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  font-weight: 700;
+}
+.fpmap-legend-level {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--uc-blue);
+}
+
+.fpmap-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ---------- Floor-plan editor toolbar (overlaid on diagram) ---------- */
+.fpmap-editing .fpmap-svg { cursor: crosshair; }
+
+.fpmap-edit-bar {
+  position: absolute;
+  /* Sit BELOW the campus-map EditToolbar (which docks at the top). 160px
+     leaves room for the toolbar's expanded state + the dirty banner that
+     appears above it when there are unsaved edits. */
+  top: 160px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: white;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  z-index: 4;
+  max-width: calc(100% - 90px);
+  flex-wrap: wrap;
+}
+.fpmap-edit-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  font-weight: 700;
+  margin-right: 4px;
+}
+.fpmap-edit-bar button {
+  appearance: none;
+  background: white;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.fpmap-edit-bar button:hover { color: var(--uc-blue); border-color: var(--uc-blue); }
+.fpmap-edit-bar button.active {
+  background: var(--uc-blue);
+  color: white;
+  border-color: var(--uc-blue);
+}
+.fpmap-edit-bar button.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+}
+.fpmap-edit-bar button.ghost:hover { background: #FAFAF7; color: var(--text); }
+.fpmap-edit-spacer { flex: 1; min-width: 4px; }
+
+.fpmap-edit-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  background: rgba(2, 40, 81, 0.92);
+  color: white;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 4;
+  max-width: 80%;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* ---------- Walking directions (sidebar inside floor plan panel) ---------- */
+.fp-walk {
+  margin-top: 14px;
+  background: white;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fp-section-head h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--uc-blue);
+}
+.fp-section-sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-subtle);
+}
+.fp-walk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+.fp-walk-field span {
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.fp-walk-field select {
+  appearance: none;
+  background: white;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+}
+.fp-walk-field select:focus-visible {
+  outline: 2px solid var(--uc-blue);
+  outline-offset: 1px;
+}
+.fp-walk-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.fp-walk-actions .sb-btn { flex: 1; }
+.fp-walk-actions .sb-btn.ghost { flex: 0 0 auto; }
+
+.fp-walk-steps {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px dashed var(--panel-border);
+  padding-top: 10px;
+}
+.fp-walk-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0;
+}
+.fp-walk-step-num {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.fp-walk-step-text {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+}
+.fp-walk-summary {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-subtle);
+  font-style: italic;
+}
+
+/* Node-kind selector (second-tier toolbar inside "Place nodes" mode) */
+.fpmap-edit-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 6px;
+  margin-left: 4px;
+  border-left: 1px solid var(--panel-border);
+}
+.fpmap-edit-kind-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  font-weight: 700;
+  margin-right: 2px;
+}
+.fpmap-edit-kind button {
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.fpmap-edit-kind button.room.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.fpmap-edit-kind button.walk.active {
+  background: #0E7C66;
+  border-color: #0E7C66;
+  color: white;
+}
+.fpmap-edit-kind button.elevator.active {
+  background: #FFBF00;
+  border-color: #DAA900;
+  color: var(--uc-blue);
+}
+
+/* Inline rename popover for newly-placed rooms */
+.fpmap-rename {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 14px 16px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 280px;
+}
+.fpmap-rename label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+.fpmap-rename label span {
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.fpmap-rename input {
+  appearance: none;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 14px;
+}
+.fpmap-rename input:focus-visible {
+  outline: 2px solid var(--uc-blue);
+  outline-offset: 1px;
+}
+.fpmap-rename-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.fpmap-rename-actions button {
+  appearance: none;
+  border: 1px solid var(--panel-border);
+  background: white;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+}
+.fpmap-rename-actions button.primary {
+  background: var(--uc-blue);
+  border-color: var(--uc-blue);
+  color: white;
+}
+.fpmap-rename-actions button.primary:hover { background: #013a73; }
+.fpmap-rename-actions button.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+}
+.fpmap-rename-actions button.ghost:hover { background: #FAFAF7; color: var(--text); }
+
+/* Short hint under the "Edit this floor" toggle so users know the
+   click-and-drag affordances are now active. Kept tight so the panel
+   doesn't grow significantly when edit mode is on. */
+.fp-edit-blurb {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--uc-blue) 5%, white);
+  border: 1px solid color-mix(in srgb, var(--uc-blue) 14%, white);
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
