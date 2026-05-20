@@ -295,13 +295,31 @@ function buildSeedFloors() {
 }
 
 const MEDICAL_CENTER_DIAGRAM = {
-  src: "medical-center-floor-diagram.png",
+  // Vector source — replaces the previous 200dpi raster so the diagram stays
+  // crisp at any zoom level AND so we can crop the legend out by viewBox
+  // without ratty pixelation. The SVG has the same coord system as the
+  // rasterised page (792×1224 pts → 1100×1700 px at uniform scale), so the
+  // existing boundary polygons and node positions still line up.
+  src: "uploads/26-0182-map-medical-center-11x17-ADAversionOLfinal.svg",
   w: 1100,
   h: 1700,
   buildingCode: "T",
   // Floors stay editable: edits.floorplan.T overrides everything below.
   seedFloors: buildSeedFloors(),
   elevatorBanks: ELEVATOR_BANKS,
+  // Approximate bounding box (in 1100×1700 coords) of the printed legend.
+  // Used both as the on-diagram mask and by the sidebar inset that crops
+  // the SVG to just the key. Eyeballed from the printed PDF.
+  //
+  // Left edge starts at x:770 to also catch the leading "N" of "Note: Not
+  // to scale" — earlier x:825 left a thin sliver of legend content visible
+  // next to the Davis Tower upper floors. The Davis-Tower-only floor stack
+  // sits at x:610–780, so x:770 is the right limit before we'd start
+  // clipping floor content.
+  //
+  // Height (700) covers Health care → Parking → Amenities → "Note: Not to
+  // scale" and stops well above California Tower at y ≥ 1075.
+  legendBbox: { x: 770, y: 0, w: 330, h: 700 },
 };
 
 window.MEDICAL_CENTER_DIAGRAM = MEDICAL_CENTER_DIAGRAM;
@@ -570,6 +588,8 @@ function FloorPlanPanel({
             setActiveLevelId={setActiveLevelId}
           />
 
+          <LegendInset buildingCode={buildingCode} />
+
           <details className="fp-phones">
             <summary>Hospital phone numbers</summary>
             <ul className="fp-phone-list">
@@ -590,6 +610,38 @@ function FloorPlanPanel({
         </>
       )}
     </div>
+  );
+}
+
+// LegendInset — small SVG inset that crops the master diagram down to just
+// the printed legend region. Lives in the sidebar so the key (colors for
+// healthcare, parking, amenities; symbol meanings) stays visible no matter
+// which floor is active on the main stage.
+//
+// The implementation embeds the full diagram via <image href> but sets the
+// outer SVG's viewBox to the legend's bounding box — so the browser draws
+// only that slice. No path manipulation, no second asset; pure cropping.
+function LegendInset({ buildingCode }) {
+  const diagram = window.MEDICAL_CENTER_DIAGRAM;
+  if (!diagram || diagram.buildingCode !== buildingCode || !diagram.legendBbox) return null;
+  const { x, y, w, h } = diagram.legendBbox;
+  // <details> + <summary> gives a no-script-required collapsible. Closed
+  // by default keeps the sidebar dense; users open it on demand to look
+  // up a color or symbol. The frame inside is flush to the panel edge so
+  // the SVG fills the entire width without any "double padding" effect.
+  return (
+    <details className="fp-legend" aria-label="Map legend">
+      <summary>Legend</summary>
+      <div className="fp-legend-frame" role="img" aria-label="Cropped legend from the printed floor diagram">
+        <svg
+          viewBox={`${x} ${y} ${w} ${h}`}
+          preserveAspectRatio="xMidYMin meet"
+          width="100%"
+        >
+          <image href={diagram.src} x={0} y={0} width={diagram.w} height={diagram.h} />
+        </svg>
+      </div>
+    </details>
   );
 }
 
@@ -805,20 +857,32 @@ function FloorPlanMap({
   const [renamingId, setRenamingId] = useFM(null);
   const [renameDraft, setRenameDraft] = useFM("");
 
-  // Auto-zoom to active floor whenever the level changes.
+  // Canonical "floor stage" — every floor renders at the SAME viewBox size
+  // and the SAME canvas center, so flipping between floors feels like
+  // turning slides instead of zooming around a stacked diagram. Pulled
+  // from a module-level constant so the object reference is stable across
+  // renders; otherwise the auto-zoom useEffect below would re-fire every
+  // time editStore notified subscribers and the rendering would loop.
+  const stageVB = STAGE_VB;
+
+  // Re-center the canonical stage on the active floor whenever the user
+  // switches floors. Kept as a normal useEffect with a STABLE dep set
+  // (activeLevelId + the module-level STAGE_VB) — earlier loop reports
+  // turned out to be stale console history from previous broken
+  // iterations, not an actual ongoing render cycle.
   useEffectFM(() => {
     if (!floor) { setVb({ x: 0, y: 0, w: W, h: H }); return; }
     const bb = window.floorBBox(floor.boundary);
-    const pad = Math.max(bb.w, bb.h) * 0.25;
-    const cx = bb.x + bb.w / 2, cy = bb.y + bb.h / 2;
-    const aspect = W / H;
-    let w = bb.w + pad * 2;
-    let h = bb.h + pad * 2;
-    if (w / h > aspect) h = w / aspect; else w = h * aspect;
-    const x = Math.max(0, Math.min(W - w, cx - w / 2));
-    const y = Math.max(0, Math.min(H - h, cy - h / 2));
-    setVb({ x, y, w, h });
+    const cx = bb.x + bb.w / 2;
+    const cy = bb.y + bb.h / 2;
+    setVb({
+      x: cx - stageVB.w / 2,
+      y: cy - stageVB.h / 2,
+      w: stageVB.w,
+      h: stageVB.h,
+    });
   }, [activeLevelId]); // eslint-disable-line
+
 
   // Pan / zoom interaction (mirrors CampusMap).
   const onWheel = (e) => {
@@ -915,13 +979,14 @@ function FloorPlanMap({
   const reset = () => {
     if (!floor) { setVb({ x: 0, y: 0, w: W, h: H }); return; }
     const bb = window.floorBBox(floor.boundary);
-    const pad = Math.max(bb.w, bb.h) * 0.25;
-    const aspect = W / H;
-    let w = bb.w + pad * 2, h = bb.h + pad * 2;
-    if (w / h > aspect) h = w / aspect; else w = h * aspect;
-    const x = Math.max(0, Math.min(W - w, (bb.x + bb.w / 2) - w / 2));
-    const y = Math.max(0, Math.min(H - h, (bb.y + bb.h / 2) - h / 2));
-    setVb({ x, y, w, h });
+    const cx = bb.x + bb.w / 2;
+    const cy = bb.y + bb.h / 2;
+    setVb({
+      x: cx - stageVB.w / 2,
+      y: cy - stageVB.h / 2,
+      w: stageVB.w,
+      h: stageVB.h,
+    });
   };
   const zoom = (f) => {
     const cx = vb.x + vb.w / 2, cy = vb.y + vb.h / 2;
@@ -1020,6 +1085,40 @@ function FloorPlanMap({
           x={0} y={0} width={W} height={H}
           preserveAspectRatio="xMidYMid meet"
         />
+
+        {/* Mask non-floor decorations on the printed diagram so the canvas
+            stays focused on the active floor.
+            - The legend rectangle (key, top-right) — duplicated in the
+              sidebar LegendInset.
+            - The "UC Davis Medical Center" title text (mid-right) — the
+              Illustrator export uses per-character <tspan> x-positions
+              calibrated for a brand font that the browser doesn't have,
+              so fallback glyphs of different widths render as visible
+              gaps ("Me dical Ce nte r"). Hiding the text avoids the
+              artifact entirely.
+            - The document number "26-0050 4/26" (bottom-right corner).
+            None of these rectangles intersect California Tower
+            (≈ x: 775–1100, y: 1075–1300) which must stay visible as
+            part of Level 1. */}
+        {diagram.legendBbox && (
+          <rect
+            x={diagram.legendBbox.x}
+            y={diagram.legendBbox.y}
+            width={diagram.legendBbox.w}
+            height={diagram.legendBbox.h}
+            fill="#EAE7DD"
+            pointerEvents="none"
+          />
+        )}
+        {/* Title cover: SVG "UC Davis Medical Center" sits at SVG transform
+            y ≈ 568 (UC Davis baseline) through y ≈ 692 (Center baseline);
+            letters extend ABOVE the baseline by their cap-height. In our
+            1100×1700 coord system that's roughly y: 680–1080 — well above
+            California Tower at y ≥ 1075 (cover stops just where Cal Tower
+            visually starts; safer to be a hair tighter than to clip the
+            tower). */}
+        <rect x={680} y={680} width={420} height={400} fill="#EAE7DD" pointerEvents="none" />
+        <rect x={980} y={1640} width={120} height={60} fill="#EAE7DD" pointerEvents="none" />
 
         {/* Dim mask — outer rect minus active floor polygon, drawn via the
             even-odd fill rule. The polygon is closed by repeating the first
@@ -1347,6 +1446,34 @@ function FloorPlanMap({
     </div>
   );
 }
+
+// Module-level "stage" viewBox size used by FloorPlanMap. Computed once from
+// the largest seeded floor bbox + 30% breathing room so every floor renders
+// at the same on-screen scale and centers in the same canvas region.
+// Pulled out of the component because React hooks would otherwise rebuild
+// this object on every render and feed an infinite useEffect loop when
+// editStore notifications fire.
+const STAGE_VB = (() => {
+  const seeds = (MEDICAL_CENTER_DIAGRAM && MEDICAL_CENTER_DIAGRAM.seedFloors) || {};
+  let maxW = 0, maxH = 0;
+  for (const f of Object.values(seeds)) {
+    const xs = f.boundary.map(p => p[0]);
+    const ys = f.boundary.map(p => p[1]);
+    const w = Math.max(...xs) - Math.min(...xs);
+    const h = Math.max(...ys) - Math.min(...ys);
+    if (w > maxW) maxW = w;
+    if (h > maxH) maxH = h;
+  }
+  const PAD = 1.3;
+  const aspect = MEDICAL_CENTER_DIAGRAM.w / MEDICAL_CENTER_DIAGRAM.h;
+  let sw = maxW * PAD;
+  let sh = sw / aspect;
+  if (sh < maxH * PAD) {
+    sh = maxH * PAD;
+    sw = sh * aspect;
+  }
+  return { w: sw, h: sh };
+})();
 
 window.FloorPlanMap = FloorPlanMap;
 
