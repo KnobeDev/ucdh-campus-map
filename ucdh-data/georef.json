@@ -1,0 +1,31 @@
+{
+  "_comment": [
+    "Affine from the 919x792 SVG pixel space of campus-map.svg to WGS84 Web Mercator.",
+    "merc_x = cx[0]*px + cx[1]*py + cx[2];  merc_y = cy[0]*px + cy[1]*py + cy[2]",
+    "Fitted by tools/fit-georef.py on name-matched building centroids; see docs/BUILD_PLAN_3D.md 1.1.",
+    "The map is effectively north-up (0.07 deg) and near-isotropic (1.639 vs 1.625 m/px, 0.9%),",
+    "so px axes and true east/north agree to within a rounding error at campus scale."
+  ],
+  "fittedOn": "2026-09-09",
+  "mapPx": { "w": 919, "h": 792, "src": "campus-map.svg" },
+  "cx": [2.095480283557903, 0.019737985258021704, -13521038.178462502],
+  "cy": [0.002737975444267888, -2.0774730781853026, 4658517.990787355],
+  "fit": {
+    "controlPoints": 18,
+    "rmsMeters": 9.5,
+    "worst": { "code": "A", "name": "48 X Complex", "meters": 20.6 },
+    "best": { "code": "PO", "name": "Police Department", "meters": 1.2 },
+    "metersPerPxX": 1.639,
+    "metersPerPxY": 1.625,
+    "rotationDeg": 0.07
+  },
+  "bounds": {
+    "topLeft": { "lon": -121.461553, "lat": 38.557739 },
+    "bottomRight": { "lon": -121.444113, "lat": 38.546197 }
+  },
+  "enuOrigin": {
+    "_comment": "Local metric frame for the 3D scene: +x east, +z south (three.js y-up), metres.",
+    "lon": -121.452833,
+    "lat": 38.551968
+  }
+}

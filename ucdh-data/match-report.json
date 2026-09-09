@@ -1,0 +1,7603 @@
+{
+  "generated": "2026-09-09T08:20:58.937Z",
+  "curatedVersion": "applied-2026-05-20T09:16:03Z",
+  "summary": {
+    "curated": 71,
+    "joinable": 59,
+    "matched": 52,
+    "ambiguous": 0,
+    "unmatched": 5,
+    "absent": 12,
+    "pctOfJoinable": 88.1
+  },
+  "results": [
+    {
+      "code": "K",
+      "name": "Cypress Building",
+      "cat": "clinic",
+      "curatedArea": 4137.306590852677,
+      "candidates": 3,
+      "status": "absent",
+      "reason": "not mapped in OpenStreetMap (nearest footprint 122 m away)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 791533225,
+        "name": "UC Davis Health Behavioral Health Center",
+        "building": "hospital",
+        "levels": null,
+        "area": 980,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 122.3,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "N",
+      "name": "Medical Records",
+      "cat": "clinic",
+      "curatedArea": 1487.5298073199228,
+      "candidates": 8,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 1256348252,
+        "name": "Medical Records",
+        "building": "yes",
+        "levels": null,
+        "area": 621,
+        "nameScore": 1,
+        "iou": 0.294,
+        "dist": 15.5,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 25397779,
+        "name": "Parking Structure 1",
+        "building": "parking",
+        "levels": null,
+        "area": 4421,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 110.6,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "PS",
+      "name": "Patient Support Services Building",
+      "cat": "admin",
+      "curatedArea": 2146.014061390684,
+      "candidates": 14,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 405350097,
+        "name": "UC Davis Health Patient Support Services Building",
+        "building": "hospital",
+        "levels": null,
+        "area": 1934,
+        "nameScore": 0.786,
+        "iou": 0.644,
+        "dist": 11.3,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 25397779,
+        "name": "Parking Structure 1",
+        "building": "parking",
+        "levels": null,
+        "area": 4421,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 117.1,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "P1",
+      "name": "Parking 1 (staff only)",
+      "cat": "parking",
+      "curatedArea": 4937.344698872279,
+      "candidates": 11,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 25397779,
+        "name": "Parking Structure 1",
+        "building": "parking",
+        "levels": null,
+        "area": 4421,
+        "nameScore": 0.59,
+        "iou": 0.835,
+        "dist": 4.3,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 252796706,
+        "name": "Lot 1",
+        "building": "parking",
+        "levels": null,
+        "area": 3810,
+        "nameScore": 0.461,
+        "iou": 0,
+        "dist": 76.7,
+        "isArea": true
+      },
+      "nearest": null
+    },
+    {
+      "code": "T",
+      "name": "Medical Center",
+      "cat": "hospital",
+      "curatedArea": 26446.842916849237,
+      "candidates": 9,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 405350094,
+        "name": "UC Davis Medical Center",
+        "building": "hospital",
+        "levels": null,
+        "area": 32641,
+        "nameScore": 0.534,
+        "iou": 0.746,
+        "dist": 16.2,
+        "isArea": false
+      },
+      "annexes": [
+        {
+          "osmId": 1257559295,
+          "name": "Surgery and Emergency Services Pavilion",
+          "building": "hospital",
+          "levels": null,
+          "area": 12673,
+          "nameScore": 0,
+          "iou": 0.411,
+          "dist": 67.8,
+          "isArea": false
+        },
+        {
+          "osmId": 1257558318,
+          "name": "UC Davis Davis Tower",
+          "building": "hospital",
+          "levels": null,
+          "area": 4645,
+          "nameScore": 0,
+          "iou": 0.176,
+          "dist": 11.9,
+          "isArea": false
+        },
+        {
+          "osmId": 1288443358,
+          "name": "UC Davis University Tower",
+          "building": "hospital",
+          "levels": null,
+          "area": 1540,
+          "nameScore": 0,
+          "iou": 0.049,
+          "dist": 86.7,
+          "isArea": false
+        },
+        {
+          "osmId": 1288443983,
+          "name": "UC Davis East Wing",
+          "building": "hospital",
+          "levels": null,
+          "area": 1254,
+          "nameScore": 0,
+          "iou": 0.034,
+          "dist": 125.2,
+          "isArea": false
+        }
+      ],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 1257559295,
+        "name": "Surgery and Emergency Services Pavilion",
+        "building": "hospital",
+        "levels": null,
+        "area": 12673,
+        "nameScore": 0,
+        "iou": 0.411,
+        "dist": 67.8,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "U",
+      "name": "California Tower",
+      "cat": "hospital",
+      "curatedArea": 7743.30849138596,
+      "candidates": 6,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 1381212787,
+        "name": "California Hospital Tower Construction",
+        "building": "construction",
+        "levels": null,
+        "area": 12515,
+        "nameScore": 0.552,
+        "iou": 0.546,
+        "dist": 20.8,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 405350091,
+        "name": "UC Davis Pathology Building",
+        "building": "hospital",
+        "levels": null,
+        "area": 1269,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 124.5,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "I",
+      "name": "Pathology Building",
+      "cat": "admin",
+      "curatedArea": 1790.3484559939625,
+      "candidates": 8,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 405350091,
+        "name": "UC Davis Pathology Building",
+        "building": "hospital",
+        "levels": null,
+        "area": 1269,
+        "nameScore": 0.74,
+        "iou": 0.653,
+        "dist": 2.9,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 405350094,
+        "name": "UC Davis Medical Center",
+        "building": "hospital",
+        "levels": null,
+        "area": 32641,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 138.2,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "W",
+      "name": "North Addition",
+      "cat": "admin",
+      "curatedArea": 2485.855095939238,
+      "candidates": 7,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 405350093,
+        "name": "North Addition Office Building",
+        "building": "hospital",
+        "levels": null,
+        "area": 2783,
+        "nameScore": 0.794,
+        "iou": 0.812,
+        "dist": 4,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 405350094,
+        "name": "UC Davis Medical Center",
+        "building": "hospital",
+        "levels": null,
+        "area": 32641,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 82.5,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "M",
+      "name": "Comprehensive Cancer Center North",
+      "cat": "clinic",
+      "curatedArea": 2354.9917873408194,
+      "candidates": 6,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 405350099,
+        "name": "UC Davis Cancer Center North Building",
+        "building": "yes",
+        "levels": null,
+        "area": 1503,
+        "nameScore": 0.648,
+        "iou": 0.618,
+        "dist": 5.4,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 405350100,
+        "name": "UC Davis Cancer Center South Building",
+        "building": "yes",
+        "levels": null,
+        "area": 1845,
+        "nameScore": 0.408,
+        "iou": 0,
+        "dist": 51.1,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "L",
+      "name": "Comprehensive Cancer Center South",
+      "cat": "clinic",
+      "curatedArea": 2590.3735157661486,
+      "candidates": 7,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 405350100,
+        "name": "UC Davis Cancer Center South Building",
+        "building": "yes",
+        "levels": null,
+        "area": 1845,
+        "nameScore": 0.654,
+        "iou": 0.63,
+        "dist": 3.9,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 405350099,
+        "name": "UC Davis Cancer Center North Building",
+        "building": "yes",
+        "levels": null,
+        "area": 1503,
+        "nameScore": 0.408,
+        "iou": 0,
+        "dist": 44.6,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "P5",
+      "name": "Parking 5 (contractor only)",
+      "cat": "parking",
+      "curatedArea": 5898.708514380178,
+      "candidates": 5,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 1288445847,
+        "name": "Parking Structure 5",
+        "building": "yes",
+        "levels": null,
+        "area": 6576,
+        "nameScore": 0.605,
+        "iou": 0.774,
+        "dist": 7.2,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 1256319943,
+        "name": "Parking Structure 4",
+        "building": "yes",
+        "levels": null,
+        "area": 7327,
+        "nameScore": 0.163,
+        "iou": 0,
+        "dist": 127.2,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "P4",
+      "name": "Parking 4",
+      "cat": "parking",
+      "curatedArea": 7333.426425122168,
+      "candidates": 4,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 1256319943,
+        "name": "Parking Structure 4",
+        "building": "yes",
+        "levels": null,
+        "area": 7327,
+        "nameScore": 0.765,
+        "iou": 0.68,
+        "dist": 10.7,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 1288445847,
+        "name": "Parking Structure 5",
+        "building": "yes",
+        "levels": null,
+        "area": 6576,
+        "nameScore": 0.207,
+        "iou": 0,
+        "dist": 135.8,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "A",
+      "name": "48X Complex",
+      "cat": "clinic",
+      "curatedArea": 7855.837114882963,
+      "candidates": 3,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 242787646,
+        "name": "48 X Complex",
+        "building": "yes",
+        "levels": null,
+        "area": 7551,
+        "nameScore": 1,
+        "iou": 0.852,
+        "dist": 3.6,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 1256319943,
+        "name": "Parking Structure 4",
+        "building": "yes",
+        "levels": null,
+        "area": 7327,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 109.3,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "Y",
+      "name": "Behavioral Health Center",
+      "cat": "clinic",
+      "curatedArea": 1085.578722369508,
+      "candidates": 6,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 791533225,
+        "name": "UC Davis Health Behavioral Health Center",
+        "building": "hospital",
+        "levels": null,
+        "area": 980,
+        "nameScore": 0.875,
+        "iou": 0.511,
+        "dist": 6.8,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 791533226,
+        "name": "UC Davis Health Children's Behavioral Health Center",
+        "building": "hospital",
+        "levels": null,
+        "area": 454,
+        "nameScore": 0.742,
+        "iou": 0,
+        "dist": 78,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "Z",
+      "name": "Children's Behavioral Health",
+      "cat": "clinic",
+      "curatedArea": 848.8999762578605,
+      "candidates": 8,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 791533226,
+        "name": "UC Davis Health Children's Behavioral Health Center",
+        "building": "hospital",
+        "levels": null,
+        "area": 454,
+        "nameScore": 0.688,
+        "iou": 0.537,
+        "dist": 1.7,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 791533225,
+        "name": "UC Davis Health Behavioral Health Center",
+        "building": "hospital",
+        "levels": null,
+        "area": 980,
+        "nameScore": 0.5,
+        "iou": 0,
+        "dist": 73.9,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "Hp",
+      "name": "Hotel Med Park",
+      "cat": "external",
+      "curatedArea": 305.4505879615608,
+      "candidates": 8,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 406520288,
+        "name": "Hotel Med Park, Ascend Hotel Collection",
+        "building": "yes",
+        "levels": null,
+        "area": 659,
+        "nameScore": 0.728,
+        "iou": 0.39,
+        "dist": 6.8,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 198423271,
+        "name": "Parking Structure 3",
+        "building": "parking",
+        "levels": null,
+        "area": 5846,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 86.3,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "Sh",
+      "name": "Sherman Building",
+      "cat": "admin",
+      "curatedArea": 1923.9292537352376,
+      "candidates": 9,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 612468164,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 1298,
+        "nameScore": 0,
+        "iou": 0.633,
+        "dist": 9.5,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 791538110,
+        "name": null,
+        "building": "apartments",
+        "levels": null,
+        "area": 207,
+        "nameScore": 0,
+        "iou": 0.011,
+        "dist": 30.4,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "D1",
+      "name": "Davis I Building",
+      "cat": "admin",
+      "curatedArea": 994.3721200259824,
+      "candidates": 7,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 619594581,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 844,
+        "nameScore": 0,
+        "iou": 0.771,
+        "dist": 6,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 619594582,
+        "name": "Davis 2 Building",
+        "building": "yes",
+        "levels": null,
+        "area": 536,
+        "nameScore": 0.274,
+        "iou": 0,
+        "dist": 49.3,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "D2",
+      "name": "Davis II Building",
+      "cat": "admin",
+      "curatedArea": 494.54360894129786,
+      "candidates": 8,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 619594582,
+        "name": "Davis 2 Building",
+        "building": "yes",
+        "levels": null,
+        "area": 536,
+        "nameScore": 1,
+        "iou": 0.769,
+        "dist": 1.6,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 619594580,
+        "name": "Ticon II Building",
+        "building": "yes",
+        "levels": null,
+        "area": 1307,
+        "nameScore": 0.682,
+        "iou": 0,
+        "dist": 74.5,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "WF",
+      "name": "Western Fairs Building",
+      "cat": "admin",
+      "curatedArea": 364.95894898345796,
+      "candidates": 8,
+      "status": "absent",
+      "reason": "not mapped in OpenStreetMap (nearest footprint 104 m away)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 307095185,
+        "name": null,
+        "building": "hospital",
+        "levels": null,
+        "area": 4062,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 103.8,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "T1",
+      "name": "ABMCO",
+      "cat": "admin",
+      "curatedArea": 412.56449798214317,
+      "candidates": 9,
+      "status": "absent",
+      "reason": "not mapped in OpenStreetMap (nearest footprint 104 m away)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 307095179,
+        "name": "Courtyard Sacramento Midtown",
+        "building": "yes",
+        "levels": null,
+        "area": 2945,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 103.7,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "SFC",
+      "name": "Student Fitness Center",
+      "cat": "admin",
+      "curatedArea": 314.7125794988542,
+      "candidates": 9,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 791937016,
+        "name": "UC Davis Health Fitness Center",
+        "building": "yes",
+        "levels": null,
+        "area": 335,
+        "nameScore": 0.572,
+        "iou": 0.6,
+        "dist": 3.8,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 307095179,
+        "name": "Courtyard Sacramento Midtown",
+        "building": "yes",
+        "levels": null,
+        "area": 2945,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 125.3,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "T2",
+      "name": "Ticon II",
+      "cat": "admin",
+      "curatedArea": 1436.041085741047,
+      "candidates": 11,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 619594580,
+        "name": "Ticon II Building",
+        "building": "yes",
+        "levels": null,
+        "area": 1307,
+        "nameScore": 1,
+        "iou": 0.784,
+        "dist": 3,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 619594582,
+        "name": "Davis 2 Building",
+        "building": "yes",
+        "levels": null,
+        "area": 536,
+        "nameScore": 0.682,
+        "iou": 0,
+        "dist": 76.1,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "GG",
+      "name": "Gratitude Garden",
+      "cat": "amenity",
+      "curatedArea": 840.9528467365963,
+      "candidates": 9,
+      "status": "absent",
+      "reason": "not mapped in OpenStreetMap (nearest footprint 69 m away)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 405350093,
+        "name": "North Addition Office Building",
+        "building": "hospital",
+        "levels": null,
+        "area": 2783,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 68.6,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "PO",
+      "name": "Police / Public Safety",
+      "cat": "admin",
+      "curatedArea": 491.879112717339,
+      "candidates": 8,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 907974974,
+        "name": "Police Department",
+        "building": "yes",
+        "levels": null,
+        "area": 291,
+        "nameScore": 0.391,
+        "iou": 0.596,
+        "dist": 1.7,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 405350093,
+        "name": "North Addition Office Building",
+        "building": "hospital",
+        "levels": null,
+        "area": 2783,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 46.7,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "P3",
+      "name": "Parking 3 (hospital main)",
+      "cat": "parking",
+      "curatedArea": 6197.572058653306,
+      "candidates": 9,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 198423271,
+        "name": "Parking Structure 3",
+        "building": "parking",
+        "levels": null,
+        "area": 5846,
+        "nameScore": 0.598,
+        "iou": 0.866,
+        "dist": 4.4,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 405350094,
+        "name": "UC Davis Medical Center",
+        "building": "hospital",
+        "levels": null,
+        "area": 32641,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 115.4,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "SH",
+      "name": "Shriners Hospital",
+      "cat": "external",
+      "curatedArea": 4052.881814551012,
+      "candidates": 7,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 307095185,
+        "name": null,
+        "building": "hospital",
+        "levels": null,
+        "area": 4062,
+        "nameScore": 0,
+        "iou": 0.806,
+        "dist": 5,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 307095179,
+        "name": "Courtyard Sacramento Midtown",
+        "building": "yes",
+        "levels": null,
+        "area": 2945,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 137.7,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "SPG",
+      "name": "Shriners Parking Garage",
+      "cat": "external",
+      "curatedArea": 4322.3645019130945,
+      "candidates": 5,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 791477919,
+        "name": null,
+        "building": "parking",
+        "levels": null,
+        "area": 4387,
+        "nameScore": 0,
+        "iou": 0.833,
+        "dist": 5.7,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 307095179,
+        "name": "Courtyard Sacramento Midtown",
+        "building": "yes",
+        "levels": null,
+        "area": 2945,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 112.3,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "CM",
+      "name": "Courtyard by Marriott",
+      "cat": "external",
+      "curatedArea": 3471.1899228300886,
+      "candidates": 5,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 307095179,
+        "name": "Courtyard Sacramento Midtown",
+        "building": "yes",
+        "levels": null,
+        "area": 2945,
+        "nameScore": 0.332,
+        "iou": 0.656,
+        "dist": 0.9,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 307095185,
+        "name": null,
+        "building": "hospital",
+        "levels": null,
+        "area": 4062,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 134.6,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "V",
+      "name": "Glassrock Building",
+      "cat": "clinic",
+      "curatedArea": 1258.8553721458309,
+      "candidates": 8,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 435359754,
+        "name": "Glassrock Building",
+        "building": "yes",
+        "levels": null,
+        "area": 1046,
+        "nameScore": 1,
+        "iou": 0.57,
+        "dist": 5.4,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 307095179,
+        "name": "Courtyard Sacramento Midtown",
+        "building": "yes",
+        "levels": null,
+        "area": 2945,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 90.6,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "CSP",
+      "name": "Cancer Survivor Park",
+      "cat": "amenity",
+      "curatedArea": 5077.787667233489,
+      "candidates": 4,
+      "status": "absent",
+      "reason": "not mapped in OpenStreetMap (nearest footprint 75 m away)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 307095179,
+        "name": "Courtyard Sacramento Midtown",
+        "building": "yes",
+        "levels": null,
+        "area": 2945,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 75.4,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "X",
+      "name": "Oak Park Research Building",
+      "cat": "admin",
+      "curatedArea": 2411.9701320478543,
+      "candidates": 26,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 619594577,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 1950,
+        "nameScore": 0,
+        "iou": 0.791,
+        "dist": 2.4,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 619594574,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 836,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 139.8,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "G",
+      "name": "Center for Health and Technology",
+      "cat": "education",
+      "curatedArea": 3225.110133500268,
+      "candidates": 7,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 1289754380,
+        "name": "Center for Health and Technology",
+        "building": "yes",
+        "levels": null,
+        "area": 1291,
+        "nameScore": 0.868,
+        "iou": 0.27,
+        "dist": 24.3,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 405350098,
+        "name": "UC Davis School of Medicine",
+        "building": "yes",
+        "levels": null,
+        "area": 4042,
+        "nameScore": 0,
+        "iou": 0.3,
+        "dist": 40.7,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "E",
+      "name": "Education Building / Medical Library",
+      "cat": "education",
+      "curatedArea": 1726.9439842149395,
+      "candidates": 6,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 405350098,
+        "name": "UC Davis School of Medicine",
+        "building": "yes",
+        "levels": null,
+        "area": 4042,
+        "nameScore": 0,
+        "iou": 0.409,
+        "dist": 22,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 405350100,
+        "name": "UC Davis Cancer Center South Building",
+        "building": "yes",
+        "levels": null,
+        "area": 1845,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 129.2,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "B",
+      "name": "Administrative Support Building",
+      "cat": "admin",
+      "curatedArea": 3572.8824949494565,
+      "candidates": 4,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 242787548,
+        "name": "Administrative Support Building",
+        "building": "office",
+        "levels": null,
+        "area": 3440,
+        "nameScore": 0.78,
+        "iou": 0.704,
+        "dist": 6.7,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 522792282,
+        "name": "Betty Irene Moore Nursing Building",
+        "building": "hospital",
+        "levels": 2,
+        "area": 3089,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 99.7,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "VC",
+      "name": "Vanderhoef Commons",
+      "cat": "amenity",
+      "curatedArea": 5914.751994310311,
+      "candidates": 7,
+      "status": "unmatched",
+      "reason": "best candidate too weak (name 0.00, IoU 0.02, 66 m)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 522792282,
+        "name": "Betty Irene Moore Nursing Building",
+        "building": "hospital",
+        "levels": 2,
+        "area": 3089,
+        "nameScore": 0,
+        "iou": 0.017,
+        "dist": 66.4,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "D",
+      "name": "Betty Irene Moore Hall",
+      "cat": "education",
+      "curatedArea": 3672.0998116427772,
+      "candidates": 6,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 522792282,
+        "name": "Betty Irene Moore Nursing Building",
+        "building": "hospital",
+        "levels": 2,
+        "area": 3089,
+        "nameScore": 0.739,
+        "iou": 0.532,
+        "dist": 10.7,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 25397831,
+        "name": "Lawrence J. Ellison Ambulatory Care Center",
+        "building": "commercial",
+        "levels": null,
+        "area": 8756,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 122.8,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "J",
+      "name": "Imaging Research Center",
+      "cat": "admin",
+      "curatedArea": 1987.4355637667086,
+      "candidates": 7,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 791942008,
+        "name": "UC Davis Imaging Research Center",
+        "building": "hospital",
+        "levels": null,
+        "area": 1383,
+        "nameScore": 0.878,
+        "iou": 0.576,
+        "dist": 6.9,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 405350099,
+        "name": "UC Davis Cancer Center North Building",
+        "building": "yes",
+        "levels": null,
+        "area": 1503,
+        "nameScore": 0.248,
+        "iou": 0,
+        "dist": 133.2,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "O",
+      "name": "Research 1",
+      "cat": "admin",
+      "curatedArea": 1355.394118943904,
+      "candidates": 4,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 791471449,
+        "name": "Research II",
+        "building": "yes",
+        "levels": 3,
+        "area": 1049,
+        "nameScore": 0.261,
+        "iou": 0.604,
+        "dist": 5.7,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 791471450,
+        "name": "Research I",
+        "building": "yes",
+        "levels": 3,
+        "area": 1046,
+        "nameScore": 0.85,
+        "iou": 0,
+        "dist": 39.3,
+        "isArea": false
+      },
+      "conflict": {
+        "nameSays": {
+          "osmId": 791471450,
+          "name": "Research I",
+          "building": "yes",
+          "levels": 3,
+          "area": 1046,
+          "nameScore": 0.85,
+          "iou": 0,
+          "dist": 39.3,
+          "isArea": false,
+          "ring": [
+            [
+              58.780919977088686,
+              -10.84730939948328
+            ],
+            [
+              51.36365934012901,
+              -11.024227799979414
+            ],
+            [
+              51.38977645473424,
+              -12.7270673994514
+            ],
+            [
+              34.13506919853022,
+              -12.915043200076752
+            ],
+            [
+              34.51812021686406,
+              -10.869424199741715
+            ],
+            [
+              26.952862595491894,
+              -10.836252000139737
+            ],
+            [
+              26.848394135833832,
+              -3.881147399786286
+            ],
+            [
+              21.98190505665927,
+              -4.356615599842925
+            ],
+            [
+              22.17343056582619,
+              -8.182475999768798
+            ],
+            [
+              11.935521518098797,
+              -8.602657199965023
+            ],
+            [
+              12.205398372318557,
+              9.896373000155677
+            ],
+            [
+              21.76426243164996,
+              9.841086000295263
+            ],
+            [
+              21.825202366553594,
+              5.8825368003901275
+            ],
+            [
+              26.970274005641098,
+              6.158971800477872
+            ],
+            [
+              27.07474246529916,
+              13.191478200164497
+            ],
+            [
+              33.891309458915686,
+              12.406402800418135
+            ],
+            [
+              33.85648663985443,
+              14.728456800055241
+            ],
+            [
+              51.11119389605845,
+              14.440964400623955
+            ],
+            [
+              51.13731101066368,
+              12.738124800366293
+            ],
+            [
+              58.63292299267619,
+              12.716010000107858
+            ]
+          ]
+        },
+        "geometrySays": {
+          "osmId": 791471449,
+          "name": "Research II",
+          "building": "yes",
+          "levels": 3,
+          "area": 1049,
+          "nameScore": 0.261,
+          "iou": 0.604,
+          "dist": 5.7,
+          "isArea": false,
+          "ring": [
+            [
+              68.80989210549996,
+              28.60549380037449
+            ],
+            [
+              67.86967596857738,
+              28.218484800565918
+            ],
+            [
+              36.82513203503464,
+              28.572321599986836
+            ],
+            [
+              36.83383773949067,
+              35.26204860038176
+            ],
+            [
+              31.967348660316105,
+              35.20676160052135
+            ],
+            [
+              32.15887416948303,
+              31.04917919986164
+            ],
+            [
+              21.215803018754418,
+              31.0381218005181
+            ],
+            [
+              21.790379547492343,
+              52.42313340058061
+            ],
+            [
+              32.0805228244302,
+              52.401018600322175
+            ],
+            [
+              31.54076911599067,
+              45.667062000196054
+            ],
+            [
+              36.57266659096409,
+              45.57860279994799
+            ],
+            [
+              36.468198131306025,
+              52.84331459999116
+            ],
+            [
+              68.59224948049065,
+              52.500535199913784
+            ]
+          ]
+        }
+      },
+      "nearest": null
+    },
+    {
+      "code": "Pb",
+      "name": "Research 2",
+      "cat": "admin",
+      "curatedArea": 1344.1476804261804,
+      "candidates": 6,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 791471450,
+        "name": "Research I",
+        "building": "yes",
+        "levels": 3,
+        "area": 1046,
+        "nameScore": 0.261,
+        "iou": 0.622,
+        "dist": 4.8,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 791471449,
+        "name": "Research II",
+        "building": "yes",
+        "levels": 3,
+        "area": 1049,
+        "nameScore": 0.847,
+        "iou": 0,
+        "dist": 42.2,
+        "isArea": false
+      },
+      "conflict": {
+        "nameSays": {
+          "osmId": 791471449,
+          "name": "Research II",
+          "building": "yes",
+          "levels": 3,
+          "area": 1049,
+          "nameScore": 0.847,
+          "iou": 0,
+          "dist": 42.2,
+          "isArea": false,
+          "ring": [
+            [
+              68.80989210549996,
+              28.60549380037449
+            ],
+            [
+              67.86967596857738,
+              28.218484800565918
+            ],
+            [
+              36.82513203503464,
+              28.572321599986836
+            ],
+            [
+              36.83383773949067,
+              35.26204860038176
+            ],
+            [
+              31.967348660316105,
+              35.20676160052135
+            ],
+            [
+              32.15887416948303,
+              31.04917919986164
+            ],
+            [
+              21.215803018754418,
+              31.0381218005181
+            ],
+            [
+              21.790379547492343,
+              52.42313340058061
+            ],
+            [
+              32.0805228244302,
+              52.401018600322175
+            ],
+            [
+              31.54076911599067,
+              45.667062000196054
+            ],
+            [
+              36.57266659096409,
+              45.57860279994799
+            ],
+            [
+              36.468198131306025,
+              52.84331459999116
+            ],
+            [
+              68.59224948049065,
+              52.500535199913784
+            ]
+          ]
+        },
+        "geometrySays": {
+          "osmId": 791471450,
+          "name": "Research I",
+          "building": "yes",
+          "levels": 3,
+          "area": 1046,
+          "nameScore": 0.261,
+          "iou": 0.622,
+          "dist": 4.8,
+          "isArea": false,
+          "ring": [
+            [
+              58.780919977088686,
+              -10.84730939948328
+            ],
+            [
+              51.36365934012901,
+              -11.024227799979414
+            ],
+            [
+              51.38977645473424,
+              -12.7270673994514
+            ],
+            [
+              34.13506919853022,
+              -12.915043200076752
+            ],
+            [
+              34.51812021686406,
+              -10.869424199741715
+            ],
+            [
+              26.952862595491894,
+              -10.836252000139737
+            ],
+            [
+              26.848394135833832,
+              -3.881147399786286
+            ],
+            [
+              21.98190505665927,
+              -4.356615599842925
+            ],
+            [
+              22.17343056582619,
+              -8.182475999768798
+            ],
+            [
+              11.935521518098797,
+              -8.602657199965023
+            ],
+            [
+              12.205398372318557,
+              9.896373000155677
+            ],
+            [
+              21.76426243164996,
+              9.841086000295263
+            ],
+            [
+              21.825202366553594,
+              5.8825368003901275
+            ],
+            [
+              26.970274005641098,
+              6.158971800477872
+            ],
+            [
+              27.07474246529916,
+              13.191478200164497
+            ],
+            [
+              33.891309458915686,
+              12.406402800418135
+            ],
+            [
+              33.85648663985443,
+              14.728456800055241
+            ],
+            [
+              51.11119389605845,
+              14.440964400623955
+            ],
+            [
+              51.13731101066368,
+              12.738124800366293
+            ],
+            [
+              58.63292299267619,
+              12.716010000107858
+            ]
+          ]
+        }
+      },
+      "nearest": null
+    },
+    {
+      "code": "Pc",
+      "name": "Research 3",
+      "cat": "admin",
+      "curatedArea": 1754.7483978231262,
+      "candidates": 5,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 791471448,
+        "name": "Research III",
+        "building": "yes",
+        "levels": 3,
+        "area": 1334,
+        "nameScore": 0.854,
+        "iou": 0.552,
+        "dist": 11.5,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 791471449,
+        "name": "Research II",
+        "building": "yes",
+        "levels": 3,
+        "area": 1049,
+        "nameScore": 0.257,
+        "iou": 0,
+        "dist": 37.3,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "K2",
+      "name": "Lawrence J. Ellison Ambulatory Care Center",
+      "cat": "clinic",
+      "curatedArea": 7428.86628697404,
+      "candidates": 5,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 25397831,
+        "name": "Lawrence J. Ellison Ambulatory Care Center",
+        "building": "commercial",
+        "levels": null,
+        "area": 8756,
+        "nameScore": 0.915,
+        "iou": 0.72,
+        "dist": 5.8,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 1256318071,
+        "name": "UC Davis Same Day Surgery Center",
+        "building": "yes",
+        "levels": null,
+        "area": 1151,
+        "nameScore": 0.129,
+        "iou": 0,
+        "dist": 110.9,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "EI",
+      "name": "Ernest E. Tschannen Eye Institute",
+      "cat": "clinic",
+      "curatedArea": 2649.9339676144036,
+      "candidates": 4,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 1256331849,
+        "name": "Ernest E. Tschannen Eye Institute",
+        "building": "yes",
+        "levels": null,
+        "area": 1270,
+        "nameScore": 1,
+        "iou": 0.319,
+        "dist": 19.1,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 25397831,
+        "name": "Lawrence J. Ellison Ambulatory Care Center",
+        "building": "commercial",
+        "levels": null,
+        "area": 8756,
+        "nameScore": 0,
+        "iou": 0.058,
+        "dist": 70.7,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "AA",
+      "name": "Same Day Surgery Center",
+      "cat": "clinic",
+      "curatedArea": 1274.740512585502,
+      "candidates": 4,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 1256318071,
+        "name": "UC Davis Same Day Surgery Center",
+        "building": "yes",
+        "levels": null,
+        "area": 1151,
+        "nameScore": 0.913,
+        "iou": 0.352,
+        "dist": 11.9,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 25397831,
+        "name": "Lawrence J. Ellison Ambulatory Care Center",
+        "building": "commercial",
+        "levels": null,
+        "area": 8756,
+        "nameScore": 0.153,
+        "iou": 0,
+        "dist": 119.7,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "P2",
+      "name": "Parking 2",
+      "cat": "parking",
+      "curatedArea": 6828.307400618694,
+      "candidates": 7,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 25397826,
+        "name": "Parking Structure 2",
+        "building": "parking",
+        "levels": null,
+        "area": 6469,
+        "nameScore": 0.748,
+        "iou": 0.725,
+        "dist": 8.3,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 25397831,
+        "name": "Lawrence J. Ellison Ambulatory Care Center",
+        "building": "commercial",
+        "levels": null,
+        "area": 8756,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 101.6,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "S",
+      "name": "Facilities Support Services",
+      "cat": "admin",
+      "curatedArea": 3931.3701789901834,
+      "candidates": 3,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 791529613,
+        "name": "UC Davis Health Fleet Services Support Building",
+        "building": "hospital",
+        "levels": null,
+        "area": 3046,
+        "nameScore": 0.494,
+        "iou": 0.593,
+        "dist": 7.4,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 791471448,
+        "name": "Research III",
+        "building": "yes",
+        "levels": 3,
+        "area": 1334,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 133.3,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "CP",
+      "name": "Central Utility Plant",
+      "cat": "admin",
+      "curatedArea": 7454.129116949318,
+      "candidates": 1,
+      "status": "absent",
+      "reason": "not mapped in OpenStreetMap (nearest footprint 115 m away)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 1256318071,
+        "name": "UC Davis Same Day Surgery Center",
+        "building": "yes",
+        "levels": null,
+        "area": 1151,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 114.7,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "C",
+      "name": "Aggie Square - Anova",
+      "cat": "admin",
+      "curatedArea": 1682.032365715404,
+      "candidates": 7,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 1493760476,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 938,
+        "nameScore": 0,
+        "iou": 0.517,
+        "dist": 7.8,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 619594576,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 1215,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 131,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "AS2",
+      "name": "Aggie Square - Hunt Building",
+      "cat": "research",
+      "curatedArea": 979.8628325647442,
+      "candidates": 10,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 619594578,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 793,
+        "nameScore": 0,
+        "iou": 0.524,
+        "dist": 7.5,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 619594575,
+        "name": "De Ville Motel",
+        "building": "yes",
+        "levels": null,
+        "area": 967,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 113.5,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "AS3",
+      "name": "Aggie Square - Anova",
+      "cat": "admin",
+      "curatedArea": 3362.775497578339,
+      "candidates": 12,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 1493760477,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 2779,
+        "nameScore": 0,
+        "iou": 0.482,
+        "dist": 8.7,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 619594574,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 836,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 93.5,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "AS4",
+      "name": "400 Aggie Square",
+      "cat": "admin",
+      "curatedArea": 1650.3174205760424,
+      "candidates": 6,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 1539582699,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 1476,
+        "nameScore": 0,
+        "iou": 0.612,
+        "dist": 8.6,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 619594574,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 836,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 123.1,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "AS5",
+      "name": "Aggie Square - Lifelong Learning Building & East Lab",
+      "cat": "admin",
+      "curatedArea": 9723.328074715495,
+      "candidates": 6,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 1539582698,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 8659,
+        "nameScore": 0,
+        "iou": 0.746,
+        "dist": 8.5,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 791471448,
+        "name": "Research III",
+        "building": "yes",
+        "levels": 3,
+        "area": 1334,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 119.6,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "P6",
+      "name": "Aggie Square Parking",
+      "cat": "parking",
+      "curatedArea": 8420.425394411752,
+      "candidates": 5,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 791935708,
+        "name": "Aggie Square Garage",
+        "building": "yes",
+        "levels": null,
+        "area": 7724,
+        "nameScore": 0.419,
+        "iou": 0.781,
+        "dist": 9.2,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 791529613,
+        "name": "UC Davis Health Fleet Services Support Building",
+        "building": "hospital",
+        "levels": null,
+        "area": 3046,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 72.3,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "V2",
+      "name": "MIND Institute",
+      "cat": "clinic",
+      "curatedArea": 5315.922934998991,
+      "candidates": 1,
+      "status": "absent",
+      "reason": "not mapped in OpenStreetMap (nearest footprint 133 m away)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 1256340923,
+        "name": "Kiwanis Family House",
+        "building": "yes",
+        "levels": null,
+        "area": 2201,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 133,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "ML",
+      "name": "MIND Lab",
+      "cat": "admin",
+      "curatedArea": 1378.4814237345927,
+      "candidates": 1,
+      "status": "absent",
+      "reason": "not mapped in OpenStreetMap (nearest footprint 139 m away)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 793116532,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 114,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 139.2,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "P7",
+      "name": "Parking 7 (staff only)",
+      "cat": "parking",
+      "curatedArea": 8641.974103775428,
+      "candidates": 3,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 1256359923,
+        "name": "Lot 25",
+        "building": "parking",
+        "levels": null,
+        "area": 12406,
+        "nameScore": 0,
+        "iou": 0.464,
+        "dist": 37.9,
+        "isArea": true
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 1256341706,
+        "name": "Lot 25",
+        "building": "parking",
+        "levels": null,
+        "area": 6461,
+        "nameScore": 0,
+        "iou": 0.184,
+        "dist": 66.2,
+        "isArea": true
+      },
+      "nearest": null
+    },
+    {
+      "code": "RM",
+      "name": "Ronald McDonald House",
+      "cat": "external",
+      "curatedArea": 4692.803927221221,
+      "candidates": 2,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 1256341458,
+        "name": "Ronald McDonald House Charities",
+        "building": "residential",
+        "levels": null,
+        "area": 7512,
+        "nameScore": 0.846,
+        "iou": 0.48,
+        "dist": 22.2,
+        "isArea": false
+      },
+      "annexes": [
+        {
+          "osmId": 793116532,
+          "name": null,
+          "building": "yes",
+          "levels": null,
+          "area": 114,
+          "nameScore": 0,
+          "iou": 0.024,
+          "dist": 29.8,
+          "isArea": false
+        }
+      ],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 793116532,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 114,
+        "nameScore": 0,
+        "iou": 0.024,
+        "dist": 29.8,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "KF",
+      "name": "Kiwanis Family House",
+      "cat": "external",
+      "curatedArea": 1761.3677236843796,
+      "candidates": 1,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 1256340923,
+        "name": "Kiwanis Family House",
+        "building": "yes",
+        "levels": null,
+        "area": 2201,
+        "nameScore": 1,
+        "iou": 0.153,
+        "dist": 21.1,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": null,
+      "nearest": null
+    },
+    {
+      "code": "Q",
+      "name": "Institute for Regenerative Cures / CTSC",
+      "cat": "admin",
+      "curatedArea": 9407.508281247192,
+      "candidates": 1,
+      "status": "absent",
+      "reason": "not mapped in OpenStreetMap (nearest footprint 126 m away)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 791935706,
+        "name": null,
+        "building": "school",
+        "levels": null,
+        "area": 664,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 126.1,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "BB",
+      "name": "UC Davis Rehabilitation Hospital",
+      "cat": "hospital",
+      "curatedArea": 5591.108780123872,
+      "candidates": 4,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 619594570,
+        "name": "UC Davis Rehabilitation Hospital",
+        "building": "hospital",
+        "levels": null,
+        "area": 3577,
+        "nameScore": 0.831,
+        "iou": 0,
+        "dist": 75.3,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": {
+        "osmId": 791935709,
+        "name": null,
+        "building": "school",
+        "levels": null,
+        "area": 3759,
+        "nameScore": 0,
+        "iou": 0.016,
+        "dist": 73.5,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "LA",
+      "name": "Language Academy of Sacramento",
+      "cat": "external",
+      "curatedArea": 2303.8010064222763,
+      "candidates": 4,
+      "status": "unmatched",
+      "reason": "best candidate too weak (name 0.00, IoU 0.14, 43 m)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 791935709,
+        "name": null,
+        "building": "school",
+        "levels": null,
+        "area": 3759,
+        "nameScore": 0,
+        "iou": 0.144,
+        "dist": 42.6,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "DOJ",
+      "name": "California Department of Justice",
+      "cat": "external",
+      "curatedArea": 22415.923898909765,
+      "candidates": 0,
+      "status": "absent",
+      "reason": "not mapped in OpenStreetMap (nothing within 140 m)",
+      "match": null,
+      "annexes": [],
+      "runnerUp": null,
+      "nearest": null
+    },
+    {
+      "code": "SED",
+      "name": "Sacramento Employment Development Office",
+      "cat": "external",
+      "curatedArea": 5663.342066788173,
+      "candidates": 2,
+      "status": "unmatched",
+      "reason": "best candidate too weak (name 0.00, IoU 0.09, 70 m)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 907974975,
+        "name": null,
+        "building": "yes",
+        "levels": null,
+        "area": 4799,
+        "nameScore": 0,
+        "iou": 0.094,
+        "dist": 69.6,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "F",
+      "name": "Broadway Building",
+      "cat": "admin",
+      "curatedArea": 6092.722880512869,
+      "candidates": 1,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 619594572,
+        "name": "UC Davis Broadway Building",
+        "building": "yes",
+        "levels": null,
+        "area": 5253,
+        "nameScore": 0.74,
+        "iou": 0,
+        "dist": 77.6,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "name",
+      "runnerUp": null,
+      "nearest": null
+    },
+    {
+      "code": "WT",
+      "name": "Water Tower",
+      "cat": "admin",
+      "curatedArea": 1401.61215228672,
+      "candidates": 4,
+      "status": "matched",
+      "reason": "geometry",
+      "match": {
+        "osmId": 564239952,
+        "name": null,
+        "building": "storage_tank",
+        "levels": null,
+        "area": 1480,
+        "nameScore": 0,
+        "iou": 0.653,
+        "dist": 7.1,
+        "isArea": false
+      },
+      "annexes": [],
+      "evidence": "geometry",
+      "runnerUp": {
+        "osmId": 405350099,
+        "name": "UC Davis Cancer Center North Building",
+        "building": "yes",
+        "levels": null,
+        "area": 1503,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 66.2,
+        "isArea": false
+      },
+      "nearest": null
+    },
+    {
+      "code": "X1",
+      "name": "New hotspot",
+      "cat": "external",
+      "curatedArea": 12793.133940845633,
+      "candidates": 6,
+      "status": "contested",
+      "reason": "best footprint went to U",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 1381212787,
+        "name": "California Hospital Tower Construction",
+        "building": "construction",
+        "levels": null,
+        "area": 12515,
+        "nameScore": 0,
+        "iou": 0.742,
+        "dist": 16.5,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "X3",
+      "name": "New hotspot",
+      "cat": "external",
+      "curatedArea": 2068.074734785112,
+      "candidates": 8,
+      "status": "absent",
+      "reason": "not mapped in OpenStreetMap (nearest footprint 128 m away)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 242787548,
+        "name": "Administrative Support Building",
+        "building": "office",
+        "levels": null,
+        "area": 3440,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 128.5,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "X2",
+      "name": "New hotspot",
+      "cat": "external",
+      "curatedArea": 3645.5721680661936,
+      "candidates": 6,
+      "status": "unmatched",
+      "reason": "best candidate too weak (name 0.00, IoU 0.04, 16 m)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 791942008,
+        "name": "UC Davis Imaging Research Center",
+        "building": "hospital",
+        "levels": null,
+        "area": 1383,
+        "nameScore": 0,
+        "iou": 0.041,
+        "dist": 16.3,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "X4",
+      "name": "New hotspot",
+      "cat": "external",
+      "curatedArea": 11191.794867773422,
+      "candidates": 4,
+      "status": "contested",
+      "reason": "best footprint went to P5",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 1288445847,
+        "name": "Parking Structure 5",
+        "building": "yes",
+        "levels": null,
+        "area": 6576,
+        "nameScore": 0,
+        "iou": 0.546,
+        "dist": 21.7,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "X5",
+      "name": "New hotspot",
+      "cat": "external",
+      "curatedArea": 1285.284604053686,
+      "candidates": 6,
+      "status": "absent",
+      "reason": "not mapped in OpenStreetMap (nearest footprint 104 m away)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 242787646,
+        "name": "48 X Complex",
+        "building": "yes",
+        "levels": null,
+        "area": 7551,
+        "nameScore": 0.405,
+        "iou": 0,
+        "dist": 104.2,
+        "isArea": false
+      },
+      "runnerUp": null
+    },
+    {
+      "code": "X6",
+      "name": "New hotspot",
+      "cat": "external",
+      "curatedArea": 5360.7349987323505,
+      "candidates": 4,
+      "status": "unmatched",
+      "reason": "best candidate too weak (name 0.00, IoU 0.08, 36 m)",
+      "match": null,
+      "annexes": [],
+      "nearest": {
+        "osmId": 25397831,
+        "name": "Lawrence J. Ellison Ambulatory Care Center",
+        "building": "commercial",
+        "levels": null,
+        "area": 8756,
+        "nameScore": 0,
+        "iou": 0.076,
+        "dist": 36.3,
+        "isArea": false
+      },
+      "runnerUp": null
+    }
+  ],
+  "unclaimed": [
+    {
+      "osmId": 32516685,
+      "name": null,
+      "building": "yes",
+      "area": 4865
+    },
+    {
+      "osmId": 32516697,
+      "name": null,
+      "building": "yes",
+      "area": 4885
+    },
+    {
+      "osmId": 198423272,
+      "name": null,
+      "building": "yes",
+      "area": 2341
+    },
+    {
+      "osmId": 252790985,
+      "name": "Subway",
+      "building": "yes",
+      "area": 136
+    },
+    {
+      "osmId": 252791053,
+      "name": "Starbucks",
+      "building": "yes",
+      "area": 158
+    },
+    {
+      "osmId": 252924351,
+      "name": "Trader Joe's",
+      "building": "yes",
+      "area": 1437
+    },
+    {
+      "osmId": 256086523,
+      "name": null,
+      "building": "commercial",
+      "area": 1498
+    },
+    {
+      "osmId": 256086524,
+      "name": null,
+      "building": "commercial",
+      "area": 479
+    },
+    {
+      "osmId": 307095155,
+      "name": "Jack in the Box",
+      "building": "yes",
+      "area": 234
+    },
+    {
+      "osmId": 307095156,
+      "name": null,
+      "building": "commercial",
+      "area": 1070
+    },
+    {
+      "osmId": 406520289,
+      "name": "Subway",
+      "building": "yes",
+      "area": 121
+    },
+    {
+      "osmId": 406520290,
+      "name": null,
+      "building": "yes",
+      "area": 576
+    },
+    {
+      "osmId": 406520293,
+      "name": "Chan's Restaurant",
+      "building": "yes",
+      "area": 136
+    },
+    {
+      "osmId": 455132055,
+      "name": null,
+      "building": "house",
+      "area": 161
+    },
+    {
+      "osmId": 455132056,
+      "name": null,
+      "building": "house",
+      "area": 213
+    },
+    {
+      "osmId": 455132057,
+      "name": null,
+      "building": "house",
+      "area": 102
+    },
+    {
+      "osmId": 455132058,
+      "name": null,
+      "building": "house",
+      "area": 114
+    },
+    {
+      "osmId": 455132059,
+      "name": null,
+      "building": "house",
+      "area": 132
+    },
+    {
+      "osmId": 455132060,
+      "name": null,
+      "building": "house",
+      "area": 112
+    },
+    {
+      "osmId": 455132061,
+      "name": null,
+      "building": "house",
+      "area": 93
+    },
+    {
+      "osmId": 455132062,
+      "name": null,
+      "building": "house",
+      "area": 62
+    },
+    {
+      "osmId": 455132063,
+      "name": null,
+      "building": "house",
+      "area": 167
+    },
+    {
+      "osmId": 455132064,
+      "name": null,
+      "building": "house",
+      "area": 109
+    },
+    {
+      "osmId": 455132065,
+      "name": null,
+      "building": "house",
+      "area": 94
+    },
+    {
+      "osmId": 455132066,
+      "name": null,
+      "building": "house",
+      "area": 79
+    },
+    {
+      "osmId": 455132067,
+      "name": null,
+      "building": "house",
+      "area": 105
+    },
+    {
+      "osmId": 455132068,
+      "name": null,
+      "building": "house",
+      "area": 169
+    },
+    {
+      "osmId": 455132069,
+      "name": null,
+      "building": "house",
+      "area": 202
+    },
+    {
+      "osmId": 455132070,
+      "name": null,
+      "building": "house",
+      "area": 129
+    },
+    {
+      "osmId": 455132071,
+      "name": null,
+      "building": "house",
+      "area": 81
+    },
+    {
+      "osmId": 455132072,
+      "name": null,
+      "building": "house",
+      "area": 120
+    },
+    {
+      "osmId": 455132073,
+      "name": null,
+      "building": "house",
+      "area": 119
+    },
+    {
+      "osmId": 455132074,
+      "name": "Oak Park Rotary House",
+      "building": "house",
+      "area": 99
+    },
+    {
+      "osmId": 455189629,
+      "name": null,
+      "building": "garage",
+      "area": 32
+    },
+    {
+      "osmId": 526585650,
+      "name": "Sacramento High School",
+      "building": "yes",
+      "area": 245
+    },
+    {
+      "osmId": 526585651,
+      "name": "Sacramento High School",
+      "building": "yes",
+      "area": 361
+    },
+    {
+      "osmId": 526585652,
+      "name": "Sacramento High School",
+      "building": "yes",
+      "area": 3927
+    },
+    {
+      "osmId": 557904979,
+      "name": "Coloma Community Center",
+      "building": "school",
+      "area": 3011
+    },
+    {
+      "osmId": 557906103,
+      "name": null,
+      "building": "house",
+      "area": 158
+    },
+    {
+      "osmId": 557906104,
+      "name": null,
+      "building": "house",
+      "area": 157
+    },
+    {
+      "osmId": 557906105,
+      "name": null,
+      "building": "house",
+      "area": 162
+    },
+    {
+      "osmId": 557906106,
+      "name": null,
+      "building": "house",
+      "area": 153
+    },
+    {
+      "osmId": 557906107,
+      "name": null,
+      "building": "house",
+      "area": 172
+    },
+    {
+      "osmId": 612148041,
+      "name": null,
+      "building": "yes",
+      "area": 1835
+    },
+    {
+      "osmId": 612148045,
+      "name": null,
+      "building": "yes",
+      "area": 255
+    },
+    {
+      "osmId": 612148047,
+      "name": null,
+      "building": "yes",
+      "area": 405
+    },
+    {
+      "osmId": 612468153,
+      "name": null,
+      "building": "yes",
+      "area": 5637
+    },
+    {
+      "osmId": 612468155,
+      "name": null,
+      "building": "office",
+      "area": 616
+    },
+    {
+      "osmId": 612468158,
+      "name": null,
+      "building": "yes",
+      "area": 169
+    },
+    {
+      "osmId": 612468160,
+      "name": null,
+      "building": "yes",
+      "area": 356
+    },
+    {
+      "osmId": 612468162,
+      "name": null,
+      "building": "yes",
+      "area": 618
+    },
+    {
+      "osmId": 612468166,
+      "name": null,
+      "building": "yes",
+      "area": 638
+    },
+    {
+      "osmId": 612468168,
+      "name": null,
+      "building": "yes",
+      "area": 830
+    },
+    {
+      "osmId": 612468170,
+      "name": null,
+      "building": "yes",
+      "area": 1599
+    },
+    {
+      "osmId": 612468175,
+      "name": null,
+      "building": "yes",
+      "area": 328
+    },
+    {
+      "osmId": 612468177,
+      "name": null,
+      "building": "yes",
+      "area": 76
+    },
+    {
+      "osmId": 615624844,
+      "name": null,
+      "building": "yes",
+      "area": 211
+    },
+    {
+      "osmId": 615624845,
+      "name": null,
+      "building": "yes",
+      "area": 211
+    },
+    {
+      "osmId": 615624847,
+      "name": null,
+      "building": "yes",
+      "area": 288
+    },
+    {
+      "osmId": 615624857,
+      "name": null,
+      "building": "yes",
+      "area": 1101
+    },
+    {
+      "osmId": 616829107,
+      "name": null,
+      "building": "yes",
+      "area": 589
+    },
+    {
+      "osmId": 616829108,
+      "name": null,
+      "building": "yes",
+      "area": 1361
+    },
+    {
+      "osmId": 616829109,
+      "name": null,
+      "building": "yes",
+      "area": 250
+    },
+    {
+      "osmId": 616829110,
+      "name": null,
+      "building": "yes",
+      "area": 4670
+    },
+    {
+      "osmId": 619340935,
+      "name": null,
+      "building": "yes",
+      "area": 193
+    },
+    {
+      "osmId": 619340936,
+      "name": null,
+      "building": "yes",
+      "area": 87
+    },
+    {
+      "osmId": 619340937,
+      "name": null,
+      "building": "yes",
+      "area": 179
+    },
+    {
+      "osmId": 619340939,
+      "name": null,
+      "building": "yes",
+      "area": 146
+    },
+    {
+      "osmId": 619340940,
+      "name": null,
+      "building": "yes",
+      "area": 355
+    },
+    {
+      "osmId": 619340986,
+      "name": null,
+      "building": "yes",
+      "area": 982
+    },
+    {
+      "osmId": 619486272,
+      "name": null,
+      "building": "yes",
+      "area": 239
+    },
+    {
+      "osmId": 619486274,
+      "name": null,
+      "building": "yes",
+      "area": 222
+    },
+    {
+      "osmId": 619486275,
+      "name": "Sacramento Fire Station #6",
+      "building": "yes",
+      "area": 882
+    },
+    {
+      "osmId": 619486282,
+      "name": null,
+      "building": "yes",
+      "area": 303
+    },
+    {
+      "osmId": 619486283,
+      "name": null,
+      "building": "yes",
+      "area": 342
+    },
+    {
+      "osmId": 619591772,
+      "name": null,
+      "building": "yes",
+      "area": 1193
+    },
+    {
+      "osmId": 619591774,
+      "name": null,
+      "building": "house",
+      "area": 92
+    },
+    {
+      "osmId": 619591776,
+      "name": null,
+      "building": "house",
+      "area": 193
+    },
+    {
+      "osmId": 619591777,
+      "name": null,
+      "building": "house",
+      "area": 138
+    },
+    {
+      "osmId": 619591778,
+      "name": null,
+      "building": "house",
+      "area": 155
+    },
+    {
+      "osmId": 619591779,
+      "name": null,
+      "building": "house",
+      "area": 143
+    },
+    {
+      "osmId": 619591781,
+      "name": null,
+      "building": "house",
+      "area": 141
+    },
+    {
+      "osmId": 619591782,
+      "name": null,
+      "building": "garage",
+      "area": 65
+    },
+    {
+      "osmId": 619591783,
+      "name": null,
+      "building": "house",
+      "area": 117
+    },
+    {
+      "osmId": 619591784,
+      "name": null,
+      "building": "garage",
+      "area": 35
+    },
+    {
+      "osmId": 619591787,
+      "name": null,
+      "building": "yes",
+      "area": 404
+    },
+    {
+      "osmId": 619591788,
+      "name": null,
+      "building": "house",
+      "area": 128
+    },
+    {
+      "osmId": 619591789,
+      "name": null,
+      "building": "yes",
+      "area": 164
+    },
+    {
+      "osmId": 619591790,
+      "name": null,
+      "building": "house",
+      "area": 158
+    },
+    {
+      "osmId": 619591793,
+      "name": null,
+      "building": "house",
+      "area": 241
+    },
+    {
+      "osmId": 619591794,
+      "name": null,
+      "building": "yes",
+      "area": 255
+    },
+    {
+      "osmId": 619591795,
+      "name": null,
+      "building": "house",
+      "area": 141
+    },
+    {
+      "osmId": 619593561,
+      "name": null,
+      "building": "yes",
+      "area": 1574
+    },
+    {
+      "osmId": 619593563,
+      "name": null,
+      "building": "yes",
+      "area": 627
+    },
+    {
+      "osmId": 619594574,
+      "name": null,
+      "building": "yes",
+      "area": 836
+    },
+    {
+      "osmId": 619594575,
+      "name": "De Ville Motel",
+      "building": "yes",
+      "area": 967
+    },
+    {
+      "osmId": 619594576,
+      "name": null,
+      "building": "yes",
+      "area": 1215
+    },
+    {
+      "osmId": 619594579,
+      "name": null,
+      "building": "yes",
+      "area": 3366
+    },
+    {
+      "osmId": 619594776,
+      "name": null,
+      "building": "yes",
+      "area": 2125
+    },
+    {
+      "osmId": 619599743,
+      "name": null,
+      "building": "house",
+      "area": 123
+    },
+    {
+      "osmId": 619599745,
+      "name": null,
+      "building": "house",
+      "area": 123
+    },
+    {
+      "osmId": 619599747,
+      "name": null,
+      "building": "house",
+      "area": 123
+    },
+    {
+      "osmId": 619599749,
+      "name": null,
+      "building": "house",
+      "area": 169
+    },
+    {
+      "osmId": 619599750,
+      "name": null,
+      "building": "house",
+      "area": 201
+    },
+    {
+      "osmId": 619601089,
+      "name": null,
+      "building": "yes",
+      "area": 313
+    },
+    {
+      "osmId": 736845223,
+      "name": null,
+      "building": "yes",
+      "area": 405
+    },
+    {
+      "osmId": 736845224,
+      "name": null,
+      "building": "yes",
+      "area": 1335
+    },
+    {
+      "osmId": 736845225,
+      "name": null,
+      "building": "yes",
+      "area": 409
+    },
+    {
+      "osmId": 736845226,
+      "name": null,
+      "building": "yes",
+      "area": 151
+    },
+    {
+      "osmId": 791533227,
+      "name": null,
+      "building": "yes",
+      "area": 133
+    },
+    {
+      "osmId": 791538109,
+      "name": null,
+      "building": "semidetached_house",
+      "area": 147
+    },
+    {
+      "osmId": 791538110,
+      "name": null,
+      "building": "apartments",
+      "area": 207
+    },
+    {
+      "osmId": 791549546,
+      "name": null,
+      "building": "yes",
+      "area": 330
+    },
+    {
+      "osmId": 791549547,
+      "name": null,
+      "building": "yes",
+      "area": 984
+    },
+    {
+      "osmId": 791935706,
+      "name": null,
+      "building": "school",
+      "area": 664
+    },
+    {
+      "osmId": 791935709,
+      "name": null,
+      "building": "school",
+      "area": 3759
+    },
+    {
+      "osmId": 791942007,
+      "name": null,
+      "building": "school",
+      "area": 1028
+    },
+    {
+      "osmId": 889964924,
+      "name": null,
+      "building": "house",
+      "area": 155
+    },
+    {
+      "osmId": 889964925,
+      "name": null,
+      "building": "house",
+      "area": 102
+    },
+    {
+      "osmId": 907946145,
+      "name": null,
+      "building": "garage",
+      "area": 48
+    },
+    {
+      "osmId": 907946146,
+      "name": null,
+      "building": "house",
+      "area": 135
+    },
+    {
+      "osmId": 907946147,
+      "name": null,
+      "building": "house",
+      "area": 110
+    },
+    {
+      "osmId": 907946148,
+      "name": null,
+      "building": "garage",
+      "area": 35
+    },
+    {
+      "osmId": 907946149,
+      "name": null,
+      "building": "house",
+      "area": 93
+    },
+    {
+      "osmId": 907946150,
+      "name": null,
+      "building": "house",
+      "area": 134
+    },
+    {
+      "osmId": 907946151,
+      "name": null,
+      "building": "garage",
+      "area": 26
+    },
+    {
+      "osmId": 907946152,
+      "name": null,
+      "building": "garage",
+      "area": 23
+    },
+    {
+      "osmId": 907946153,
+      "name": null,
+      "building": "house",
+      "area": 85
+    },
+    {
+      "osmId": 907946154,
+      "name": null,
+      "building": "house",
+      "area": 116
+    },
+    {
+      "osmId": 907946155,
+      "name": null,
+      "building": "garage",
+      "area": 25
+    },
+    {
+      "osmId": 907946156,
+      "name": null,
+      "building": "house",
+      "area": 190
+    },
+    {
+      "osmId": 907946157,
+      "name": null,
+      "building": "house",
+      "area": 179
+    },
+    {
+      "osmId": 907946158,
+      "name": null,
+      "building": "house",
+      "area": 92
+    },
+    {
+      "osmId": 907946159,
+      "name": null,
+      "building": "house",
+      "area": 453
+    },
+    {
+      "osmId": 907963936,
+      "name": null,
+      "building": "house",
+      "area": 135
+    },
+    {
+      "osmId": 907963937,
+      "name": null,
+      "building": "garage",
+      "area": 39
+    },
+    {
+      "osmId": 907963938,
+      "name": null,
+      "building": "house",
+      "area": 118
+    },
+    {
+      "osmId": 907963939,
+      "name": null,
+      "building": "house",
+      "area": 137
+    },
+    {
+      "osmId": 907963940,
+      "name": null,
+      "building": "house",
+      "area": 148
+    },
+    {
+      "osmId": 907963941,
+      "name": null,
+      "building": "yes",
+      "area": 39
+    },
+    {
+      "osmId": 907963942,
+      "name": null,
+      "building": "yes",
+      "area": 66
+    },
+    {
+      "osmId": 907963943,
+      "name": null,
+      "building": "house",
+      "area": 133
+    },
+    {
+      "osmId": 907963944,
+      "name": null,
+      "building": "house",
+      "area": 85
+    },
+    {
+      "osmId": 907963945,
+      "name": null,
+      "building": "house",
+      "area": 134
+    },
+    {
+      "osmId": 907963946,
+      "name": null,
+      "building": "house",
+      "area": 163
+    },
+    {
+      "osmId": 907963947,
+      "name": null,
+      "building": "house",
+      "area": 122
+    },
+    {
+      "osmId": 907963948,
+      "name": null,
+      "building": "house",
+      "area": 184
+    },
+    {
+      "osmId": 907963949,
+      "name": null,
+      "building": "garage",
+      "area": 31
+    },
+    {
+      "osmId": 907963950,
+      "name": null,
+      "building": "house",
+      "area": 115
+    },
+    {
+      "osmId": 907963951,
+      "name": null,
+      "building": "house",
+      "area": 254
+    },
+    {
+      "osmId": 907963952,
+      "name": null,
+      "building": "house",
+      "area": 213
+    },
+    {
+      "osmId": 907964339,
+      "name": "Playhouse Preschool",
+      "building": "yes",
+      "area": 123
+    },
+    {
+      "osmId": 907974975,
+      "name": null,
+      "building": "yes",
+      "area": 4799
+    },
+    {
+      "osmId": 908290576,
+      "name": null,
+      "building": "house",
+      "area": 160
+    },
+    {
+      "osmId": 908290577,
+      "name": null,
+      "building": "house",
+      "area": 139
+    },
+    {
+      "osmId": 908290578,
+      "name": null,
+      "building": "house",
+      "area": 94
+    },
+    {
+      "osmId": 908290579,
+      "name": null,
+      "building": "house",
+      "area": 134
+    },
+    {
+      "osmId": 908290580,
+      "name": null,
+      "building": "house",
+      "area": 97
+    },
+    {
+      "osmId": 908290581,
+      "name": null,
+      "building": "house",
+      "area": 120
+    },
+    {
+      "osmId": 908290582,
+      "name": null,
+      "building": "house",
+      "area": 242
+    },
+    {
+      "osmId": 908290583,
+      "name": null,
+      "building": "house",
+      "area": 141
+    },
+    {
+      "osmId": 908290584,
+      "name": null,
+      "building": "shed",
+      "area": 22
+    },
+    {
+      "osmId": 908290585,
+      "name": null,
+      "building": "house",
+      "area": 102
+    },
+    {
+      "osmId": 908290586,
+      "name": null,
+      "building": "yes",
+      "area": 274
+    },
+    {
+      "osmId": 908290587,
+      "name": null,
+      "building": "yes",
+      "area": 264
+    },
+    {
+      "osmId": 908290588,
+      "name": null,
+      "building": "yes",
+      "area": 271
+    },
+    {
+      "osmId": 908290589,
+      "name": null,
+      "building": "house",
+      "area": 201
+    },
+    {
+      "osmId": 908290590,
+      "name": null,
+      "building": "house",
+      "area": 227
+    },
+    {
+      "osmId": 908290591,
+      "name": null,
+      "building": "house",
+      "area": 105
+    },
+    {
+      "osmId": 908290592,
+      "name": null,
+      "building": "house",
+      "area": 105
+    },
+    {
+      "osmId": 908290593,
+      "name": null,
+      "building": "yes",
+      "area": 43
+    },
+    {
+      "osmId": 908290594,
+      "name": null,
+      "building": "house",
+      "area": 203
+    },
+    {
+      "osmId": 908290595,
+      "name": null,
+      "building": "yes",
+      "area": 19
+    },
+    {
+      "osmId": 908290596,
+      "name": null,
+      "building": "yes",
+      "area": 32
+    },
+    {
+      "osmId": 908290597,
+      "name": null,
+      "building": "yes",
+      "area": 40
+    },
+    {
+      "osmId": 908290598,
+      "name": null,
+      "building": "yes",
+      "area": 44
+    },
+    {
+      "osmId": 908290599,
+      "name": null,
+      "building": "yes",
+      "area": 38
+    },
+    {
+      "osmId": 908290600,
+      "name": null,
+      "building": "yes",
+      "area": 18
+    },
+    {
+      "osmId": 908290601,
+      "name": null,
+      "building": "house",
+      "area": 108
+    },
+    {
+      "osmId": 908290602,
+      "name": null,
+      "building": "hut",
+      "area": 39
+    },
+    {
+      "osmId": 908290603,
+      "name": null,
+      "building": "house",
+      "area": 95
+    },
+    {
+      "osmId": 908290604,
+      "name": null,
+      "building": "yes",
+      "area": 39
+    },
+    {
+      "osmId": 908290605,
+      "name": null,
+      "building": "house",
+      "area": 103
+    },
+    {
+      "osmId": 976817537,
+      "name": null,
+      "building": "yes",
+      "area": 190
+    },
+    {
+      "osmId": 976817538,
+      "name": null,
+      "building": "yes",
+      "area": 157
+    },
+    {
+      "osmId": 976817539,
+      "name": null,
+      "building": "yes",
+      "area": 180
+    },
+    {
+      "osmId": 976817540,
+      "name": null,
+      "building": "yes",
+      "area": 114
+    },
+    {
+      "osmId": 976817541,
+      "name": null,
+      "building": "yes",
+      "area": 181
+    },
+    {
+      "osmId": 976817542,
+      "name": null,
+      "building": "yes",
+      "area": 156
+    },
+    {
+      "osmId": 976817543,
+      "name": null,
+      "building": "yes",
+      "area": 237
+    },
+    {
+      "osmId": 976832964,
+      "name": null,
+      "building": "yes",
+      "area": 155
+    },
+    {
+      "osmId": 976832965,
+      "name": null,
+      "building": "yes",
+      "area": 32
+    },
+    {
+      "osmId": 976832966,
+      "name": null,
+      "building": "yes",
+      "area": 159
+    },
+    {
+      "osmId": 976832967,
+      "name": null,
+      "building": "yes",
+      "area": 126
+    },
+    {
+      "osmId": 978649662,
+      "name": null,
+      "building": "yes",
+      "area": 100
+    },
+    {
+      "osmId": 978649663,
+      "name": null,
+      "building": "yes",
+      "area": 112
+    },
+    {
+      "osmId": 978649664,
+      "name": null,
+      "building": "yes",
+      "area": 129
+    },
+    {
+      "osmId": 978649665,
+      "name": null,
+      "building": "yes",
+      "area": 158
+    },
+    {
+      "osmId": 978649666,
+      "name": null,
+      "building": "yes",
+      "area": 37
+    },
+    {
+      "osmId": 978649667,
+      "name": null,
+      "building": "yes",
+      "area": 230
+    },
+    {
+      "osmId": 978649668,
+      "name": null,
+      "building": "yes",
+      "area": 126
+    },
+    {
+      "osmId": 978649669,
+      "name": null,
+      "building": "yes",
+      "area": 167
+    },
+    {
+      "osmId": 980129836,
+      "name": "Allora",
+      "building": "yes",
+      "area": 321
+    },
+    {
+      "osmId": 983148643,
+      "name": null,
+      "building": "yes",
+      "area": 426
+    },
+    {
+      "osmId": 983148646,
+      "name": null,
+      "building": "yes",
+      "area": 298
+    },
+    {
+      "osmId": 983148648,
+      "name": null,
+      "building": "yes",
+      "area": 456
+    },
+    {
+      "osmId": 983148649,
+      "name": null,
+      "building": "yes",
+      "area": 21
+    },
+    {
+      "osmId": 983148650,
+      "name": null,
+      "building": "yes",
+      "area": 15
+    },
+    {
+      "osmId": 983879582,
+      "name": null,
+      "building": "yes",
+      "area": 289
+    },
+    {
+      "osmId": 983879583,
+      "name": null,
+      "building": "yes",
+      "area": 115
+    },
+    {
+      "osmId": 983879584,
+      "name": null,
+      "building": "yes",
+      "area": 187
+    },
+    {
+      "osmId": 983879585,
+      "name": null,
+      "building": "yes",
+      "area": 82
+    },
+    {
+      "osmId": 983879586,
+      "name": null,
+      "building": "yes",
+      "area": 126
+    },
+    {
+      "osmId": 1041719890,
+      "name": null,
+      "building": "yes",
+      "area": 1479
+    },
+    {
+      "osmId": 1098381632,
+      "name": null,
+      "building": "school",
+      "area": 841
+    },
+    {
+      "osmId": 1101565582,
+      "name": null,
+      "building": "yes",
+      "area": 1720
+    },
+    {
+      "osmId": 1101565583,
+      "name": null,
+      "building": "yes",
+      "area": 892
+    },
+    {
+      "osmId": 1101565585,
+      "name": null,
+      "building": "yes",
+      "area": 174
+    },
+    {
+      "osmId": 1101565586,
+      "name": null,
+      "building": "yes",
+      "area": 139
+    },
+    {
+      "osmId": 1101565587,
+      "name": null,
+      "building": "yes",
+      "area": 120
+    },
+    {
+      "osmId": 1101565588,
+      "name": null,
+      "building": "yes",
+      "area": 189
+    },
+    {
+      "osmId": 1101565589,
+      "name": null,
+      "building": "yes",
+      "area": 137
+    },
+    {
+      "osmId": 1101565590,
+      "name": null,
+      "building": "yes",
+      "area": 129
+    },
+    {
+      "osmId": 1101565591,
+      "name": null,
+      "building": "yes",
+      "area": 158
+    },
+    {
+      "osmId": 1101565592,
+      "name": null,
+      "building": "yes",
+      "area": 118
+    },
+    {
+      "osmId": 1101565593,
+      "name": null,
+      "building": "yes",
+      "area": 180
+    },
+    {
+      "osmId": 1101565594,
+      "name": null,
+      "building": "yes",
+      "area": 154
+    },
+    {
+      "osmId": 1101565595,
+      "name": null,
+      "building": "yes",
+      "area": 132
+    },
+    {
+      "osmId": 1101565596,
+      "name": null,
+      "building": "yes",
+      "area": 143
+    },
+    {
+      "osmId": 1101565597,
+      "name": null,
+      "building": "yes",
+      "area": 109
+    },
+    {
+      "osmId": 1101565598,
+      "name": null,
+      "building": "yes",
+      "area": 254
+    },
+    {
+      "osmId": 1101565599,
+      "name": null,
+      "building": "yes",
+      "area": 283
+    },
+    {
+      "osmId": 1101565600,
+      "name": null,
+      "building": "yes",
+      "area": 189
+    },
+    {
+      "osmId": 1101565601,
+      "name": null,
+      "building": "yes",
+      "area": 131
+    },
+    {
+      "osmId": 1101565602,
+      "name": null,
+      "building": "yes",
+      "area": 146
+    },
+    {
+      "osmId": 1101565603,
+      "name": null,
+      "building": "yes",
+      "area": 144
+    },
+    {
+      "osmId": 1101565604,
+      "name": null,
+      "building": "yes",
+      "area": 128
+    },
+    {
+      "osmId": 1101565605,
+      "name": null,
+      "building": "yes",
+      "area": 130
+    },
+    {
+      "osmId": 1101565606,
+      "name": null,
+      "building": "yes",
+      "area": 148
+    },
+    {
+      "osmId": 1101565607,
+      "name": null,
+      "building": "yes",
+      "area": 177
+    },
+    {
+      "osmId": 1101565608,
+      "name": null,
+      "building": "yes",
+      "area": 175
+    },
+    {
+      "osmId": 1101565609,
+      "name": null,
+      "building": "yes",
+      "area": 163
+    },
+    {
+      "osmId": 1101565610,
+      "name": null,
+      "building": "yes",
+      "area": 224
+    },
+    {
+      "osmId": 1101565611,
+      "name": null,
+      "building": "yes",
+      "area": 152
+    },
+    {
+      "osmId": 1101565612,
+      "name": null,
+      "building": "yes",
+      "area": 112
+    },
+    {
+      "osmId": 1101565613,
+      "name": null,
+      "building": "yes",
+      "area": 99
+    },
+    {
+      "osmId": 1101565614,
+      "name": null,
+      "building": "yes",
+      "area": 158
+    },
+    {
+      "osmId": 1101565615,
+      "name": null,
+      "building": "yes",
+      "area": 135
+    },
+    {
+      "osmId": 1101565616,
+      "name": null,
+      "building": "yes",
+      "area": 108
+    },
+    {
+      "osmId": 1101565617,
+      "name": null,
+      "building": "yes",
+      "area": 131
+    },
+    {
+      "osmId": 1101565618,
+      "name": null,
+      "building": "yes",
+      "area": 118
+    },
+    {
+      "osmId": 1101565619,
+      "name": null,
+      "building": "yes",
+      "area": 143
+    },
+    {
+      "osmId": 1101565620,
+      "name": null,
+      "building": "yes",
+      "area": 135
+    },
+    {
+      "osmId": 1101565621,
+      "name": null,
+      "building": "yes",
+      "area": 114
+    },
+    {
+      "osmId": 1101565622,
+      "name": null,
+      "building": "yes",
+      "area": 122
+    },
+    {
+      "osmId": 1101565623,
+      "name": null,
+      "building": "yes",
+      "area": 140
+    },
+    {
+      "osmId": 1101565624,
+      "name": null,
+      "building": "yes",
+      "area": 108
+    },
+    {
+      "osmId": 1101565625,
+      "name": null,
+      "building": "yes",
+      "area": 122
+    },
+    {
+      "osmId": 1101565626,
+      "name": null,
+      "building": "yes",
+      "area": 105
+    },
+    {
+      "osmId": 1101565627,
+      "name": null,
+      "building": "yes",
+      "area": 128
+    },
+    {
+      "osmId": 1101565628,
+      "name": null,
+      "building": "yes",
+      "area": 119
+    },
+    {
+      "osmId": 1101565629,
+      "name": null,
+      "building": "yes",
+      "area": 131
+    },
+    {
+      "osmId": 1101565630,
+      "name": null,
+      "building": "yes",
+      "area": 159
+    },
+    {
+      "osmId": 1101565631,
+      "name": null,
+      "building": "yes",
+      "area": 199
+    },
+    {
+      "osmId": 1101565632,
+      "name": null,
+      "building": "yes",
+      "area": 200
+    },
+    {
+      "osmId": 1101832102,
+      "name": null,
+      "building": "yes",
+      "area": 135
+    },
+    {
+      "osmId": 1101832103,
+      "name": null,
+      "building": "yes",
+      "area": 159
+    },
+    {
+      "osmId": 1101832104,
+      "name": null,
+      "building": "yes",
+      "area": 142
+    },
+    {
+      "osmId": 1101832105,
+      "name": null,
+      "building": "yes",
+      "area": 192
+    },
+    {
+      "osmId": 1101832106,
+      "name": null,
+      "building": "yes",
+      "area": 142
+    },
+    {
+      "osmId": 1101832107,
+      "name": null,
+      "building": "yes",
+      "area": 142
+    },
+    {
+      "osmId": 1101832108,
+      "name": null,
+      "building": "yes",
+      "area": 157
+    },
+    {
+      "osmId": 1101832109,
+      "name": null,
+      "building": "yes",
+      "area": 795
+    },
+    {
+      "osmId": 1101832110,
+      "name": null,
+      "building": "yes",
+      "area": 307
+    },
+    {
+      "osmId": 1101832111,
+      "name": null,
+      "building": "yes",
+      "area": 196
+    },
+    {
+      "osmId": 1101832112,
+      "name": null,
+      "building": "yes",
+      "area": 159
+    },
+    {
+      "osmId": 1101832113,
+      "name": null,
+      "building": "yes",
+      "area": 241
+    },
+    {
+      "osmId": 1101832120,
+      "name": null,
+      "building": "yes",
+      "area": 86
+    },
+    {
+      "osmId": 1101832121,
+      "name": null,
+      "building": "yes",
+      "area": 276
+    },
+    {
+      "osmId": 1101832122,
+      "name": null,
+      "building": "yes",
+      "area": 93
+    },
+    {
+      "osmId": 1101832123,
+      "name": null,
+      "building": "yes",
+      "area": 93
+    },
+    {
+      "osmId": 1101832124,
+      "name": null,
+      "building": "yes",
+      "area": 91
+    },
+    {
+      "osmId": 1101832125,
+      "name": null,
+      "building": "yes",
+      "area": 85
+    },
+    {
+      "osmId": 1101832126,
+      "name": null,
+      "building": "yes",
+      "area": 328
+    },
+    {
+      "osmId": 1101832127,
+      "name": null,
+      "building": "retail",
+      "area": 105
+    },
+    {
+      "osmId": 1101832128,
+      "name": null,
+      "building": "yes",
+      "area": 60
+    },
+    {
+      "osmId": 1101832129,
+      "name": null,
+      "building": "yes",
+      "area": 138
+    },
+    {
+      "osmId": 1101832130,
+      "name": null,
+      "building": "yes",
+      "area": 229
+    },
+    {
+      "osmId": 1101832131,
+      "name": null,
+      "building": "yes",
+      "area": 88
+    },
+    {
+      "osmId": 1101832132,
+      "name": null,
+      "building": "yes",
+      "area": 166
+    },
+    {
+      "osmId": 1101832133,
+      "name": null,
+      "building": "yes",
+      "area": 109
+    },
+    {
+      "osmId": 1101832134,
+      "name": null,
+      "building": "yes",
+      "area": 206
+    },
+    {
+      "osmId": 1101832135,
+      "name": null,
+      "building": "yes",
+      "area": 117
+    },
+    {
+      "osmId": 1101832136,
+      "name": null,
+      "building": "yes",
+      "area": 102
+    },
+    {
+      "osmId": 1101832137,
+      "name": null,
+      "building": "yes",
+      "area": 85
+    },
+    {
+      "osmId": 1101832138,
+      "name": null,
+      "building": "yes",
+      "area": 58
+    },
+    {
+      "osmId": 1101832139,
+      "name": null,
+      "building": "yes",
+      "area": 70
+    },
+    {
+      "osmId": 1101832140,
+      "name": null,
+      "building": "yes",
+      "area": 78
+    },
+    {
+      "osmId": 1101832141,
+      "name": null,
+      "building": "yes",
+      "area": 126
+    },
+    {
+      "osmId": 1101832142,
+      "name": null,
+      "building": "yes",
+      "area": 267
+    },
+    {
+      "osmId": 1101832143,
+      "name": null,
+      "building": "yes",
+      "area": 172
+    },
+    {
+      "osmId": 1101832144,
+      "name": null,
+      "building": "yes",
+      "area": 129
+    },
+    {
+      "osmId": 1102918649,
+      "name": null,
+      "building": "yes",
+      "area": 443
+    },
+    {
+      "osmId": 1102918650,
+      "name": null,
+      "building": "yes",
+      "area": 342
+    },
+    {
+      "osmId": 1102918651,
+      "name": null,
+      "building": "yes",
+      "area": 153
+    },
+    {
+      "osmId": 1102918652,
+      "name": null,
+      "building": "yes",
+      "area": 127
+    },
+    {
+      "osmId": 1102918653,
+      "name": null,
+      "building": "yes",
+      "area": 60
+    },
+    {
+      "osmId": 1102918654,
+      "name": null,
+      "building": "yes",
+      "area": 99
+    },
+    {
+      "osmId": 1102918655,
+      "name": null,
+      "building": "yes",
+      "area": 173
+    },
+    {
+      "osmId": 1102918656,
+      "name": null,
+      "building": "yes",
+      "area": 229
+    },
+    {
+      "osmId": 1102918657,
+      "name": null,
+      "building": "yes",
+      "area": 223
+    },
+    {
+      "osmId": 1102918658,
+      "name": null,
+      "building": "yes",
+      "area": 113
+    },
+    {
+      "osmId": 1102918659,
+      "name": null,
+      "building": "yes",
+      "area": 150
+    },
+    {
+      "osmId": 1102918660,
+      "name": null,
+      "building": "yes",
+      "area": 111
+    },
+    {
+      "osmId": 1102918661,
+      "name": null,
+      "building": "yes",
+      "area": 194
+    },
+    {
+      "osmId": 1102918662,
+      "name": null,
+      "building": "yes",
+      "area": 155
+    },
+    {
+      "osmId": 1102918663,
+      "name": null,
+      "building": "yes",
+      "area": 156
+    },
+    {
+      "osmId": 1102918664,
+      "name": null,
+      "building": "yes",
+      "area": 155
+    },
+    {
+      "osmId": 1102918665,
+      "name": null,
+      "building": "yes",
+      "area": 84
+    },
+    {
+      "osmId": 1156335673,
+      "name": null,
+      "building": "yes",
+      "area": 122
+    },
+    {
+      "osmId": 1156335674,
+      "name": null,
+      "building": "yes",
+      "area": 146
+    },
+    {
+      "osmId": 1156337679,
+      "name": null,
+      "building": "yes",
+      "area": 75
+    },
+    {
+      "osmId": 1156337680,
+      "name": null,
+      "building": "yes",
+      "area": 183
+    },
+    {
+      "osmId": 1156337681,
+      "name": null,
+      "building": "yes",
+      "area": 48
+    },
+    {
+      "osmId": 1156337682,
+      "name": null,
+      "building": "yes",
+      "area": 125
+    },
+    {
+      "osmId": 1156337683,
+      "name": null,
+      "building": "yes",
+      "area": 54
+    },
+    {
+      "osmId": 1156337684,
+      "name": null,
+      "building": "yes",
+      "area": 127
+    },
+    {
+      "osmId": 1156337685,
+      "name": null,
+      "building": "yes",
+      "area": 105
+    },
+    {
+      "osmId": 1156337686,
+      "name": null,
+      "building": "yes",
+      "area": 97
+    },
+    {
+      "osmId": 1158194266,
+      "name": null,
+      "building": "yes",
+      "area": 134
+    },
+    {
+      "osmId": 1158194267,
+      "name": null,
+      "building": "yes",
+      "area": 241
+    },
+    {
+      "osmId": 1158194268,
+      "name": null,
+      "building": "yes",
+      "area": 180
+    },
+    {
+      "osmId": 1158194269,
+      "name": null,
+      "building": "yes",
+      "area": 194
+    },
+    {
+      "osmId": 1158194270,
+      "name": null,
+      "building": "yes",
+      "area": 107
+    },
+    {
+      "osmId": 1158194271,
+      "name": null,
+      "building": "yes",
+      "area": 114
+    },
+    {
+      "osmId": 1158194272,
+      "name": null,
+      "building": "yes",
+      "area": 147
+    },
+    {
+      "osmId": 1158194273,
+      "name": null,
+      "building": "yes",
+      "area": 90
+    },
+    {
+      "osmId": 1158194274,
+      "name": null,
+      "building": "yes",
+      "area": 112
+    },
+    {
+      "osmId": 1158194275,
+      "name": null,
+      "building": "yes",
+      "area": 106
+    },
+    {
+      "osmId": 1158195486,
+      "name": null,
+      "building": "yes",
+      "area": 183
+    },
+    {
+      "osmId": 1158195487,
+      "name": null,
+      "building": "yes",
+      "area": 177
+    },
+    {
+      "osmId": 1158195488,
+      "name": null,
+      "building": "yes",
+      "area": 118
+    },
+    {
+      "osmId": 1158195489,
+      "name": null,
+      "building": "yes",
+      "area": 126
+    },
+    {
+      "osmId": 1158195490,
+      "name": null,
+      "building": "yes",
+      "area": 100
+    },
+    {
+      "osmId": 1158195491,
+      "name": null,
+      "building": "yes",
+      "area": 60
+    },
+    {
+      "osmId": 1158195492,
+      "name": null,
+      "building": "yes",
+      "area": 166
+    },
+    {
+      "osmId": 1158195493,
+      "name": null,
+      "building": "yes",
+      "area": 96
+    },
+    {
+      "osmId": 1158195494,
+      "name": null,
+      "building": "yes",
+      "area": 125
+    },
+    {
+      "osmId": 1158195495,
+      "name": null,
+      "building": "yes",
+      "area": 163
+    },
+    {
+      "osmId": 1158196900,
+      "name": null,
+      "building": "yes",
+      "area": 135
+    },
+    {
+      "osmId": 1158196908,
+      "name": null,
+      "building": "yes",
+      "area": 202
+    },
+    {
+      "osmId": 1158196909,
+      "name": null,
+      "building": "yes",
+      "area": 159
+    },
+    {
+      "osmId": 1158196910,
+      "name": null,
+      "building": "yes",
+      "area": 115
+    },
+    {
+      "osmId": 1158197938,
+      "name": null,
+      "building": "yes",
+      "area": 94
+    },
+    {
+      "osmId": 1158197939,
+      "name": null,
+      "building": "yes",
+      "area": 156
+    },
+    {
+      "osmId": 1158197940,
+      "name": null,
+      "building": "yes",
+      "area": 96
+    },
+    {
+      "osmId": 1158197941,
+      "name": null,
+      "building": "yes",
+      "area": 142
+    },
+    {
+      "osmId": 1158197942,
+      "name": null,
+      "building": "yes",
+      "area": 226
+    },
+    {
+      "osmId": 1158197943,
+      "name": null,
+      "building": "yes",
+      "area": 164
+    },
+    {
+      "osmId": 1158197944,
+      "name": null,
+      "building": "yes",
+      "area": 184
+    },
+    {
+      "osmId": 1158197945,
+      "name": null,
+      "building": "yes",
+      "area": 40
+    },
+    {
+      "osmId": 1158197946,
+      "name": null,
+      "building": "yes",
+      "area": 131
+    },
+    {
+      "osmId": 1158197947,
+      "name": null,
+      "building": "yes",
+      "area": 150
+    },
+    {
+      "osmId": 1158198996,
+      "name": null,
+      "building": "yes",
+      "area": 112
+    },
+    {
+      "osmId": 1158198997,
+      "name": null,
+      "building": "yes",
+      "area": 136
+    },
+    {
+      "osmId": 1158198998,
+      "name": null,
+      "building": "yes",
+      "area": 128
+    },
+    {
+      "osmId": 1158198999,
+      "name": null,
+      "building": "yes",
+      "area": 48
+    },
+    {
+      "osmId": 1158199000,
+      "name": null,
+      "building": "yes",
+      "area": 120
+    },
+    {
+      "osmId": 1158199001,
+      "name": null,
+      "building": "yes",
+      "area": 109
+    },
+    {
+      "osmId": 1158199002,
+      "name": null,
+      "building": "yes",
+      "area": 48
+    },
+    {
+      "osmId": 1158199003,
+      "name": null,
+      "building": "yes",
+      "area": 196
+    },
+    {
+      "osmId": 1158199004,
+      "name": null,
+      "building": "yes",
+      "area": 115
+    },
+    {
+      "osmId": 1158199005,
+      "name": null,
+      "building": "yes",
+      "area": 255
+    },
+    {
+      "osmId": 1158200408,
+      "name": null,
+      "building": "yes",
+      "area": 157
+    },
+    {
+      "osmId": 1158200409,
+      "name": null,
+      "building": "yes",
+      "area": 64
+    },
+    {
+      "osmId": 1158200410,
+      "name": null,
+      "building": "yes",
+      "area": 127
+    },
+    {
+      "osmId": 1158200411,
+      "name": null,
+      "building": "yes",
+      "area": 172
+    },
+    {
+      "osmId": 1158200412,
+      "name": null,
+      "building": "yes",
+      "area": 114
+    },
+    {
+      "osmId": 1158200413,
+      "name": null,
+      "building": "yes",
+      "area": 133
+    },
+    {
+      "osmId": 1158200414,
+      "name": null,
+      "building": "yes",
+      "area": 127
+    },
+    {
+      "osmId": 1158200415,
+      "name": null,
+      "building": "yes",
+      "area": 124
+    },
+    {
+      "osmId": 1158200416,
+      "name": null,
+      "building": "yes",
+      "area": 106
+    },
+    {
+      "osmId": 1158200417,
+      "name": null,
+      "building": "yes",
+      "area": 116
+    },
+    {
+      "osmId": 1158200418,
+      "name": null,
+      "building": "yes",
+      "area": 63
+    },
+    {
+      "osmId": 1158200419,
+      "name": null,
+      "building": "yes",
+      "area": 164
+    },
+    {
+      "osmId": 1158200420,
+      "name": null,
+      "building": "yes",
+      "area": 102
+    },
+    {
+      "osmId": 1158201395,
+      "name": null,
+      "building": "yes",
+      "area": 65
+    },
+    {
+      "osmId": 1158201396,
+      "name": null,
+      "building": "yes",
+      "area": 221
+    },
+    {
+      "osmId": 1158201397,
+      "name": null,
+      "building": "yes",
+      "area": 128
+    },
+    {
+      "osmId": 1158201398,
+      "name": null,
+      "building": "yes",
+      "area": 135
+    },
+    {
+      "osmId": 1158201399,
+      "name": null,
+      "building": "yes",
+      "area": 138
+    },
+    {
+      "osmId": 1158201400,
+      "name": null,
+      "building": "yes",
+      "area": 131
+    },
+    {
+      "osmId": 1158201401,
+      "name": null,
+      "building": "yes",
+      "area": 283
+    },
+    {
+      "osmId": 1158201402,
+      "name": null,
+      "building": "yes",
+      "area": 122
+    },
+    {
+      "osmId": 1158201403,
+      "name": null,
+      "building": "yes",
+      "area": 152
+    },
+    {
+      "osmId": 1158201404,
+      "name": null,
+      "building": "yes",
+      "area": 141
+    },
+    {
+      "osmId": 1254215919,
+      "name": null,
+      "building": "yes",
+      "area": 1529
+    },
+    {
+      "osmId": 1336575888,
+      "name": null,
+      "building": "house",
+      "area": 170
+    },
+    {
+      "osmId": 1336576125,
+      "name": null,
+      "building": "house",
+      "area": 157
+    },
+    {
+      "osmId": 1336576331,
+      "name": null,
+      "building": "house",
+      "area": 122
+    },
+    {
+      "osmId": 1355727000,
+      "name": null,
+      "building": "yes",
+      "area": 153
+    },
+    {
+      "osmId": 1355727001,
+      "name": null,
+      "building": "yes",
+      "area": 205
+    },
+    {
+      "osmId": 1355736125,
+      "name": null,
+      "building": "yes",
+      "area": 241
+    },
+    {
+      "osmId": 1355736126,
+      "name": null,
+      "building": "yes",
+      "area": 153
+    },
+    {
+      "osmId": 1355736127,
+      "name": null,
+      "building": "yes",
+      "area": 188
+    },
+    {
+      "osmId": 1355736128,
+      "name": null,
+      "building": "yes",
+      "area": 230
+    },
+    {
+      "osmId": 1355736129,
+      "name": null,
+      "building": "yes",
+      "area": 209
+    },
+    {
+      "osmId": 1355736130,
+      "name": null,
+      "building": "yes",
+      "area": 173
+    },
+    {
+      "osmId": 1355736131,
+      "name": null,
+      "building": "yes",
+      "area": 277
+    },
+    {
+      "osmId": 1355736132,
+      "name": null,
+      "building": "yes",
+      "area": 155
+    },
+    {
+      "osmId": 1355736133,
+      "name": null,
+      "building": "yes",
+      "area": 256
+    },
+    {
+      "osmId": 1355736134,
+      "name": null,
+      "building": "yes",
+      "area": 198
+    },
+    {
+      "osmId": 1355736135,
+      "name": null,
+      "building": "yes",
+      "area": 144
+    },
+    {
+      "osmId": 1355736136,
+      "name": null,
+      "building": "yes",
+      "area": 217
+    },
+    {
+      "osmId": 1355736137,
+      "name": null,
+      "building": "yes",
+      "area": 217
+    },
+    {
+      "osmId": 1355736138,
+      "name": null,
+      "building": "yes",
+      "area": 40
+    },
+    {
+      "osmId": 1355736139,
+      "name": null,
+      "building": "yes",
+      "area": 138
+    },
+    {
+      "osmId": 1355736140,
+      "name": null,
+      "building": "yes",
+      "area": 158
+    },
+    {
+      "osmId": 1355736141,
+      "name": null,
+      "building": "yes",
+      "area": 125
+    },
+    {
+      "osmId": 1355736142,
+      "name": null,
+      "building": "yes",
+      "area": 151
+    },
+    {
+      "osmId": 1355736143,
+      "name": null,
+      "building": "yes",
+      "area": 138
+    },
+    {
+      "osmId": 1355736144,
+      "name": null,
+      "building": "yes",
+      "area": 187
+    },
+    {
+      "osmId": 1355736145,
+      "name": null,
+      "building": "yes",
+      "area": 151
+    },
+    {
+      "osmId": 1355736146,
+      "name": null,
+      "building": "yes",
+      "area": 139
+    },
+    {
+      "osmId": 1355736147,
+      "name": null,
+      "building": "yes",
+      "area": 188
+    },
+    {
+      "osmId": 1355736148,
+      "name": null,
+      "building": "yes",
+      "area": 146
+    },
+    {
+      "osmId": 1355736149,
+      "name": null,
+      "building": "yes",
+      "area": 133
+    },
+    {
+      "osmId": 1355736150,
+      "name": null,
+      "building": "yes",
+      "area": 141
+    },
+    {
+      "osmId": 1355736151,
+      "name": null,
+      "building": "yes",
+      "area": 179
+    },
+    {
+      "osmId": 1355736152,
+      "name": null,
+      "building": "yes",
+      "area": 144
+    },
+    {
+      "osmId": 1355736153,
+      "name": null,
+      "building": "yes",
+      "area": 168
+    },
+    {
+      "osmId": 1355736154,
+      "name": null,
+      "building": "yes",
+      "area": 137
+    },
+    {
+      "osmId": 1355736155,
+      "name": null,
+      "building": "yes",
+      "area": 239
+    },
+    {
+      "osmId": 1355736156,
+      "name": null,
+      "building": "yes",
+      "area": 242
+    },
+    {
+      "osmId": 1368989253,
+      "name": null,
+      "building": "yes",
+      "area": 198
+    },
+    {
+      "osmId": 1368989254,
+      "name": null,
+      "building": "yes",
+      "area": 126
+    },
+    {
+      "osmId": 1368989255,
+      "name": null,
+      "building": "house",
+      "area": 128
+    },
+    {
+      "osmId": 1368989256,
+      "name": null,
+      "building": "house",
+      "area": 123
+    },
+    {
+      "osmId": 1368989257,
+      "name": null,
+      "building": "yes",
+      "area": 36
+    },
+    {
+      "osmId": 1368989278,
+      "name": null,
+      "building": "house",
+      "area": 128
+    },
+    {
+      "osmId": 1368989279,
+      "name": null,
+      "building": "yes",
+      "area": 21
+    },
+    {
+      "osmId": 1368989322,
+      "name": null,
+      "building": "house",
+      "area": 102
+    },
+    {
+      "osmId": 1368989323,
+      "name": null,
+      "building": "house",
+      "area": 115
+    },
+    {
+      "osmId": 1368989324,
+      "name": null,
+      "building": "house",
+      "area": 106
+    },
+    {
+      "osmId": 1368989325,
+      "name": null,
+      "building": "yes",
+      "area": 17
+    },
+    {
+      "osmId": 1368989326,
+      "name": null,
+      "building": "yes",
+      "area": 18
+    },
+    {
+      "osmId": 1368989327,
+      "name": null,
+      "building": "yes",
+      "area": 35
+    },
+    {
+      "osmId": 1368989328,
+      "name": null,
+      "building": "yes",
+      "area": 23
+    },
+    {
+      "osmId": 1368989330,
+      "name": null,
+      "building": "yes",
+      "area": 125
+    },
+    {
+      "osmId": 1368989331,
+      "name": null,
+      "building": "yes",
+      "area": 40
+    },
+    {
+      "osmId": 1368989332,
+      "name": null,
+      "building": "yes",
+      "area": 137
+    },
+    {
+      "osmId": 1437054080,
+      "name": null,
+      "building": "yes",
+      "area": 107
+    },
+    {
+      "osmId": 1441731544,
+      "name": null,
+      "building": "house",
+      "area": 262
+    },
+    {
+      "osmId": 1441731545,
+      "name": null,
+      "building": "house",
+      "area": 151
+    },
+    {
+      "osmId": 1441731546,
+      "name": null,
+      "building": "house",
+      "area": 41
+    },
+    {
+      "osmId": 1441731547,
+      "name": null,
+      "building": "house",
+      "area": 124
+    },
+    {
+      "osmId": 1441731548,
+      "name": null,
+      "building": "house",
+      "area": 71
+    },
+    {
+      "osmId": 1441731549,
+      "name": null,
+      "building": "house",
+      "area": 137
+    },
+    {
+      "osmId": 1441731550,
+      "name": null,
+      "building": "house",
+      "area": 137
+    },
+    {
+      "osmId": 1441731562,
+      "name": null,
+      "building": "house",
+      "area": 184
+    },
+    {
+      "osmId": 1441731563,
+      "name": null,
+      "building": "house",
+      "area": 138
+    },
+    {
+      "osmId": 1441731564,
+      "name": null,
+      "building": "house",
+      "area": 111
+    },
+    {
+      "osmId": 1441731565,
+      "name": null,
+      "building": "house",
+      "area": 123
+    },
+    {
+      "osmId": 1441731566,
+      "name": null,
+      "building": "house",
+      "area": 111
+    },
+    {
+      "osmId": 1441731567,
+      "name": null,
+      "building": "house",
+      "area": 73
+    },
+    {
+      "osmId": 1441731568,
+      "name": null,
+      "building": "house",
+      "area": 107
+    },
+    {
+      "osmId": 1441731569,
+      "name": null,
+      "building": "house",
+      "area": 25
+    },
+    {
+      "osmId": 1441731581,
+      "name": null,
+      "building": "house",
+      "area": 93
+    },
+    {
+      "osmId": 1441731582,
+      "name": null,
+      "building": "house",
+      "area": 65
+    },
+    {
+      "osmId": 1441731583,
+      "name": null,
+      "building": "house",
+      "area": 128
+    },
+    {
+      "osmId": 1441731584,
+      "name": null,
+      "building": "house",
+      "area": 111
+    },
+    {
+      "osmId": 1441731585,
+      "name": null,
+      "building": "house",
+      "area": 22
+    },
+    {
+      "osmId": 1441731586,
+      "name": null,
+      "building": "house",
+      "area": 25
+    },
+    {
+      "osmId": 1441731587,
+      "name": null,
+      "building": "house",
+      "area": 127
+    },
+    {
+      "osmId": 1441731588,
+      "name": null,
+      "building": "house",
+      "area": 32
+    },
+    {
+      "osmId": 1441731589,
+      "name": null,
+      "building": "house",
+      "area": 138
+    },
+    {
+      "osmId": 1441731590,
+      "name": null,
+      "building": "house",
+      "area": 126
+    },
+    {
+      "osmId": 1441731591,
+      "name": null,
+      "building": "house",
+      "area": 35
+    },
+    {
+      "osmId": 1441731592,
+      "name": null,
+      "building": "house",
+      "area": 31
+    },
+    {
+      "osmId": 1441731593,
+      "name": null,
+      "building": "house",
+      "area": 157
+    },
+    {
+      "osmId": 1441731594,
+      "name": null,
+      "building": "house",
+      "area": 69
+    },
+    {
+      "osmId": 1441731595,
+      "name": null,
+      "building": "house",
+      "area": 130
+    },
+    {
+      "osmId": 1441731596,
+      "name": null,
+      "building": "house",
+      "area": 19
+    },
+    {
+      "osmId": 1441731597,
+      "name": null,
+      "building": "house",
+      "area": 61
+    },
+    {
+      "osmId": 1441731598,
+      "name": null,
+      "building": "house",
+      "area": 114
+    },
+    {
+      "osmId": 1444100857,
+      "name": null,
+      "building": "yes",
+      "area": 128
+    },
+    {
+      "osmId": 1444100876,
+      "name": null,
+      "building": "house",
+      "area": 85
+    },
+    {
+      "osmId": 1444100894,
+      "name": null,
+      "building": "yes",
+      "area": 224
+    },
+    {
+      "osmId": 1444100898,
+      "name": null,
+      "building": "yes",
+      "area": 173
+    },
+    {
+      "osmId": 1444100899,
+      "name": null,
+      "building": "house",
+      "area": 24
+    },
+    {
+      "osmId": 1444100900,
+      "name": null,
+      "building": "house",
+      "area": 29
+    },
+    {
+      "osmId": 1444100901,
+      "name": null,
+      "building": "yes",
+      "area": 18
+    },
+    {
+      "osmId": 1444100902,
+      "name": null,
+      "building": "house",
+      "area": 135
+    },
+    {
+      "osmId": 1444100903,
+      "name": null,
+      "building": "house",
+      "area": 147
+    },
+    {
+      "osmId": 1444100904,
+      "name": null,
+      "building": "yes",
+      "area": 48
+    },
+    {
+      "osmId": 1444100905,
+      "name": null,
+      "building": "yes",
+      "area": 34
+    },
+    {
+      "osmId": 1444100906,
+      "name": null,
+      "building": "yes",
+      "area": 167
+    },
+    {
+      "osmId": 1444100907,
+      "name": null,
+      "building": "house",
+      "area": 150
+    },
+    {
+      "osmId": 1444100908,
+      "name": null,
+      "building": "house",
+      "area": 56
+    },
+    {
+      "osmId": 1444100909,
+      "name": null,
+      "building": "house",
+      "area": 131
+    },
+    {
+      "osmId": 1444100910,
+      "name": null,
+      "building": "yes",
+      "area": 40
+    },
+    {
+      "osmId": 1444100911,
+      "name": null,
+      "building": "house",
+      "area": 194
+    },
+    {
+      "osmId": 1444100912,
+      "name": null,
+      "building": "house",
+      "area": 137
+    },
+    {
+      "osmId": 1444100913,
+      "name": null,
+      "building": "yes",
+      "area": 38
+    },
+    {
+      "osmId": 1444100914,
+      "name": null,
+      "building": "yes",
+      "area": 38
+    },
+    {
+      "osmId": 1444100915,
+      "name": null,
+      "building": "house",
+      "area": 115
+    },
+    {
+      "osmId": 1444100916,
+      "name": null,
+      "building": "house",
+      "area": 66
+    },
+    {
+      "osmId": 1444100917,
+      "name": null,
+      "building": "house",
+      "area": 173
+    },
+    {
+      "osmId": 1444100918,
+      "name": null,
+      "building": "house",
+      "area": 156
+    },
+    {
+      "osmId": 1444100919,
+      "name": null,
+      "building": "house",
+      "area": 121
+    },
+    {
+      "osmId": 1444100920,
+      "name": null,
+      "building": "yes",
+      "area": 54
+    },
+    {
+      "osmId": 1444100921,
+      "name": null,
+      "building": "yes",
+      "area": 158
+    },
+    {
+      "osmId": 1444100923,
+      "name": null,
+      "building": "yes",
+      "area": 39
+    },
+    {
+      "osmId": 1444100924,
+      "name": null,
+      "building": "house",
+      "area": 150
+    },
+    {
+      "osmId": 1451526565,
+      "name": null,
+      "building": "house",
+      "area": 74
+    },
+    {
+      "osmId": 1451526566,
+      "name": null,
+      "building": "house",
+      "area": 32
+    },
+    {
+      "osmId": 1451526567,
+      "name": null,
+      "building": "yes",
+      "area": 30
+    },
+    {
+      "osmId": 1451526568,
+      "name": null,
+      "building": "yes",
+      "area": 40
+    },
+    {
+      "osmId": 1451526569,
+      "name": null,
+      "building": "yes",
+      "area": 57
+    },
+    {
+      "osmId": 1454560711,
+      "name": null,
+      "building": "house",
+      "area": 71
+    },
+    {
+      "osmId": 1454560712,
+      "name": null,
+      "building": "house",
+      "area": 164
+    },
+    {
+      "osmId": 1454560713,
+      "name": null,
+      "building": "house",
+      "area": 157
+    },
+    {
+      "osmId": 1454560714,
+      "name": null,
+      "building": "house",
+      "area": 137
+    },
+    {
+      "osmId": 1454560715,
+      "name": null,
+      "building": "house",
+      "area": 29
+    },
+    {
+      "osmId": 1454560721,
+      "name": null,
+      "building": "yes",
+      "area": 33
+    },
+    {
+      "osmId": 1454560722,
+      "name": null,
+      "building": "yes",
+      "area": 9
+    },
+    {
+      "osmId": 1454560723,
+      "name": null,
+      "building": "house",
+      "area": 125
+    },
+    {
+      "osmId": 1454560727,
+      "name": null,
+      "building": "house",
+      "area": 171
+    },
+    {
+      "osmId": 1454560728,
+      "name": null,
+      "building": "house",
+      "area": 48
+    },
+    {
+      "osmId": 1454560729,
+      "name": null,
+      "building": "house",
+      "area": 23
+    },
+    {
+      "osmId": 1454560730,
+      "name": null,
+      "building": "house",
+      "area": 114
+    },
+    {
+      "osmId": 1454560731,
+      "name": null,
+      "building": "house",
+      "area": 122
+    },
+    {
+      "osmId": 1454560732,
+      "name": null,
+      "building": "house",
+      "area": 50
+    },
+    {
+      "osmId": 1454560733,
+      "name": null,
+      "building": "house",
+      "area": 71
+    },
+    {
+      "osmId": 1454560734,
+      "name": null,
+      "building": "house",
+      "area": 143
+    },
+    {
+      "osmId": 1454560735,
+      "name": null,
+      "building": "house",
+      "area": 120
+    },
+    {
+      "osmId": 1454560736,
+      "name": null,
+      "building": "yes",
+      "area": 45
+    },
+    {
+      "osmId": 1454560737,
+      "name": null,
+      "building": "yes",
+      "area": 35
+    },
+    {
+      "osmId": 1454560738,
+      "name": null,
+      "building": "house",
+      "area": 136
+    },
+    {
+      "osmId": 1454560739,
+      "name": null,
+      "building": "house",
+      "area": 171
+    },
+    {
+      "osmId": 1454560740,
+      "name": null,
+      "building": "yes",
+      "area": 38
+    },
+    {
+      "osmId": 1454560741,
+      "name": null,
+      "building": "yes",
+      "area": 39
+    },
+    {
+      "osmId": 1454560742,
+      "name": null,
+      "building": "yes",
+      "area": 7
+    },
+    {
+      "osmId": 1454560743,
+      "name": null,
+      "building": "yes",
+      "area": 28
+    },
+    {
+      "osmId": 1454560744,
+      "name": null,
+      "building": "yes",
+      "area": 31
+    },
+    {
+      "osmId": 1454560745,
+      "name": null,
+      "building": "yes",
+      "area": 40
+    },
+    {
+      "osmId": 1454560746,
+      "name": null,
+      "building": "yes",
+      "area": 18
+    },
+    {
+      "osmId": 1454560747,
+      "name": null,
+      "building": "yes",
+      "area": 41
+    },
+    {
+      "osmId": 1454560748,
+      "name": null,
+      "building": "yes",
+      "area": 137
+    },
+    {
+      "osmId": 1454560749,
+      "name": null,
+      "building": "house",
+      "area": 157
+    },
+    {
+      "osmId": 1454560750,
+      "name": null,
+      "building": "house",
+      "area": 118
+    },
+    {
+      "osmId": 1454560751,
+      "name": null,
+      "building": "house",
+      "area": 116
+    },
+    {
+      "osmId": 1454560752,
+      "name": null,
+      "building": "house",
+      "area": 158
+    },
+    {
+      "osmId": 1454560753,
+      "name": null,
+      "building": "yes",
+      "area": 80
+    },
+    {
+      "osmId": 1454560754,
+      "name": null,
+      "building": "yes",
+      "area": 53
+    },
+    {
+      "osmId": 1454560755,
+      "name": null,
+      "building": "house",
+      "area": 119
+    },
+    {
+      "osmId": 1454560756,
+      "name": null,
+      "building": "house",
+      "area": 28
+    },
+    {
+      "osmId": 1454560757,
+      "name": null,
+      "building": "yes",
+      "area": 57
+    },
+    {
+      "osmId": 1454560758,
+      "name": null,
+      "building": "house",
+      "area": 174
+    },
+    {
+      "osmId": 1454560759,
+      "name": null,
+      "building": "yes",
+      "area": 135
+    },
+    {
+      "osmId": 1454560760,
+      "name": null,
+      "building": "yes",
+      "area": 14
+    },
+    {
+      "osmId": 1454560761,
+      "name": null,
+      "building": "house",
+      "area": 129
+    },
+    {
+      "osmId": 1454560762,
+      "name": null,
+      "building": "yes",
+      "area": 120
+    },
+    {
+      "osmId": 1454560763,
+      "name": null,
+      "building": "yes",
+      "area": 53
+    },
+    {
+      "osmId": 1454560764,
+      "name": null,
+      "building": "yes",
+      "area": 53
+    },
+    {
+      "osmId": 1454560765,
+      "name": null,
+      "building": "yes",
+      "area": 19
+    },
+    {
+      "osmId": 1454560766,
+      "name": null,
+      "building": "house",
+      "area": 112
+    },
+    {
+      "osmId": 1454560767,
+      "name": null,
+      "building": "house",
+      "area": 100
+    },
+    {
+      "osmId": 1454560768,
+      "name": null,
+      "building": "house",
+      "area": 21
+    },
+    {
+      "osmId": 1454560769,
+      "name": null,
+      "building": "house",
+      "area": 126
+    },
+    {
+      "osmId": 1454560770,
+      "name": null,
+      "building": "yes",
+      "area": 36
+    },
+    {
+      "osmId": 1454560771,
+      "name": null,
+      "building": "yes",
+      "area": 10
+    },
+    {
+      "osmId": 1454560772,
+      "name": null,
+      "building": "house",
+      "area": 48
+    },
+    {
+      "osmId": 1454560773,
+      "name": null,
+      "building": "house",
+      "area": 122
+    },
+    {
+      "osmId": 1454560774,
+      "name": null,
+      "building": "house",
+      "area": 128
+    },
+    {
+      "osmId": 1454560775,
+      "name": null,
+      "building": "yes",
+      "area": 33
+    },
+    {
+      "osmId": 1454560776,
+      "name": null,
+      "building": "yes",
+      "area": 59
+    },
+    {
+      "osmId": 1454560777,
+      "name": null,
+      "building": "house",
+      "area": 140
+    },
+    {
+      "osmId": 1454560778,
+      "name": null,
+      "building": "yes",
+      "area": 75
+    },
+    {
+      "osmId": 1454560779,
+      "name": null,
+      "building": "yes",
+      "area": 22
+    },
+    {
+      "osmId": 1454560780,
+      "name": null,
+      "building": "house",
+      "area": 137
+    },
+    {
+      "osmId": 1454560781,
+      "name": null,
+      "building": "house",
+      "area": 133
+    },
+    {
+      "osmId": 1454560782,
+      "name": null,
+      "building": "yes",
+      "area": 33
+    },
+    {
+      "osmId": 1454560783,
+      "name": null,
+      "building": "yes",
+      "area": 33
+    },
+    {
+      "osmId": 1454560784,
+      "name": null,
+      "building": "house",
+      "area": 113
+    },
+    {
+      "osmId": 1454560785,
+      "name": null,
+      "building": "house",
+      "area": 195
+    },
+    {
+      "osmId": 1454560786,
+      "name": null,
+      "building": "yes",
+      "area": 173
+    },
+    {
+      "osmId": 1454560787,
+      "name": null,
+      "building": "yes",
+      "area": 26
+    },
+    {
+      "osmId": 1454560788,
+      "name": null,
+      "building": "house",
+      "area": 117
+    },
+    {
+      "osmId": 1454560789,
+      "name": null,
+      "building": "house",
+      "area": 148
+    },
+    {
+      "osmId": 1454560790,
+      "name": null,
+      "building": "house",
+      "area": 23
+    },
+    {
+      "osmId": 1454560791,
+      "name": null,
+      "building": "yes",
+      "area": 40
+    },
+    {
+      "osmId": 1454560792,
+      "name": null,
+      "building": "yes",
+      "area": 54
+    },
+    {
+      "osmId": 1454560793,
+      "name": null,
+      "building": "house",
+      "area": 164
+    },
+    {
+      "osmId": 1454560794,
+      "name": null,
+      "building": "house",
+      "area": 160
+    },
+    {
+      "osmId": 1454560795,
+      "name": null,
+      "building": "house",
+      "area": 157
+    },
+    {
+      "osmId": 1454560796,
+      "name": null,
+      "building": "house",
+      "area": 46
+    },
+    {
+      "osmId": 1454560797,
+      "name": null,
+      "building": "house",
+      "area": 46
+    },
+    {
+      "osmId": 1454560798,
+      "name": null,
+      "building": "house",
+      "area": 161
+    },
+    {
+      "osmId": 1454560799,
+      "name": null,
+      "building": "house",
+      "area": 116
+    },
+    {
+      "osmId": 1454560800,
+      "name": null,
+      "building": "house",
+      "area": 32
+    },
+    {
+      "osmId": 1454563295,
+      "name": null,
+      "building": "yes",
+      "area": 4225
+    },
+    {
+      "osmId": 1454563297,
+      "name": null,
+      "building": "yes",
+      "area": 44
+    },
+    {
+      "osmId": 1454563298,
+      "name": null,
+      "building": "house",
+      "area": 101
+    },
+    {
+      "osmId": 1454563299,
+      "name": null,
+      "building": "house",
+      "area": 154
+    },
+    {
+      "osmId": 1454563300,
+      "name": null,
+      "building": "yes",
+      "area": 47
+    },
+    {
+      "osmId": 1454563301,
+      "name": null,
+      "building": "yes",
+      "area": 36
+    },
+    {
+      "osmId": 1454563302,
+      "name": null,
+      "building": "yes",
+      "area": 26
+    },
+    {
+      "osmId": 1454563303,
+      "name": null,
+      "building": "house",
+      "area": 122
+    },
+    {
+      "osmId": 1454563304,
+      "name": null,
+      "building": "house",
+      "area": 48
+    },
+    {
+      "osmId": 1454563305,
+      "name": null,
+      "building": "house",
+      "area": 194
+    },
+    {
+      "osmId": 1454563306,
+      "name": null,
+      "building": "yes",
+      "area": 51
+    },
+    {
+      "osmId": 1454563307,
+      "name": null,
+      "building": "house",
+      "area": 226
+    },
+    {
+      "osmId": 1454563308,
+      "name": null,
+      "building": "yes",
+      "area": 41
+    },
+    {
+      "osmId": 1454563309,
+      "name": null,
+      "building": "yes",
+      "area": 10
+    },
+    {
+      "osmId": 1454563310,
+      "name": null,
+      "building": "house",
+      "area": 157
+    },
+    {
+      "osmId": 1454563311,
+      "name": null,
+      "building": "house",
+      "area": 53
+    },
+    {
+      "osmId": 1454563312,
+      "name": null,
+      "building": "house",
+      "area": 149
+    },
+    {
+      "osmId": 1454563314,
+      "name": null,
+      "building": "house",
+      "area": 62
+    },
+    {
+      "osmId": 1454563315,
+      "name": null,
+      "building": "house",
+      "area": 139
+    },
+    {
+      "osmId": 1454563316,
+      "name": null,
+      "building": "house",
+      "area": 142
+    },
+    {
+      "osmId": 1454563317,
+      "name": null,
+      "building": "yes",
+      "area": 41
+    },
+    {
+      "osmId": 1454563318,
+      "name": null,
+      "building": "yes",
+      "area": 25
+    },
+    {
+      "osmId": 1454563319,
+      "name": null,
+      "building": "yes",
+      "area": 148
+    },
+    {
+      "osmId": 1454563320,
+      "name": null,
+      "building": "yes",
+      "area": 134
+    },
+    {
+      "osmId": 1454563321,
+      "name": null,
+      "building": "yes",
+      "area": 49
+    },
+    {
+      "osmId": 1454563322,
+      "name": null,
+      "building": "yes",
+      "area": 26
+    },
+    {
+      "osmId": 1454563323,
+      "name": null,
+      "building": "yes",
+      "area": 136
+    },
+    {
+      "osmId": 1454563324,
+      "name": null,
+      "building": "house",
+      "area": 130
+    },
+    {
+      "osmId": 1454563325,
+      "name": null,
+      "building": "yes",
+      "area": 65
+    },
+    {
+      "osmId": 1454563326,
+      "name": null,
+      "building": "yes",
+      "area": 27
+    },
+    {
+      "osmId": 1454563327,
+      "name": null,
+      "building": "yes",
+      "area": 144
+    },
+    {
+      "osmId": 1454563328,
+      "name": null,
+      "building": "yes",
+      "area": 145
+    },
+    {
+      "osmId": 1454563329,
+      "name": null,
+      "building": "yes",
+      "area": 35
+    },
+    {
+      "osmId": 1454563330,
+      "name": null,
+      "building": "yes",
+      "area": 87
+    },
+    {
+      "osmId": 1454563331,
+      "name": null,
+      "building": "yes",
+      "area": 128
+    },
+    {
+      "osmId": 1454563332,
+      "name": null,
+      "building": "yes",
+      "area": 131
+    },
+    {
+      "osmId": 1454563333,
+      "name": null,
+      "building": "yes",
+      "area": 23
+    },
+    {
+      "osmId": 1454563334,
+      "name": null,
+      "building": "house",
+      "area": 159
+    },
+    {
+      "osmId": 1454563335,
+      "name": null,
+      "building": "yes",
+      "area": 21
+    },
+    {
+      "osmId": 1454563336,
+      "name": null,
+      "building": "yes",
+      "area": 33
+    },
+    {
+      "osmId": 1454563337,
+      "name": null,
+      "building": "house",
+      "area": 154
+    },
+    {
+      "osmId": 1454563338,
+      "name": null,
+      "building": "house",
+      "area": 118
+    },
+    {
+      "osmId": 1454563339,
+      "name": null,
+      "building": "yes",
+      "area": 38
+    },
+    {
+      "osmId": 1454563340,
+      "name": null,
+      "building": "yes",
+      "area": 33
+    },
+    {
+      "osmId": 1454563341,
+      "name": null,
+      "building": "yes",
+      "area": 26
+    },
+    {
+      "osmId": 1454563342,
+      "name": null,
+      "building": "yes",
+      "area": 148
+    },
+    {
+      "osmId": 1454563343,
+      "name": null,
+      "building": "yes",
+      "area": 24
+    },
+    {
+      "osmId": 1454563344,
+      "name": null,
+      "building": "yes",
+      "area": 126
+    },
+    {
+      "osmId": 1454563345,
+      "name": null,
+      "building": "yes",
+      "area": 57
+    },
+    {
+      "osmId": 1454563346,
+      "name": null,
+      "building": "yes",
+      "area": 43
+    },
+    {
+      "osmId": 1454563347,
+      "name": null,
+      "building": "house",
+      "area": 155
+    },
+    {
+      "osmId": 1454563348,
+      "name": null,
+      "building": "house",
+      "area": 151
+    },
+    {
+      "osmId": 1454563349,
+      "name": null,
+      "building": "house",
+      "area": 148
+    },
+    {
+      "osmId": 1454563350,
+      "name": null,
+      "building": "yes",
+      "area": 13
+    },
+    {
+      "osmId": 1454563351,
+      "name": null,
+      "building": "yes",
+      "area": 24
+    },
+    {
+      "osmId": 1454563352,
+      "name": null,
+      "building": "yes",
+      "area": 38
+    },
+    {
+      "osmId": 1454563353,
+      "name": null,
+      "building": "house",
+      "area": 114
+    },
+    {
+      "osmId": 1454563354,
+      "name": null,
+      "building": "house",
+      "area": 48
+    },
+    {
+      "osmId": 1454563355,
+      "name": null,
+      "building": "house",
+      "area": 29
+    },
+    {
+      "osmId": 1454563356,
+      "name": null,
+      "building": "house",
+      "area": 31
+    },
+    {
+      "osmId": 1454563357,
+      "name": null,
+      "building": "house",
+      "area": 105
+    },
+    {
+      "osmId": 1454563358,
+      "name": null,
+      "building": "house",
+      "area": 145
+    },
+    {
+      "osmId": 1454563359,
+      "name": null,
+      "building": "yes",
+      "area": 36
+    },
+    {
+      "osmId": 1454563360,
+      "name": null,
+      "building": "yes",
+      "area": 38
+    },
+    {
+      "osmId": 1454563361,
+      "name": null,
+      "building": "yes",
+      "area": 127
+    },
+    {
+      "osmId": 1454563362,
+      "name": null,
+      "building": "yes",
+      "area": 144
+    },
+    {
+      "osmId": 1454563363,
+      "name": null,
+      "building": "yes",
+      "area": 96
+    },
+    {
+      "osmId": 1454563364,
+      "name": null,
+      "building": "house",
+      "area": 87
+    },
+    {
+      "osmId": 1454563365,
+      "name": null,
+      "building": "yes",
+      "area": 29
+    },
+    {
+      "osmId": 1454563366,
+      "name": null,
+      "building": "house",
+      "area": 168
+    },
+    {
+      "osmId": 1454563367,
+      "name": null,
+      "building": "house",
+      "area": 96
+    },
+    {
+      "osmId": 1454563834,
+      "name": null,
+      "building": "yes",
+      "area": 37
+    },
+    {
+      "osmId": 1454563835,
+      "name": null,
+      "building": "yes",
+      "area": 21
+    },
+    {
+      "osmId": 1454563836,
+      "name": null,
+      "building": "yes",
+      "area": 28
+    },
+    {
+      "osmId": 1454563837,
+      "name": null,
+      "building": "yes",
+      "area": 23
+    },
+    {
+      "osmId": 1454563838,
+      "name": null,
+      "building": "house",
+      "area": 22
+    },
+    {
+      "osmId": 1454563839,
+      "name": null,
+      "building": "yes",
+      "area": 39
+    },
+    {
+      "osmId": 1454563840,
+      "name": null,
+      "building": "yes",
+      "area": 47
+    },
+    {
+      "osmId": 1454563841,
+      "name": null,
+      "building": "yes",
+      "area": 25
+    },
+    {
+      "osmId": 1454563842,
+      "name": null,
+      "building": "yes",
+      "area": 60
+    },
+    {
+      "osmId": 1454582170,
+      "name": null,
+      "building": "house",
+      "area": 142
+    },
+    {
+      "osmId": 1454582171,
+      "name": null,
+      "building": "house",
+      "area": 149
+    },
+    {
+      "osmId": 1454582172,
+      "name": null,
+      "building": "house",
+      "area": 57
+    },
+    {
+      "osmId": 1454582173,
+      "name": null,
+      "building": "house",
+      "area": 168
+    },
+    {
+      "osmId": 1454582174,
+      "name": null,
+      "building": "house",
+      "area": 28
+    },
+    {
+      "osmId": 1454582175,
+      "name": null,
+      "building": "house",
+      "area": 28
+    },
+    {
+      "osmId": 1454582176,
+      "name": null,
+      "building": "house",
+      "area": 196
+    },
+    {
+      "osmId": 1454582177,
+      "name": null,
+      "building": "house",
+      "area": 161
+    },
+    {
+      "osmId": 1454582178,
+      "name": null,
+      "building": "house",
+      "area": 35
+    },
+    {
+      "osmId": 1454582179,
+      "name": null,
+      "building": "house",
+      "area": 48
+    },
+    {
+      "osmId": 1454582180,
+      "name": null,
+      "building": "house",
+      "area": 151
+    },
+    {
+      "osmId": 1454582181,
+      "name": null,
+      "building": "house",
+      "area": 174
+    },
+    {
+      "osmId": 1454582182,
+      "name": null,
+      "building": "house",
+      "area": 32
+    },
+    {
+      "osmId": 1454582183,
+      "name": null,
+      "building": "house",
+      "area": 199
+    },
+    {
+      "osmId": 1454582184,
+      "name": null,
+      "building": "house",
+      "area": 40
+    },
+    {
+      "osmId": 1454582185,
+      "name": null,
+      "building": "house",
+      "area": 145
+    },
+    {
+      "osmId": 1454582186,
+      "name": null,
+      "building": "house",
+      "area": 157
+    },
+    {
+      "osmId": 1454582187,
+      "name": null,
+      "building": "house",
+      "area": 92
+    },
+    {
+      "osmId": 1454582188,
+      "name": null,
+      "building": "house",
+      "area": 47
+    },
+    {
+      "osmId": 1454582189,
+      "name": null,
+      "building": "house",
+      "area": 265
+    },
+    {
+      "osmId": 1454582190,
+      "name": null,
+      "building": "house",
+      "area": 49
+    },
+    {
+      "osmId": 1454582191,
+      "name": null,
+      "building": "house",
+      "area": 191
+    },
+    {
+      "osmId": 1454582192,
+      "name": null,
+      "building": "house",
+      "area": 41
+    },
+    {
+      "osmId": 1454582193,
+      "name": null,
+      "building": "house",
+      "area": 112
+    },
+    {
+      "osmId": 1454582194,
+      "name": null,
+      "building": "house",
+      "area": 66
+    },
+    {
+      "osmId": 1454582195,
+      "name": null,
+      "building": "house",
+      "area": 119
+    },
+    {
+      "osmId": 1454582196,
+      "name": null,
+      "building": "house",
+      "area": 37
+    },
+    {
+      "osmId": 1454582197,
+      "name": null,
+      "building": "house",
+      "area": 128
+    },
+    {
+      "osmId": 1454582198,
+      "name": null,
+      "building": "house",
+      "area": 141
+    },
+    {
+      "osmId": 1454582199,
+      "name": null,
+      "building": "house",
+      "area": 29
+    },
+    {
+      "osmId": 1454582200,
+      "name": null,
+      "building": "house",
+      "area": 22
+    },
+    {
+      "osmId": 1454582201,
+      "name": null,
+      "building": "house",
+      "area": 141
+    },
+    {
+      "osmId": 1454582202,
+      "name": null,
+      "building": "yes",
+      "area": 9
+    },
+    {
+      "osmId": 1454582203,
+      "name": null,
+      "building": "house",
+      "area": 24
+    },
+    {
+      "osmId": 1454582204,
+      "name": null,
+      "building": "house",
+      "area": 135
+    },
+    {
+      "osmId": 1454582206,
+      "name": null,
+      "building": "house",
+      "area": 62
+    },
+    {
+      "osmId": 1454582207,
+      "name": null,
+      "building": "house",
+      "area": 98
+    },
+    {
+      "osmId": 1454582208,
+      "name": null,
+      "building": "house",
+      "area": 18
+    },
+    {
+      "osmId": 1454582209,
+      "name": null,
+      "building": "house",
+      "area": 145
+    },
+    {
+      "osmId": 1454582210,
+      "name": null,
+      "building": "house",
+      "area": 38
+    },
+    {
+      "osmId": 1454582211,
+      "name": null,
+      "building": "house",
+      "area": 43
+    },
+    {
+      "osmId": 1454582212,
+      "name": null,
+      "building": "house",
+      "area": 114
+    },
+    {
+      "osmId": 1454582213,
+      "name": null,
+      "building": "house",
+      "area": 36
+    },
+    {
+      "osmId": 1454582214,
+      "name": null,
+      "building": "house",
+      "area": 146
+    },
+    {
+      "osmId": 1454582215,
+      "name": null,
+      "building": "house",
+      "area": 150
+    },
+    {
+      "osmId": 1454582216,
+      "name": null,
+      "building": "house",
+      "area": 37
+    },
+    {
+      "osmId": 1454582217,
+      "name": null,
+      "building": "house",
+      "area": 34
+    },
+    {
+      "osmId": 1454582218,
+      "name": null,
+      "building": "house",
+      "area": 46
+    },
+    {
+      "osmId": 1454582219,
+      "name": null,
+      "building": "house",
+      "area": 147
+    },
+    {
+      "osmId": 1454582220,
+      "name": null,
+      "building": "house",
+      "area": 43
+    },
+    {
+      "osmId": 1454582221,
+      "name": null,
+      "building": "house",
+      "area": 28
+    },
+    {
+      "osmId": 1454582222,
+      "name": null,
+      "building": "house",
+      "area": 41
+    },
+    {
+      "osmId": 1454582223,
+      "name": null,
+      "building": "house",
+      "area": 183
+    },
+    {
+      "osmId": 1454582224,
+      "name": null,
+      "building": "house",
+      "area": 121
+    },
+    {
+      "osmId": 1454582225,
+      "name": null,
+      "building": "house",
+      "area": 121
+    },
+    {
+      "osmId": 1454582226,
+      "name": null,
+      "building": "house",
+      "area": 31
+    },
+    {
+      "osmId": 1454582227,
+      "name": null,
+      "building": "house",
+      "area": 180
+    },
+    {
+      "osmId": 1454582228,
+      "name": null,
+      "building": "house",
+      "area": 31
+    },
+    {
+      "osmId": 1454582229,
+      "name": null,
+      "building": "house",
+      "area": 28
+    },
+    {
+      "osmId": 1454582230,
+      "name": null,
+      "building": "house",
+      "area": 112
+    },
+    {
+      "osmId": 1454582231,
+      "name": null,
+      "building": "house",
+      "area": 158
+    },
+    {
+      "osmId": 1454582232,
+      "name": null,
+      "building": "house",
+      "area": 53
+    },
+    {
+      "osmId": 1454582233,
+      "name": null,
+      "building": "house",
+      "area": 124
+    },
+    {
+      "osmId": 1454582234,
+      "name": null,
+      "building": "house",
+      "area": 121
+    },
+    {
+      "osmId": 1454582235,
+      "name": null,
+      "building": "house",
+      "area": 27
+    },
+    {
+      "osmId": 1454582236,
+      "name": null,
+      "building": "house",
+      "area": 31
+    },
+    {
+      "osmId": 1454582237,
+      "name": null,
+      "building": "house",
+      "area": 37
+    },
+    {
+      "osmId": 1454582238,
+      "name": null,
+      "building": "house",
+      "area": 42
+    },
+    {
+      "osmId": 1454582239,
+      "name": null,
+      "building": "house",
+      "area": 35
+    },
+    {
+      "osmId": 1454582241,
+      "name": null,
+      "building": "house",
+      "area": 34
+    },
+    {
+      "osmId": 1454582242,
+      "name": null,
+      "building": "house",
+      "area": 31
+    },
+    {
+      "osmId": 1454582245,
+      "name": null,
+      "building": "yes",
+      "area": 28
+    },
+    {
+      "osmId": 1454582246,
+      "name": null,
+      "building": "yes",
+      "area": 24
+    },
+    {
+      "osmId": 1454582247,
+      "name": null,
+      "building": "yes",
+      "area": 27
+    },
+    {
+      "osmId": 1454582248,
+      "name": null,
+      "building": "yes",
+      "area": 23
+    },
+    {
+      "osmId": 1454582249,
+      "name": null,
+      "building": "yes",
+      "area": 45
+    },
+    {
+      "osmId": 1454582617,
+      "name": null,
+      "building": "yes",
+      "area": 45
+    },
+    {
+      "osmId": 1454582618,
+      "name": null,
+      "building": "yes",
+      "area": 30
+    },
+    {
+      "osmId": 1454582619,
+      "name": null,
+      "building": "yes",
+      "area": 35
+    },
+    {
+      "osmId": 1485145944,
+      "name": null,
+      "building": "yes",
+      "area": 322
+    },
+    {
+      "osmId": 1485145945,
+      "name": null,
+      "building": "yes",
+      "area": 315
+    },
+    {
+      "osmId": 1485145962,
+      "name": null,
+      "building": "house",
+      "area": 120
+    },
+    {
+      "osmId": 1485145994,
+      "name": null,
+      "building": "house",
+      "area": 146
+    },
+    {
+      "osmId": 1485145995,
+      "name": null,
+      "building": "house",
+      "area": 100
+    },
+    {
+      "osmId": 1485145996,
+      "name": null,
+      "building": "house",
+      "area": 9
+    },
+    {
+      "osmId": 1485145997,
+      "name": null,
+      "building": "house",
+      "area": 202
+    },
+    {
+      "osmId": 1485145998,
+      "name": null,
+      "building": "house",
+      "area": 41
+    },
+    {
+      "osmId": 1485145999,
+      "name": null,
+      "building": "house",
+      "area": 124
+    },
+    {
+      "osmId": 1485146000,
+      "name": null,
+      "building": "house",
+      "area": 229
+    },
+    {
+      "osmId": 1485146001,
+      "name": null,
+      "building": "house",
+      "area": 220
+    },
+    {
+      "osmId": 1485146002,
+      "name": null,
+      "building": "house",
+      "area": 211
+    },
+    {
+      "osmId": 1485146005,
+      "name": null,
+      "building": "house",
+      "area": 138
+    },
+    {
+      "osmId": 1485146006,
+      "name": null,
+      "building": "house",
+      "area": 38
+    },
+    {
+      "osmId": 1485146007,
+      "name": null,
+      "building": "house",
+      "area": 126
+    },
+    {
+      "osmId": 1485146008,
+      "name": null,
+      "building": "house",
+      "area": 126
+    },
+    {
+      "osmId": 1485146009,
+      "name": null,
+      "building": "house",
+      "area": 113
+    },
+    {
+      "osmId": 1485146010,
+      "name": null,
+      "building": "house",
+      "area": 133
+    },
+    {
+      "osmId": 1485146011,
+      "name": null,
+      "building": "house",
+      "area": 143
+    },
+    {
+      "osmId": 1485148152,
+      "name": null,
+      "building": "house",
+      "area": 34
+    },
+    {
+      "osmId": 1485148153,
+      "name": null,
+      "building": "house",
+      "area": 155
+    },
+    {
+      "osmId": 1485148154,
+      "name": null,
+      "building": "house",
+      "area": 155
+    },
+    {
+      "osmId": 1485148155,
+      "name": null,
+      "building": "house",
+      "area": 155
+    },
+    {
+      "osmId": 1485148156,
+      "name": null,
+      "building": "house",
+      "area": 133
+    },
+    {
+      "osmId": 1485148157,
+      "name": null,
+      "building": "house",
+      "area": 108
+    },
+    {
+      "osmId": 1485148158,
+      "name": null,
+      "building": "house",
+      "area": 134
+    },
+    {
+      "osmId": 1485148159,
+      "name": null,
+      "building": "house",
+      "area": 135
+    },
+    {
+      "osmId": 1485148160,
+      "name": null,
+      "building": "house",
+      "area": 56
+    },
+    {
+      "osmId": 1485148161,
+      "name": null,
+      "building": "house",
+      "area": 197
+    },
+    {
+      "osmId": 1485148162,
+      "name": null,
+      "building": "house",
+      "area": 262
+    },
+    {
+      "osmId": 1485148164,
+      "name": null,
+      "building": "house",
+      "area": 146
+    },
+    {
+      "osmId": 1485148165,
+      "name": null,
+      "building": "yes",
+      "area": 417
+    },
+    {
+      "osmId": 1485148167,
+      "name": null,
+      "building": "yes",
+      "area": 147
+    },
+    {
+      "osmId": 1485148168,
+      "name": null,
+      "building": "yes",
+      "area": 158
+    },
+    {
+      "osmId": 1485148169,
+      "name": null,
+      "building": "yes",
+      "area": 23
+    },
+    {
+      "osmId": 1485148170,
+      "name": null,
+      "building": "yes",
+      "area": 126
+    },
+    {
+      "osmId": 1485148171,
+      "name": null,
+      "building": "house",
+      "area": 121
+    },
+    {
+      "osmId": 1485148172,
+      "name": null,
+      "building": "house",
+      "area": 104
+    },
+    {
+      "osmId": 1493760478,
+      "name": null,
+      "building": "yes",
+      "area": 993
+    },
+    {
+      "osmId": 1539585048,
+      "name": null,
+      "building": "house",
+      "area": 96
+    },
+    {
+      "osmId": 1539585049,
+      "name": null,
+      "building": "house",
+      "area": 82
+    },
+    {
+      "osmId": 1539585050,
+      "name": null,
+      "building": "house",
+      "area": 129
+    },
+    {
+      "osmId": 1539585051,
+      "name": null,
+      "building": "house",
+      "area": 128
+    },
+    {
+      "osmId": 1539585052,
+      "name": null,
+      "building": "house",
+      "area": 147
+    },
+    {
+      "osmId": 1539585053,
+      "name": null,
+      "building": "house",
+      "area": 126
+    },
+    {
+      "osmId": 1539585054,
+      "name": null,
+      "building": "house",
+      "area": 173
+    },
+    {
+      "osmId": 1539585055,
+      "name": null,
+      "building": "house",
+      "area": 113
+    },
+    {
+      "osmId": 1539585056,
+      "name": null,
+      "building": "house",
+      "area": 211
+    },
+    {
+      "osmId": 1539585057,
+      "name": null,
+      "building": "garage",
+      "area": 55
+    },
+    {
+      "osmId": 1539585058,
+      "name": null,
+      "building": "house",
+      "area": 152
+    },
+    {
+      "osmId": 1539585059,
+      "name": null,
+      "building": "house",
+      "area": 136
+    },
+    {
+      "osmId": 1539585060,
+      "name": null,
+      "building": "house",
+      "area": 207
+    },
+    {
+      "osmId": 1539585061,
+      "name": null,
+      "building": "house",
+      "area": 206
+    },
+    {
+      "osmId": 1539585062,
+      "name": null,
+      "building": "house",
+      "area": 168
+    },
+    {
+      "osmId": 1539585063,
+      "name": null,
+      "building": "house",
+      "area": 217
+    },
+    {
+      "osmId": 1539585064,
+      "name": null,
+      "building": "house",
+      "area": 159
+    },
+    {
+      "osmId": 1539585065,
+      "name": null,
+      "building": "house",
+      "area": 166
+    },
+    {
+      "osmId": 1539585066,
+      "name": null,
+      "building": "house",
+      "area": 152
+    },
+    {
+      "osmId": 1539585067,
+      "name": null,
+      "building": "house",
+      "area": 113
+    },
+    {
+      "osmId": 1539585068,
+      "name": null,
+      "building": "house",
+      "area": 212
+    },
+    {
+      "osmId": 1539585069,
+      "name": null,
+      "building": "house",
+      "area": 120
+    },
+    {
+      "osmId": 1539585070,
+      "name": null,
+      "building": "house",
+      "area": 103
+    },
+    {
+      "osmId": 1539585071,
+      "name": null,
+      "building": "house",
+      "area": 108
+    },
+    {
+      "osmId": 1539585072,
+      "name": null,
+      "building": "house",
+      "area": 195
+    },
+    {
+      "osmId": 1539585073,
+      "name": null,
+      "building": "house",
+      "area": 113
+    },
+    {
+      "osmId": 1539585074,
+      "name": null,
+      "building": "house",
+      "area": 109
+    },
+    {
+      "osmId": 1539585075,
+      "name": null,
+      "building": "house",
+      "area": 92
+    },
+    {
+      "osmId": 1539585076,
+      "name": null,
+      "building": "house",
+      "area": 126
+    },
+    {
+      "osmId": 1539585077,
+      "name": null,
+      "building": "house",
+      "area": 124
+    },
+    {
+      "osmId": 1539585078,
+      "name": null,
+      "building": "house",
+      "area": 134
+    },
+    {
+      "osmId": 1539585079,
+      "name": null,
+      "building": "house",
+      "area": 126
+    },
+    {
+      "osmId": 1539585080,
+      "name": null,
+      "building": "house",
+      "area": 111
+    },
+    {
+      "osmId": 1539585081,
+      "name": null,
+      "building": "house",
+      "area": 114
+    },
+    {
+      "osmId": 1539585082,
+      "name": null,
+      "building": "house",
+      "area": 153
+    },
+    {
+      "osmId": 1539585083,
+      "name": null,
+      "building": "house",
+      "area": 172
+    },
+    {
+      "osmId": 1539585084,
+      "name": null,
+      "building": "house",
+      "area": 168
+    },
+    {
+      "osmId": 1552950794,
+      "name": null,
+      "building": "yes",
+      "area": 237
+    },
+    {
+      "osmId": 1552950795,
+      "name": null,
+      "building": "yes",
+      "area": 185
+    },
+    {
+      "osmId": 1552950796,
+      "name": null,
+      "building": "yes",
+      "area": 126
+    }
+  ]
+}
