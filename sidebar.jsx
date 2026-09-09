@@ -120,6 +120,11 @@ function Sidebar({
             <div className="sb-logo-sub">Sacramento Campus Map</div>
           </div>
         </div>
+        {/* A link, not a button: it's a page navigation, so open-in-new-tab and
+            middle-click work and it's reachable by keyboard and voice control. */}
+        <a className="sb-3d-link" href="3d/">
+          <span aria-hidden="true">🧊</span> 3D view
+        </a>
       </header>
 
       {/* Mode tabs */}

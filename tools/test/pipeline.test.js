@@ -141,7 +141,8 @@ test("output: every building has at least one footprint with a height", (t) => {
     assert.ok(b.footprints.length >= 1, `${b.code} has no footprint`);
     for (const f of b.footprints) {
       assert.ok(f.ring.length >= 3, `${b.code} footprint ring is degenerate`);
-      assert.ok(f.height > 0, `${b.code} footprint has no height`);
+      // Flat footprints (surface lots, parks matched to OSM areas) legitimately have height 0.
+      assert.ok(f.height > 0 || f.floors === 0, `${b.code} footprint has no height`);
       assert.ok(["osm", "traced"].includes(f.geomSource));
       assert.ok(["OpenStreetMap", "floorplan", "estimated"].includes(f.heightSource));
     }

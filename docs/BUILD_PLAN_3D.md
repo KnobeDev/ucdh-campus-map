@@ -1,6 +1,6 @@
 # UC Davis Health Sacramento — 3D Walkable Campus: Build Plan
 
-Status: **draft plan, nothing built yet.** Written 2026-09-09 on branch
+Status: **Phases 1–2 built; Phase 3 next.** Written 2026-09-09 on branch
 `claude/ucd-health-campus-3d-82ad07`.
 
 Sibling reference implementation: `/mnt/devdrive/Workbook/3D-UCDCampusMap/3d/`
@@ -194,16 +194,44 @@ I, II, III ordering is self-consistent, which weakly suggests the 2D map has the
 labels reversed — but that is a guess, not a finding.
 
 The join resolves it **in favour of geometry**: each building keeps its curated
-identity and stays where the 2D map puts it, so the two apps still agree. The
-disagreement is reported on every run rather than silently resolved. Someone who
-knows the campus needs to say which dataset is wrong.
+identity and stays where the 2D map puts it, so the two apps still agree.
 
-### Phase 2 — Scene shell
+**Resolved 2026-09-09 — the 2D map is right, OSM is wrong.** The official UC
+Davis Health campus map (`uploads/SacramentoCampusMap-2025Update-11x17-press.pdf`)
+labels the buildings, north to south, RESEARCH 2 / RESEARCH 1 / RESEARCH 3 —
+exactly what the curated data says. OSM's own `addr:housenumber` tags (4635 north,
+4625 middle, 4645 south) are non-monotonic, which fits a loose attribution. The
+verdict lives in `ucdh-data/join-decisions.json`, and the report now lists the
+pair under *reviewed conflicts* instead of asking again. (Organic Maps was
+considered as a second witness but it is built from OSM, so it can only echo it.)
+A fix upstream in OSM would be a kindness to the next person; it is out of scope
+here.
 
-`world.js` (renderer, camera, lights, theme), `theme.js`, `buildings.js`
-(merged-per-category extrusion + spatial hash + point-in-polygon), `ground.js`
-(path/lot/road surfaces), `boot-guard.js`. Copy the Davis modules and re-point
-the data; do **not** rewrite them.
+### Phase 2 — Scene shell ✅ **done 2026-09-09**
+
+`3d/` now boots: `world.js` (renderer, camera, lights, theme), `theme.js`
+(the 2D category palette, lifted to pastel), `buildings.js` (merged-per-category
+extrusion + spatial hash + point-in-polygon), `ground.js` (OSM paths as mitered
+ribbons, lots/parks as patches, a documented y-stack), `overhead.js` (keyboard-
+first orbit camera: arrows/Q/E/±, each tap a discrete nudge, hold to continue),
+`boot-guard.js`, strict same-origin CSP, vendored Three.js r166. The 2D sidebar
+now carries a **3D view** link and the 3D HUD links back.
+
+Measured in the Browser pane: **20 draw calls, 16k triangles**, no runtime
+errors, theme toggle flips `aria-pressed`, the live region announces the load
+summary, keyboard pan/rotate/zoom verified by dispatched KeyboardEvents (the
+pane's own key action doesn't reach a canvas handler — a recorded quirk).
+
+Two things learned building it:
+* **`?v=` must be bumped on every edited module** or Chrome serves the cached
+  one — a chunk of time went to "why doesn't my fix work" before that clicked.
+* `frame-ancestors` in a `<meta>` CSP is ignored and logs an error. It lives
+  in the HTTP header only — a deployment note, not something the page can fix.
+
+Original brief, kept for the record: `world.js` (renderer, camera, lights,
+theme), `theme.js`, `buildings.js` (merged-per-category extrusion + spatial hash
++ point-in-polygon), `ground.js` (path/lot/road surfaces), `boot-guard.js`. Copy
+the Davis modules and re-point the data; do **not** rewrite them.
 
 **Carry the hard-won Davis rules across verbatim** (they are recorded lessons,
 each one cost a debugging session):

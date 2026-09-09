@@ -27,6 +27,13 @@ const { centroid, area, cleanRing, roundRing, round } = require("./lib/geom");
 const ROOT = path.join(__dirname, "..");
 const OUT = path.join(ROOT, "3d", "campus-data.json");
 const REPORT = path.join(ROOT, "ucdh-data", "match-report.json");
+const DECISIONS = path.join(ROOT, "ucdh-data", "join-decisions.json");
+
+/** Human verdicts on previously reported conflicts, keyed by curated code. */
+function loadDecisions() {
+  if (!fs.existsSync(DECISIONS)) return {};
+  return JSON.parse(fs.readFileSync(DECISIONS, "utf8")).conflicts || {};
+}
 
 const pt = ([x, z]) => ({ x: round(x), z: round(z) });
 const pxPt = (o) => pt(pxToEnu(o.x, o.y));
@@ -76,10 +83,22 @@ function buildBuildingRecords(curatedEnu, matchResults, curated) {
 
   return matchResults.map((r) => {
     const cur = byCode.get(r.code);
-    const useOsm = r.status === "matched" && r.match && !r.match.isArea;
-    const primary = useOsm ? r.match : null;
     const footprints = [];
-    if (primary) footprints.push(shellOf(primary, cur, r.code));
+    if (r.status === "matched" && r.match && r.match.isArea) {
+      // Matched an OSM *area* (a surface lot, a park): flat, never extruded. The
+      // traced fallback below would have raised a surface lot into a 4-storey box.
+      footprints.push({
+        osmId: r.match.osmId,
+        osmName: r.match.name,
+        geomSource: "osm",
+        ring: roundRing(r.match.ring),
+        floors: 0,
+        height: 0,
+        heightSource: "OpenStreetMap",
+      });
+    } else if (r.status === "matched" && r.match) {
+      footprints.push(shellOf(r.match, cur, r.code));
+    }
     for (const a of r.annexes) footprints.push(shellOf(a, cur, r.code));
     if (!footprints.length) {
       // No usable OSM geometry — extrude the hand-traced schematic polygon.
@@ -254,11 +273,21 @@ function printReport(results, unclaimed, buildings, context) {
     console.log(`\nABSENT FROM OSM — extruded from the traced polygon (expected; not a join failure):`);
     for (const r of absent) console.log(`  ${r.code.padEnd(5)} ${r.name.slice(0, 48).padEnd(48)} ${r.reason}`);
   }
-  const conflicts = results.filter((r) => r.conflict);
+  const decided = loadDecisions();
+  const reviewed = results.filter((r) => r.conflict && decided[r.code]);
+  const conflicts = results.filter((r) => r.conflict && !decided[r.code]);
+  if (reviewed.length) {
+    console.log(`\nREVIEWED CONFLICTS — the 2D map and OSM disagree on these names; a human has ruled (ucdh-data/join-decisions.json):`);
+    for (const r of reviewed) {
+      const d = decided[r.code];
+      console.log(`  ${r.code.padEnd(5)} ${r.name.padEnd(20)} verdict: ${d.verdict} is right  (${d.decided}) — OSM calls this footprint "${r.match.name}"`);
+    }
+  }
   if (conflicts.length) {
     console.log(`\n⚠ NAME / GEOMETRY CONFLICT — the 2D map and OSM disagree about which building is which.`);
     console.log(`  Resolved in favour of GEOMETRY, so 2D and 3D still agree on position — but one of the`);
     console.log(`  two datasets has these labels swapped, and only a human can say which.`);
+    console.log(`  Record the verdict in ucdh-data/join-decisions.json once known.`);
     for (const r of conflicts) {
       console.log(`  ${r.code.padEnd(5)} ${r.name}`);
       console.log(`      name says     → ${fmt(r.conflict.nameSays)}`);

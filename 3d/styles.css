@@ -1,0 +1,86 @@
+/* HUD chrome for the 3D campus. The scene itself is themed in theme.js; these
+   tokens keep the panel legible over both the day and night palettes.
+   Contrast: text on panel ≥ 7:1 in both themes; focus ring 3:1 against both. */
+:root {
+  --panel: rgba(255, 255, 255, 0.92);
+  --panel-border: #c9d3dd;
+  --text: #16232f;
+  --muted: #3f5262;
+  --accent: #002855; /* UC Davis blue */
+  --accent-text: #ffffff;
+  --focus: #7a5200; /* dark gold: 7:1 on the white panel, where every HUD ring sits */
+  --focus-canvas: #16232f; /* the canvas ring sits over the SCENE — sky, lawn, paths — and gold fails 3:1 there */
+  --link: #0b4a8b;
+}
+:root[data-theme="dark"] {
+  --panel: rgba(16, 22, 32, 0.92);
+  --panel-border: #33404f;
+  --text: #edf1f5;
+  --muted: #b6c2cf;
+  --accent: #ffbf00; /* Aggie gold reads better than navy on a night sky */
+  --accent-text: #16232f;
+  --focus: #ffd75e;
+  --focus-canvas: #ffd75e; /* 11:1+ against the night sky and ground */
+  --link: #9cc4ff;
+}
+
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body {
+  font-family: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--text);
+  background: #d6e6f5;
+}
+:root[data-theme="dark"] body { background: #0c1220; }
+
+main { position: fixed; inset: 0; }
+#scene { display: block; width: 100%; height: 100%; touch-action: none; }
+#scene:focus-visible { outline: 4px solid var(--focus-canvas); outline-offset: -4px; }
+
+#loading {
+  position: fixed; inset: 0; margin: 0;
+  display: grid; place-items: center;
+  font-size: 1.25rem; color: var(--text);
+  background: var(--panel);
+}
+#loading[hidden] { display: none; }
+
+#hud {
+  position: fixed; top: 0.75rem; left: 0.75rem;
+  max-width: min(22rem, calc(100vw - 1.5rem));
+  padding: 0.85rem 1rem;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+}
+#hud[hidden] { display: none; }
+#hud h1 { font-size: 1.1rem; margin: 0.35rem 0 0.6rem; letter-spacing: 0.01em; }
+#hud h1 span { color: var(--accent); font-weight: 800; }
+
+.hud-link, .hud-attrib a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
+.hud-link { display: inline-block; font-size: 0.9rem; font-weight: 600; }
+.hud-link:focus-visible, .hud-attrib a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 3px; }
+
+.hud-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.hud-buttons button {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  min-height: 44px; padding: 0.45rem 0.9rem;
+  border: 2px solid var(--accent); border-radius: 999px;
+  background: var(--accent); color: var(--accent-text);
+  font: inherit; font-weight: 600; cursor: pointer;
+}
+.hud-buttons button:hover { filter: brightness(1.12); }
+.hud-buttons button:active { transform: translateY(1px); }
+.hud-buttons button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+.hud-hint { margin: 0.7rem 0 0; font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
+.hud-attrib { margin: 0.5rem 0 0; font-size: 0.72rem; color: var(--muted); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-buttons button:active { transform: none; }
+}

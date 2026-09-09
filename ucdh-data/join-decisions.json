@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "Human verdicts on name/geometry conflicts the join reports. The join always keeps a building",
+    "where the 2D map puts it; an entry here records WHY that was right (or wrong) so the report",
+    "can show the conflict as reviewed instead of asking again on every run."
+  ],
+  "conflicts": {
+    "O": {
+      "verdict": "curated",
+      "verifiedAgainst": "uploads/SacramentoCampusMap-2025Update-11x17-press.pdf (official UC Davis Health map): RESEARCH 2 north (y=401), RESEARCH 1 middle (y=425), RESEARCH 3 south (y=450)",
+      "note": "OSM labels the middle building 'Research II' and the north one 'Research I'; the official map says 1 and 2. OSM is wrong here. Its addr:housenumber tags (4635 north, 4625 middle, 4645 south) are non-monotonic too, which fits a loose attribution.",
+      "decided": "2026-09-09"
+    },
+    "Pb": {
+      "verdict": "curated",
+      "verifiedAgainst": "same as O",
+      "note": "North building is Research 2 on the official map; OSM calls it Research I.",
+      "decided": "2026-09-09"
+    }
+  }
+}
