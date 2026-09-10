@@ -10,7 +10,7 @@ import { createFloorPicker } from "./elevator-ui.js?v=9";
 import { buildRouteGraph, snapToGraph } from "./route-core.js?v=2";
 import { createWayfinder } from "./wayfind.js?v=3";
 import { buildConstruction, buildPointLayers } from "./layers.js?v=3";
-import { createSpeech } from "./speech.js?v=3";
+import { createSpeech } from "./speech.js?v=4";
 import { createSonar } from "./sonar.js?v=3";
 import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=2";
 import { createSession } from "./session.js?v=3";
@@ -163,15 +163,17 @@ function wireWalker(world, player, overhead, hospital, canvas) {
 /** Voice, sonar and identify: the non-visual layer. */
 function wireSenses(speech, sonar, picking, player, canvas) {
   const voiceBtn = $("voice-btn");
-  const setVoice = (on) => {
-    speech.setEnabled(on);
+  // persist only on a real toggle: syncing the button to the default must not
+  // silently pin a preference the user never expressed.
+  const setVoice = (on, persist) => {
+    speech.setEnabled(on, persist);
     voiceBtn.setAttribute("aria-pressed", String(on));
     voiceBtn.querySelector(".btn-txt").textContent = on ? "Voice on" : "Voice off";
     voiceBtn.querySelector(".btn-ico").textContent = on ? "🔊" : "🔇";
   };
-  setVoice(speech.enabled);
+  setVoice(speech.enabled, false);
   if (!speech.supported) { voiceBtn.disabled = true; voiceBtn.title = "Speech synthesis isn't available in this browser"; }
-  voiceBtn.addEventListener("click", () => { setVoice(!speech.enabled); say(speech.enabled ? "Voice on." : "Voice off."); });
+  voiceBtn.addEventListener("click", () => { setVoice(!speech.enabled, true); say(speech.enabled ? "Voice on." : "Voice off."); });
   $("sonar-btn").addEventListener("click", () => { sonar.fire(); canvas.focus(); });
   $("identify-btn").addEventListener("click", () => { picking.identifyAhead(); canvas.focus(); });
   // E with nothing to use nearby identifies what's ahead (player.js routes it here).

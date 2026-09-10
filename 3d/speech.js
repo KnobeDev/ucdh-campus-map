@@ -28,9 +28,9 @@ export function createSpeech() {
   return {
     get enabled() { return enabled; },
     get supported() { return supported; },
-    setEnabled(v) {
+    setEnabled(v, persist = true) {
       enabled = !!v;
-      try { localStorage.setItem(KEY, enabled ? "on" : "off"); } catch { /* fine */ }
+      if (persist) try { localStorage.setItem(KEY, enabled ? "on" : "off"); } catch { /* fine */ }
       if (!enabled && supported) speechSynthesis.cancel();
     },
     speak(text, { interrupt = true } = {}) {

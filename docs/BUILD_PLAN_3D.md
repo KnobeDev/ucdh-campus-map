@@ -1,6 +1,8 @@
 # UC Davis Health Sacramento — 3D Walkable Campus: Build Plan
 
-Status: **Phases 1–8 built; Phase 9 (hardening) in progress.** Written 2026-09-09 on branch
+Status: **All nine phases built.** Ready for the owner's hands-on pass; the
+manual screen-reader, dictation and zoom checks listed in
+`docs/accessibility-audit.md` are still owed before any public deployment. Written 2026-09-09 on branch
 `claude/ucd-health-campus-3d-82ad07`.
 
 Sibling reference implementation: `/mnt/devdrive/Workbook/3D-UCDCampusMap/3d/`
@@ -427,7 +429,23 @@ the guide exclusive control of wayfinding and leashes members to 200 ft. For a
 patient-navigator tour that's probably right; for an orientation cohort spread
 across the campus it may not be.
 
-### Phase 9 — Hardening
+### Phase 9 — Hardening ✅ **done 2026-09-09**
+
+`docs/security-audit.md` and `docs/accessibility-audit.md` record every finding
+and its fix. Security: the stdlib server no longer lists directories or serves
+dotfiles (a normal clone would have handed `.git/` to anyone), sync/kick/leave
+are rate-limited, the thread pool is bounded, and TLS is documented as a
+deployment prerequisite. Accessibility: 17 findings across the phases, from a
+live region that was never announced to a destructive button at 1.95:1 in dark
+mode. 38 tests. Measured with every layer on: **62 draw calls, 30.5k triangles**.
+
+Still owed, and only a person can do them: a screen-reader walkthrough
+(NVDA/VoiceOver), a dictation pass, a 200/400 % zoom reflow check, and a
+contrast read of the gold route ribbon over the rendered ground in both themes.
+
+Original brief follows.
+
+### Phase 9 — Hardening (original brief)
 
 Perf budget (Davis targets, hospital campus is ~1/8 the area so aim higher),
 `docs/security-audit.md` + `docs/accessibility-audit.md` equivalents, Playwright
