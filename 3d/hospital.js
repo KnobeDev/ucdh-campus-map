@@ -1,14 +1,17 @@
 // The Medical Center, built from its floor plan rather than from OSM shells.
 //
-// Exterior: each registered floor ring extruded one storey — the true massing
-// (podium, towers + pavilion, towers, Davis Tower). Interior: per floor, a
-// slab, a ceiling, perimeter walls, elevator cores, an (estimated) stairwell,
-// labelled room zones. When the walker is inside, floors above the current one
-// are cut away so the inside is visible from any angle.
+// Each floor carries the REAL OSM footprints of its tier (one ring for the
+// podium, several for the tower floors) — see tools/lib/floorplan.js. Exterior:
+// every ring extruded one storey, which is the true massing. Interior: per
+// ring, a slab, a ceiling and perimeter walls; per floor, elevator cores, an
+// (estimated) stairwell and labelled room zones. When the walker is inside,
+// floors above the current one are cut away so the inside stays visible.
 //
 // What is and isn't real here, so nobody mistakes the picture for a survey:
-//   · floor outlines, room positions and elevators come from the traced plan,
-//     registered onto real OSM footprints (see tools/lib/floorplan.js);
+//   · floor outlines are real OSM footprints — exact;
+//   · room and elevator positions come from the printed plan, which is drawn
+//     in oblique projection and "not to scale", so they are fitted into the
+//     footprint and clamped inside it: approximate by construction;
 //   · corridors are not traced yet, so each floor is open space;
 //   · the printed plan shows no stairs; one stairwell per floor is placed
 //     beside the main elevators and labelled "estimated".
@@ -24,11 +27,11 @@ const STAIR = [3.0, 4.4]; // stairwell footprint
 const STAIR_OFFSET = 6.5; // metres beside the main elevator
 const ROOM_R = 3.2;
 export const CELL_RADIUS = 2.6; // "near enough" to use an elevator or stairs
-// Doors are snapped onto the registered floor-1 wall, but outdoor collision
-// uses the OSM outline, which runs up to ~12 m OUTSIDE that wall (the diagram
-// is not to scale). So from the street a door is "near" from further away than
-// it is from inside; either way the walker is placed just through it.
-export const DOOR_RADIUS_OUT = 18.0;
+// The floor-1 outline and the outdoor collision footprint are now the SAME
+// geometry (the real OSM podium), so a door needs only a tight radius on both
+// sides. It used to be 18 m outdoors purely to bridge the gap left by fitting
+// the oblique floor drawing onto the building — that gap is gone.
+export const DOOR_RADIUS_OUT = 6.0;
 export const DOOR_RADIUS_IN = 4.0;
 export const DOOR_STEP = 2.0; // metres past the door the walker is placed
 
@@ -61,7 +64,7 @@ function stairSpot(floor) {
     for (const dz of [0, STAIR_OFFSET, -STAIR_OFFSET]) {
       const x = main.x + dx;
       const z = main.z + dz;
-      if ((dx || dz) && pointInPolygon(x, z, floor.ring)) return { x, z };
+      if ((dx || dz) && floor.rings.some((r) => pointInPolygon(x, z, r))) return { x, z };
     }
   }
   // Nowhere to put it without sitting on the elevator core (where the elevator
@@ -78,10 +81,12 @@ function buildFloorInterior(floor, floorH, mats, entrances) {
   g.position.y = floor.y;
   g.visible = false;
 
-  g.add(new THREE.Mesh(flatPatch(floor.ring, 0.02), mats.floor));
-  g.add(new THREE.Mesh(flatPatch(floor.ring, floorH - 0.05), mats.ceiling));
-  const walls = wallGeometry(floor.ring, floorH);
-  if (walls) g.add(new THREE.Mesh(walls, mats.wall));
+  for (const ring of floor.rings) {
+    g.add(new THREE.Mesh(flatPatch(ring, 0.02), mats.floor));
+    g.add(new THREE.Mesh(flatPatch(ring, floorH - 0.05), mats.ceiling));
+    const walls = wallGeometry(ring, floorH);
+    if (walls) g.add(new THREE.Mesh(walls, mats.wall));
+  }
 
   const cores = [];
   for (const n of floor.nodes) {
@@ -147,12 +152,16 @@ export function buildHospital(world, hospital) {
   world.themeTargets.catMats["hospital#massing"] = massingMat;
   const exteriorByFloor = new Map();
   for (const f of floors) {
-    const geo = extrudedRing(f.ring, floorH);
-    geo.translate(0, f.y, 0);
-    const mesh = new THREE.Mesh(geo, massingMat);
-    mesh.userData.pickable = true;
-    exteriorByFloor.set(f.id, mesh);
-    exterior.add(mesh);
+    const g = new THREE.Group();
+    for (const ring of f.rings) {
+      const geo = extrudedRing(ring, floorH);
+      geo.translate(0, f.y, 0);
+      const mesh = new THREE.Mesh(geo, massingMat);
+      mesh.userData.pickable = true;
+      g.add(mesh);
+    }
+    exteriorByFloor.set(f.id, g);
+    exterior.add(g);
   }
   world.scene.add(exterior);
 
@@ -196,7 +205,7 @@ export function buildHospital(world, hospital) {
     entrances,
     banks: hospital.banks,
     floor: (id) => byId.get(id) || null,
-    contains: (id, x, z) => pointInPolygon(x, z, byId.get(id).ring),
+    contains: (id, x, z) => byId.get(id).rings.some((r) => pointInPolygon(x, z, r)),
     /** The NEAREST entrance within r — two doors can sit within one radius of each other. */
     entranceNear(x, z, r = DOOR_RADIUS_IN) {
       let best = null;

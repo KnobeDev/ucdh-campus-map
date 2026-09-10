@@ -4,8 +4,8 @@ const test = require("node:test");
 const assert = require("node:assert");
 const fs = require("fs");
 const path = require("path");
-const { registerHospital, deriveBanks, FLOOR_ORDER } = require("../lib/floorplan");
-const { bbox, contains } = require("../lib/geom");
+const { registerHospital, deriveBanks, clampInto, FLOOR_ORDER } = require("../lib/floorplan");
+const { bbox, contains, area } = require("../lib/geom");
 
 const DATA = path.join(__dirname, "..", "..", "3d", "campus-data.json");
 const EDITS = path.join(__dirname, "..", "..", "default-edits.json");
@@ -30,51 +30,88 @@ test("floorplan: every traced floor registers, in storey order, LL below grade",
   assert.strictEqual(h.floors.find((f) => f.id === "14").index, 11); // no 9, no 13
 });
 
-test("floorplan: each floor lands inside its target footprint's bbox", () => {
+test("floorplan: floor shapes ARE the real footprints — never a warped drawing", () => {
   const { floorsPx, footprints } = fixture();
   const h = registerHospital(floorsPx, footprints, 4.2);
-  const outline = bbox(footprints.find((f) => f.osmName === "UC Davis Medical Center").ring);
-  const slack = 0.5;
+  const real = new Map(footprints.map((f) => [JSON.stringify(f.ring.map((p) => [Math.round(p[0] * 100) / 100, Math.round(p[1] * 100) / 100])), f.osmName]));
   for (const f of h.floors) {
-    const b = bbox(f.ring);
-    assert.ok(b.minX >= outline.minX - slack && b.maxX <= outline.maxX + slack, `${f.id} spills out in x`);
-    assert.ok(b.minZ >= outline.minZ - slack && b.maxZ <= outline.maxZ + slack, `${f.id} spills out in z`);
+    for (const ring of f.rings) {
+      assert.ok(real.has(JSON.stringify(ring)), `${f.id} has a ring that is not a real OSM footprint`);
+    }
   }
-  // The tower-only floors must be strictly smaller than the podium.
-  const podium = bbox(h.floors.find((f) => f.id === "1").ring);
-  const tower = bbox(h.floors.find((f) => f.id === "14").ring);
-  assert.ok(tower.maxX - tower.minX < 0.5 * (podium.maxX - podium.minX));
+  // The bug this guards: the oblique drawing stretched Level 1 to ~42,600 m²
+  // against a real 32,640 m² podium, pushing a third of the Lower Level out
+  // over Pathology, Parking 3 and North Addition.
+  const podium = footprints.find((f) => f.osmName === "UC Davis Medical Center");
+  const one = h.floors.find((f) => f.id === "1");
+  assert.strictEqual(one.rings.length, 1);
+  assert.ok(Math.abs(area(one.rings[0]) - area(podium.ring)) < 1, "Level 1 is not exactly the podium footprint");
+  // Tower floors are strictly smaller than the podium.
+  const top = h.floors.find((f) => f.id === "14");
+  assert.ok(area(top.rings[0]) < 0.25 * area(podium.ring));
 });
 
-test("floorplan: every floor keeps an elevator, and every node is inside its floor", () => {
+test("floorplan: no floor spills outside the building envelope", () => {
+  const { floorsPx, footprints } = fixture();
+  const h = registerHospital(floorsPx, footprints, 4.2);
+  const envelope = footprints.find((f) => f.osmName === "UC Davis Medical Center").ring;
+  const env = bbox(envelope);
+  for (const f of h.floors) {
+    for (const ring of f.rings) {
+      const b = bbox(ring);
+      assert.ok(b.minX >= env.minX - 0.5 && b.maxX <= env.maxX + 0.5, `${f.id} spills out in x`);
+      assert.ok(b.minZ >= env.minZ - 0.5 && b.maxZ <= env.maxZ + 0.5, `${f.id} spills out in z`);
+    }
+  }
+});
+
+test("floorplan: every room and elevator sits inside its own floor", () => {
+  const { floorsPx, footprints } = fixture();
+  const h = registerHospital(floorsPx, footprints, 4.2);
+  for (const f of h.floors) {
+    for (const n of f.nodes) {
+      assert.ok(f.rings.some((r) => contains(r, [n.x, n.z])),
+        `${f.id}: ${n.label || n.id} is outside the floor`);
+    }
+  }
+});
+
+test("floorplan: clampInto leaves interior points alone and pulls outside ones in", () => {
+  const sq = [[0, 0], [20, 0], [20, 20], [0, 20]];
+  const inside = clampInto([sq], 10, 10);
+  assert.strictEqual(inside.clamped, false);
+  assert.strictEqual(inside.x, 10);
+  const outside = clampInto([sq], 40, 10);
+  assert.ok(outside.clamped);
+  assert.ok(contains(sq, [outside.x, outside.z]), "a clamped point must land inside");
+});
+
+test("floorplan: every floor keeps an elevator", () => {
   const { floorsPx, footprints } = fixture();
   const h = registerHospital(floorsPx, footprints, 4.2);
   for (const f of h.floors) {
     assert.ok(f.nodes.some((n) => n.kind === "elevator"), `${f.id} has no elevator`);
-    const inside = f.nodes.filter((n) => contains(f.ring, [n.x, n.z])).length;
-    // Traced by hand on a not-to-scale diagram; a node or two on the edge is expected.
-    assert.ok(inside >= f.nodes.length * 0.8, `${f.id}: only ${inside}/${f.nodes.length} nodes inside the ring`);
   }
 });
 
-test("floorplan: the street-level entrances sit on the podium outline", () => {
+test("floorplan: the street-level entrances sit in the podium wall", () => {
   const { data } = fixture();
   const h = data.hospital;
   assert.ok(h && h.entrances.length >= 2);
   const floor1 = h.floors.find((f) => f.id === "1");
   for (const e of h.entrances) {
-    // Snapped onto an edge, so the distance to the nearest edge is ~0; the
-    // curated point it came from is kept for provenance.
     assert.ok(e.curated && typeof e.snappedMetres === "number", `${e.label} lost its provenance`);
     let d = Infinity;
-    for (let i = 0; i < floor1.ring.length; i++) {
-      const [ax, az] = floor1.ring[i];
-      const [bx, bz] = floor1.ring[(i + 1) % floor1.ring.length];
-      const dx = bx - ax, dz = bz - az, l2 = dx * dx + dz * dz || 1;
-      const t = Math.max(0, Math.min(1, ((e.x - ax) * dx + (e.z - az) * dz) / l2));
-      d = Math.min(d, Math.hypot(ax + t * dx - e.x, az + t * dz - e.z));
+    for (const ring of floor1.rings) {
+      for (let i = 0; i < ring.length; i++) {
+        const [ax, az] = ring[i];
+        const [bx, bz] = ring[(i + 1) % ring.length];
+        const dx = bx - ax, dz = bz - az, l2 = dx * dx + dz * dz || 1;
+        const t = Math.max(0, Math.min(1, ((e.x - ax) * dx + (e.z - az) * dz) / l2));
+        d = Math.min(d, Math.hypot(ax + t * dx - e.x, az + t * dz - e.z));
+      }
     }
-    assert.ok(d < 0.05, `${e.label} is ${d.toFixed(2)} m off the floor-1 outline`);
+    assert.ok(d < 0.05, `${e.label} is ${d.toFixed(2)} m off the podium wall`);
     assert.ok(e.snappedMetres < 60, `${e.label} was snapped ${e.snappedMetres} m — suspicious`);
   }
 });
@@ -85,12 +122,11 @@ test("floorplan: elevator banks are derived from the nodes, and the main bank re
   assert.ok(h.banks["T-main"], "no T-main bank");
   assert.strictEqual(h.banks["T-main"].reaches.length, h.floors.length);
   assert.strictEqual(h.banks["T-main"].name, "Main elevators");
-  // A bank only reaches floors that actually carry one of its nodes.
   const fake = deriveBanks([
     { id: "1", nodes: [{ kind: "elevator", elevatorId: "X", label: "Elevator" }] },
     { id: "2", nodes: [{ kind: "elevator", elevatorId: "Y", label: "Y bank" }] },
   ]);
   assert.deepStrictEqual(fake.X.reaches, ["1"]);
-  assert.strictEqual(fake.X.name, "X"); // a generic "Elevator" label doesn't become the bank name
+  assert.strictEqual(fake.X.name, "X");
   assert.strictEqual(fake.Y.name, "Y bank");
 });

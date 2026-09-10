@@ -46,8 +46,10 @@ Remove. A refresh resumes the session; the session survives a silent guide for
 
 ### What is estimated, so nobody mistakes the picture for a survey
 
-- The printed floor plan is explicitly *not to scale*; each floor is fitted to
-  its footprint's bounding box, so room positions are approximate.
+- Floor **shapes** are real OSM footprints, so the building never warps or
+  overlaps its neighbours. The printed plan is an oblique drawing and explicitly
+  *not to scale*, so it is used only to place **rooms**, which are fitted into
+  the footprint and clamped inside it — their positions are approximate.
 - Corridors are not traced yet — every floor is open space.
 - The plan shows no stairwells; one is placed beside the main elevators on each
   floor and labelled **"position estimated"** in the scene and the picker.

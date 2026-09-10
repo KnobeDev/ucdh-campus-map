@@ -261,14 +261,27 @@ OSM `UC Davis Medical Center` way is a **344 × 199 m outline of the whole
 complex**, which extruded eight storeys read as one squat box with the towers
 poking out of it. Building from the floor plan fixed size and interior together.
 
-* `tools/lib/floorplan.js` registers the 13 traced floors onto real footprints
-  with per-floor anisotropic bbox fits, keyed by what the diagram itself shows:
-  LL/1 → podium outline; 2–3 → towers + Surgery & Emergency Pavilion (the bands
-  still carry the Burn Unit and main ORs); 4–8 → the three towers; 10–14 →
-  Davis Tower. Storey index skips 9 and 13 like the building does; Davis Tower
-  tops out at 50.4 m as before. Entrances are **snapped onto the floor-1 wall**
-  (18.6 m and 5.4 m from where the 2D polygon had them) so the door is in the
-  wall the walker collides with; the curated point is kept for provenance.
+* `tools/lib/floorplan.js` gives each floor the **real OSM footprints** of its
+  tier, keyed by what the diagram itself shows: LL/1 → the podium envelope;
+  2–3 → Surgery & Emergency Pavilion + the three towers; 4–8 → the three
+  towers; 10–14 → Davis Tower. The footprints nest (the Pavilion is 94% inside
+  the podium way, Davis Tower 97%, East Wing 100%), so the podium needs that
+  one ring alone. Storey index skips 9 and 13 like the building does; Davis
+  Tower tops out at 50.4 m. The printed plan is used **only to place rooms**,
+  fitted into the tier's extent and clamped inside it. Entrances snap into the
+  podium wall; the curated point is kept for provenance.
+
+  **Corrected 2026-09-09 (owner report: "the floor map was done at multiple
+  angles and it's showing the warping").** The first pass fitted each traced
+  band onto a real bounding box — but the printed plan is an *oblique
+  projection*, so every band is a sheared parallelogram whose bbox is far
+  larger than the building. Stretching that inflated Level 1 to 42,600 m²
+  against a real 32,640 m² podium and pushed **39.5% of the Lower Level and
+  32% of Level 1 outside the building**, over Pathology, Parking 3, North
+  Addition and the California Tower. Taking shape from the footprints instead
+  puts every floor at **0.0% outside, overlapping no building and no road**,
+  and let `DOOR_RADIUS_OUT` drop from 18 m to 6 m — that margin existed only to
+  bridge the gap the warping created.
 * `hospital.js`: exterior massing per floor; per-floor slab, lit ceiling,
   perimeter walls, elevator cores, one **estimated** stairwell beside the main
   elevators, numbered room zones with labels; cutaway hides floors above the
@@ -278,8 +291,10 @@ poking out of it. Building from the floor plan fixed size and interior together.
   Entrance → Level 1 → elevator → Level 8 (y = 31.1 m, inside the floor-8
   ring) → stairs → Level 10 → back out through the door, each step announced.
 
-Honest limits, all labelled in the scene: not-to-scale plan so rooms are
-approximate; no corridors traced so floors are open space; stair positions
+Honest limits, all labelled in the scene: the plan is oblique and not to scale,
+so **room positions are approximate** — they are fitted into the real footprint
+and clamped inside it (37 of 127 needed clamping), and which tier levels 2–3
+occupy is a judgement call from the diagram's own tower headers; no corridors traced so floors are open space; stair positions
 are invented. Corridor tracing in the 2D editor remains the data task that
 lifts indoor routing from coarse to real (§4 item 4).
 

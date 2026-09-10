@@ -9,7 +9,7 @@
 // you are standing at one.
 import * as THREE from "./lib/three.module.js";
 import { footprintAt } from "./buildings.js?v=6";
-import { DOOR_RADIUS_OUT, DOOR_RADIUS_IN, CELL_RADIUS } from "./hospital.js?v=8";
+import { DOOR_RADIUS_OUT, DOOR_RADIUS_IN, CELL_RADIUS } from "./hospital.js?v=10";
 import { EYE } from "./world.js?v=6";
 
 const WALK_SPEED = 3.2;
