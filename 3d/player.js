@@ -28,7 +28,7 @@ const HELD_CODES = new Set(["KeyW", "KeyA", "KeyS", "KeyD", "ShiftLeft", "ShiftR
 const codeOf = (e) => e.code || CODE_BY_KEY[String(e.key).toLowerCase()] || "";
 const isTypingTarget = (t) => t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName);
 
-export function createPlayer(world, index, hospital, spawn) {
+export function createPlayer(world, index, hospital, spawn, zoneAt = () => null) {
   const yawObj = new THREE.Object3D();
   const pitchObj = new THREE.Object3D();
   yawObj.add(pitchObj);
@@ -46,27 +46,35 @@ export function createPlayer(world, index, hospital, spawn) {
     onUse: null, // ({ kind: "elevator"|"stairs", node, floor }) -> void
     onNearby: null, // (cell|null) -> void, when what's within reach changes
     onBlocked: null,
+    onZoneBlocked: null, // (zone) -> void: the walker pushed against construction fencing
+    onIdentify: null, // () -> void: E pressed with nothing to use nearby
   };
 
   // --- collision ---------------------------------------------------------
 
-  /** Can the walker stand at (x, z)? Handles doors as a side effect. */
+  /**
+   * Can the walker stand at (x, z)?
+   * @returns {true | {door, inward} | {blocked: "zone", zone} | {blocked: "wall"}}
+   * A pure query: it never announces anything. tryMove decides what to say, once.
+   */
   function passable(x, z) {
     if (state.floor === null) {
+      const zone = zoneAt(x, z);
+      if (zone) return { blocked: "zone", zone }; // fencing, not a suggestion — you go around
       const hit = footprintAt(index, x, z, true);
       if (!hit) return true;
       if (hit.building && hit.building.renderedBy === "hospital") {
         const door = hospital.entranceNear(x, z, DOOR_RADIUS_OUT);
         if (door) return { door, inward: true };
       }
-      return false;
+      return { blocked: "wall" };
     }
     if (hospital.contains(state.floor, x, z)) return true;
     if (state.floor === "1") {
       const door = hospital.entranceNear(x, z, DOOR_RADIUS_IN);
       if (door) return { door, inward: false };
     }
-    return false;
+    return { blocked: "wall" };
   }
 
   /** Step through a door: the walker is placed just past it on the other side. */
@@ -93,16 +101,18 @@ export function createPlayer(world, index, hospital, spawn) {
       return;
     }
     // Never trap the walker: if already inside something solid, let them out.
-    if (ahead || !passable(x, z)) {
+    if (ahead === true || passable(x, z) !== true) {
       yawObj.position.x = nx;
       yawObj.position.z = nz;
       return;
     }
-    // A wall. Slide along it where possible — and say so either way: a walker
-    // who can't see the wall needs to know why the room stopped getting closer.
+    // Blocked. Slide along the obstacle where possible — and say so either way,
+    // ONCE: a walker who can't see the fence or wall needs to know why the room
+    // stopped getting closer.
     if (passable(nx, z) === true) yawObj.position.x = nx;
     else if (passable(x, nz) === true) yawObj.position.z = nz;
-    api.onBlocked?.();
+    if (ahead.blocked === "zone") api.onZoneBlocked?.(ahead.zone);
+    else api.onBlocked?.();
   }
 
   // --- input ---------------------------------------------------------------
@@ -188,6 +198,7 @@ export function createPlayer(world, index, hospital, spawn) {
   }
   function useNearby() {
     if (nearby) api.onUse?.(nearby);
+    else api.onIdentify?.(); // nothing to use here: say what's ahead instead
   }
 
   /** Arrive on a floor at its elevator (or stairs) — called by main.js after the picker. */
@@ -230,6 +241,8 @@ export function createPlayer(world, index, hospital, spawn) {
 
   /** Put the walker somewhere outdoors (the Start select). */
   api.teleport = (x, z) => { yawObj.position.x = x; yawObj.position.z = z; };
+  /** Pull the walker toward (x, z) through normal collision — walls and fences still hold. */
+  api.nudgeTo = (x, z) => { tryMove(x, z); };
   api.leaveBuilding = () => { if (state.floor !== null) { state.floor = null; hospital.setInside(null); } };
   api.setMode = setMode;
   api.goToFloor = goToFloor;

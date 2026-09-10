@@ -5,7 +5,23 @@ curated data as the 2D app plus OpenStreetMap geometry. No build step — vanill
 ES modules and a vendored Three.js r166 (`lib/`, no CDN at runtime, strict
 same-origin CSP).
 
-**Run:** `../serve.sh` then open `http://localhost:8092/3d/`.
+**Run:** `../serve.sh` then open `http://localhost:8092/3d/` (`serve.py` = static
+files + the tour/event session API; any static server still serves the map, but
+tours need `serve.py`).
+
+## Sessions: Guest, Tour, Event
+
+Opening the 3D map shows a lobby first. **Guest** is a solo walk. **Lead a Tour**
+/ **Host an Event** create a live session and hand the guide a six-character
+code (no 0/O/1/I/L — codes are read aloud); others enter it to join, and can
+join mid-walk from the HUD. Everyone sees everyone else as an avatar with a
+name tag; the guide wears gold and a beacon. Members keep every control except
+guidance, which is the guide's, and stay within 200 ft of the guide on the same
+floor. The guide's day/night theme is adopted on join; sound is never synced.
+The group panel (or the corner code chip) lists everyone with live distances —
+or their floor, when they're on another one — and gives the guide a two-tap
+Remove. A refresh resumes the session; the session survives a silent guide for
+60 s, then ends for everyone.
 
 ## What's in the scene
 
@@ -20,6 +36,11 @@ same-origin CSP).
   the **stairs** (one flight at a time) and find the printed plan's numbered
   departments on each floor.
 - **12.4 km of real pedestrian network**, streets, lots and parks from OSM.
+- **Live construction**: active zones from the 2D map's schedule are fenced,
+  labelled with their end date, solid to the walker, and routed around.
+- **Shuttle stops, SacRT bus stops and points of interest** (valet, assisted
+  drop-off, bike lockers) as sign posts, each also a guide destination. Layer
+  toggles mirror the 2D map's defaults.
 - **278 neighbourhood buildings** as unnamed context.
 - Light/dark theme following `prefers-color-scheme`, toggleable, persisted.
 
@@ -40,7 +61,9 @@ same-origin CSP).
 | `W A S D` | walk (`Shift` runs) |
 | Arrow keys | look around — one tap turns a little, holding keeps turning |
 | Drag | look around (mouse / touch) |
-| `E` / **Use …** button | use the elevator or stairs you are standing at |
+| `E` / **What's ahead** | identify the building ahead (name, distance, direction, floors and how sure we are); at an elevator or stairs, use it instead |
+| `P` / **Sonar** | a pulse: each nearby building (or room, indoors) echoes from its position, then is named with distance and direction |
+| **Voice on/off** | read every announcement aloud (off by default; screen readers already speak the live region) |
 | `G` / **Guide me** button | start (or stop) guidance to the chosen destination |
 | `V` / **Overhead view** button | switch to the overhead orbit camera and back |
 | Overhead: arrows, `Q` `E`, `PgUp` `PgDn`, `+` `−` | pan, rotate, tilt, zoom |
@@ -73,6 +96,9 @@ are straight lines until corridors are traced in the 2D editor.
 | `hospital.js` | Medical Center massing + interiors + walkability helpers |
 | `player.js` | first-person walker, doors, elevator/stairs proximity |
 | `elevator-ui.js` | floor picker (`<dialog>`) |
+| `layers.js` | construction fencing (solid to the walker), shuttle/bus stops, POIs |
+| `speech.js` / `sonar.js` / `picking.js` | voice, sonar, identify-what's-ahead (`spatial-core.js` is the tested maths) |
+| `session.js` / `peers.js` | tours and events: lobby, sync loop, group panel, peer avatars |
 | `route-core.js` | pedestrian router over the OSM network (pure; node-tested) |
 | `wayfind.js` | guided route: ribbon, legs, re-routing, arrival, indoor continuation |
 | `overhead.js` | keyboard-first orbit camera |

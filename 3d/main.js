@@ -5,10 +5,15 @@ import { buildGroundSurfaces } from "./ground.js?v=6";
 import { createOverheadCamera } from "./overhead.js?v=6";
 import { initialTheme, saveTheme } from "./theme.js?v=6";
 import { buildHospital } from "./hospital.js?v=8";
-import { createPlayer } from "./player.js?v=9";
+import { createPlayer } from "./player.js?v=14";
 import { createFloorPicker } from "./elevator-ui.js?v=9";
-import { buildRouteGraph, snapToGraph } from "./route-core.js?v=1";
-import { createWayfinder } from "./wayfind.js?v=2";
+import { buildRouteGraph, snapToGraph } from "./route-core.js?v=2";
+import { createWayfinder } from "./wayfind.js?v=3";
+import { buildConstruction, buildPointLayers } from "./layers.js?v=3";
+import { createSpeech } from "./speech.js?v=3";
+import { createSonar } from "./sonar.js?v=3";
+import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=2";
+import { createSession } from "./session.js?v=3";
 
 const $ = (id) => document.getElementById(id);
 
@@ -28,7 +33,9 @@ const floorName = (id) => FLOOR_NAMES[id] || `Level ${id}`;
 
 /** Spoken/live-region announcement. An unchanged value may not be re-announced
  *  by every AT, so identical text is cleared first and re-set a beat later. */
-function say(text) {
+let speech = null; // set in boot; say() mirrors to the voice when it's on
+function say(text, { interrupt = true } = {}) {
+  speech?.speak(text, { interrupt });
   const el = $("status");
   if (el.textContent !== text) {
     el.textContent = text;
@@ -79,7 +86,7 @@ function wireWalker(world, player, overhead, hospital, canvas) {
     viewBtn.querySelector(".btn-ico").textContent = over ? "🚶" : "🚁";
     hint.textContent = over
       ? "Overhead: arrows pan · Q E rotate · PgUp PgDn tilt · + − zoom · V or the Walk button to walk"
-      : "Walk: W A S D · Shift runs · arrows look · E at an elevator or stairs · G guide me · V overhead · drag to look";
+      : "Walk: W A S D · Shift runs · arrows look · E what's ahead / use elevator · P sonar · G guide me · V overhead · drag to look";
     say(over ? "Overhead view." : "Walking view.");
     canvas.focus();
   }
@@ -139,6 +146,10 @@ function wireWalker(world, player, overhead, hospital, canvas) {
   };
   // A wall is the one thing a non-visual walker can't see coming.
   player.onBlocked = throttle(() => say("Wall — no way through here."), 1200);
+  player.onZoneBlocked = throttle((z) => {
+    const guided = wayfinder && wayfinder.active;
+    say(`Construction fencing: ${z.name}${z.endDate ? `, closed until ${z.endDate}` : ""}. ${guided ? "Follow the gold line — it goes around." : "Go around it, or pick a destination for a route that does."}`);
+  }, 2500);
   player.onEnter = (d) => { setWhere(); say(`Entered the Medical Center through the ${d.label || "entrance"}. Level 1, street level.`); };
   player.onExit = (d) => { setWhere(); say(`Left the Medical Center through the ${d.label || "entrance"}.`); };
   setWhere();
@@ -147,6 +158,85 @@ function wireWalker(world, player, overhead, hospital, canvas) {
     setWhere,
     dispose() { window.removeEventListener("keydown", onViewKey); player.dispose(); },
   };
+}
+
+/** Voice, sonar and identify: the non-visual layer. */
+function wireSenses(speech, sonar, picking, player, canvas) {
+  const voiceBtn = $("voice-btn");
+  const setVoice = (on) => {
+    speech.setEnabled(on);
+    voiceBtn.setAttribute("aria-pressed", String(on));
+    voiceBtn.querySelector(".btn-txt").textContent = on ? "Voice on" : "Voice off";
+    voiceBtn.querySelector(".btn-ico").textContent = on ? "🔊" : "🔇";
+  };
+  setVoice(speech.enabled);
+  if (!speech.supported) { voiceBtn.disabled = true; voiceBtn.title = "Speech synthesis isn't available in this browser"; }
+  voiceBtn.addEventListener("click", () => { setVoice(!speech.enabled); say(speech.enabled ? "Voice on." : "Voice off."); });
+  $("sonar-btn").addEventListener("click", () => { sonar.fire(); canvas.focus(); });
+  $("identify-btn").addEventListener("click", () => { picking.identifyAhead(); canvas.focus(); });
+  // E with nothing to use nearby identifies what's ahead (player.js routes it here).
+  player.onIdentify = () => picking.identifyAhead();
+  const onSenseKey = (e) => {
+    if (e.repeat || document.activeElement !== canvas || document.querySelector("dialog[open]")) return;
+    if (e.code === "KeyP" || String(e.key).toLowerCase() === "p") sonar.fire();
+  };
+  window.addEventListener("keydown", onSenseKey);
+}
+
+/** The identified building: announce it and show the persistent card. */
+let infoDest = null;
+function showInfo(d, data) {
+  const card = $("info");
+  if (!d) {
+    say("Nothing ahead within reach.");
+    return;
+  }
+  say(d.text, { interrupt: false }); // a fast P afterwards must not cut the description off
+  $("info-title").textContent = d.name;
+  const meta = [];
+  if (d.building) meta.push(data.categories[d.building.cat]?.label || d.building.cat);
+  if (d.floors) meta.push(d.floors);
+  meta.push(`${Math.round(d.distance)} m ${d.dir}`);
+  $("info-meta").textContent = meta.join(" · ");
+  const ul = $("info-depts");
+  ul.replaceChildren();
+  for (const dep of d.building?.departments || []) {
+    const li = document.createElement("li");
+    li.textContent = dep.note ? `${dep.name} (${dep.note})` : dep.name;
+    ul.append(li);
+  }
+  const center = d.building ? d.building.center : { x: d.footprint.ring[0][0], z: d.footprint.ring[0][1] };
+  const { lat, lon } = enuToLonLat(center.x, center.z, data.meta.georef.enuOrigin);
+  $("info-maps").href = mapsUrl(lat, lon, d.name);
+  infoDest = { kind: "building", name: d.name, x: center.x, z: center.z, radius: 12 };
+  $("info-guide").hidden = !d.building;
+  card.hidden = false;
+}
+
+/** Layer toggles mirror the 2D map's: construction on by default, the rest off. */
+function wireLayers(construction, pointLayers) {
+  const bind = (id, apply) => {
+    const el = $(id);
+    apply(el.checked);
+    el.addEventListener("change", () => apply(el.checked));
+  };
+  bind("layer-construction", (v) => construction.setVisible(v));
+  // Text equivalent of the fences: the same list, as real text.
+  const ul = $("construction-items");
+  ul.replaceChildren();
+  for (const z of construction.active) {
+    const li = document.createElement("li");
+    li.textContent = `${z.name}${z.endDate ? ` — closed until ${z.endDate}` : ""}`;
+    ul.append(li);
+  }
+  if (!construction.active.length) {
+    const li = document.createElement("li");
+    li.textContent = "No active construction zones.";
+    ul.append(li);
+  }
+  bind("layer-shuttle", (v) => pointLayers.setVisible("shuttle", v));
+  bind("layer-bus", (v) => pointLayers.setVisible("bus", v));
+  bind("layer-pois", (v) => pointLayers.setVisible("pois", v));
 }
 
 /** The wayfinder's view of the HUD: summary line, steps list, active state. */
@@ -168,7 +258,7 @@ function wayfindUi() {
 
 /** Destinations: every campus building, every department (→ its building),
  *  every Medical Center room (→ floor + node). Starts: any building. */
-function wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker) {
+function wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker, session) {
   const dest = $("wf-dest");
   const start = $("wf-start");
   const byCode = new Map(data.buildings.map((b) => [b.code, b]));
@@ -215,7 +305,22 @@ function wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker
       gR.append(opt(id, `${floorName(f.id)} — ${name}`));
     }
   }
-  dest.append(gB, gE, gD, gR);
+  const gT = group("Shuttle & bus stops");
+  for (const st of data.points.shuttle) {
+    targets.set(`s:${st.id}`, { kind: "building", name: `${st.name} shuttle stop`, x: st.x, z: st.z, radius: 6 });
+    gT.append(opt(`s:${st.id}`, `🚐 ${st.name}`));
+  }
+  for (const st of data.points.busStops) {
+    targets.set(`bus:${st.id}`, { kind: "building", name: st.name, x: st.x, z: st.z, radius: 6 });
+    gT.append(opt(`bus:${st.id}`, `🚌 ${st.name}`));
+  }
+  const gP = group("Points of interest");
+  for (const p of data.points.pois) {
+    const t = data.poiTypes[p.type] || data.poiTypes.general;
+    targets.set(`p:${p.id}`, { kind: "building", name: p.name, x: p.x, z: p.z, radius: 6 });
+    gP.append(opt(`p:${p.id}`, `${t.icon} ${p.name}`));
+  }
+  dest.append(gB, gE, gD, gR, gT, gP);
   start.append(gS);
 
   // Sensible defaults for the first try: P3 → Cancer Center South.
@@ -224,6 +329,7 @@ function wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker
 
   $("wf-stepfree").addEventListener("change", (e) => wayfinder.setStepFree(e.target.checked));
   $("wf-go").addEventListener("click", () => {
+    if (session.blockWayfinding()) { say(session.blockedWayfindingMsg()); return; }
     const t = targets.get(dest.value);
     if (!t) return;
     const s = targets.get(start.value);
@@ -239,6 +345,11 @@ function wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker
     canvas.focus();
   });
   $("wf-stop").addEventListener("click", () => { wayfinder.stop(); canvas.focus(); });
+  $("info-guide").addEventListener("click", () => {
+    if (session.blockWayfinding()) { say(session.blockedWayfindingMsg()); return; }
+    if (infoDest) { wayfinder.guideTo(infoDest); canvas.focus(); }
+  });
+  $("info-close").addEventListener("click", () => { $("info").hidden = true; canvas.focus(); });
   const onGuideKey = (e) => {
     if ((e.code === "KeyG" || String(e.key).toLowerCase() === "g") && !e.repeat && document.activeElement === canvas
         && !document.querySelector("dialog[open]")) {
@@ -251,10 +362,15 @@ function wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker
 
 async function boot() {
   document.documentElement.dataset.theme = initialTheme();
+  // The lobby (Guest / Tour / Event / Join) opens first; the data downloads
+  // concurrently with the user's think-time.
+  const session = createSession();
+  const lobbyDone = session.openLobby();
   // t= defeats heuristic caching — this file changes on every data regeneration.
   const res = await fetch("campus-data.json?t=" + Date.now());
   if (!res.ok) throw new Error(`campus-data.json: HTTP ${res.status}`);
   const data = await res.json();
+  await lobbyDone;
 
   const canvas = $("scene");
   const world = createWorld(canvas, data.meta.world);
@@ -265,14 +381,27 @@ async function boot() {
   overhead.setEnabled(false);
 
   // Spawn on the street outside the Main Entrance, facing it.
+  const construction = buildConstruction(world, data.construction);
+  const pointLayers = buildPointLayers(world, data.points, data.osmBusStops, data.poiTypes);
+  wireLayers(construction, pointLayers);
   const door = hospital.entrances[0];
-  const player = createPlayer(world, index, hospital, { x: door.x, z: door.z + 28, yaw: 0 });
+  const player = createPlayer(world, index, hospital, { x: door.x, z: door.z + 28, yaw: 0 }, construction.zoneAt);
   setTheme(world, initialTheme());
+  speech = createSpeech();
   const walker = wireWalker(world, player, overhead, hospital, canvas);
+  const sonar = createSonar(world, { index, hospital, player, speech, say });
+  const picking = createPicking(world, { index, player, onSelect: (d) => showInfo(d, data) });
+  wireSenses(speech, sonar, picking, player, canvas);
   const graph = buildRouteGraph(data.paths, { construction: data.construction });
   const wayfinder = createWayfinder(world, { graph, hospital, player, say, ui: wayfindUi() });
   walker.setWayfinder(wayfinder);
-  const wayfindingWiring = wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker);
+  const wayfindingWiring = wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker, session);
+  session.start({
+    player, world, say,
+    speak: (msg) => speech.speak(msg),
+    getTheme: () => document.documentElement.dataset.theme,
+    applyTheme: (name) => { if (document.documentElement.dataset.theme !== name) setTheme(world, name); },
+  });
 
   $("theme-btn").addEventListener("click", () => {
     setTheme(world, document.documentElement.dataset.theme === "dark" ? "light" : "dark");
@@ -289,10 +418,11 @@ async function boot() {
   // ancestor is display:none is silently dropped — that was the first version.)
   const shells = data.buildings.reduce((n, b) => n + b.footprints.length, 0);
   const named = data.buildings.filter((b) => b.footprints.some((f) => f.geomSource === "osm")).length;
-  $("status").textContent =
-    `Loaded ${data.buildings.length} campus buildings (${shells} footprints, ${named} from OpenStreetMap), ` +
-    `${data.context.length} neighbourhood buildings and ${data.paths.length} paths.`;
-  window.__ucd3d = { world, index, data, overhead, player, hospital, walker, wayfinder, wayfindingWiring, graph }; // boot-guard.js checks this; handy in devtools
+  const zones = construction.active.length;
+  say(`Loaded ${data.buildings.length} campus buildings (${shells} footprints, ${named} from OpenStreetMap), ` +
+    `${data.context.length} neighbourhood buildings and ${data.paths.length} paths. ` +
+    (zones ? `${zones} active construction zone${zones === 1 ? "" : "s"} — listed under Layers; routes avoid them.` : ""));
+  window.__ucd3d = { world, index, data, overhead, player, hospital, walker, wayfinder, wayfindingWiring, graph, sonar, picking, speech, session }; // boot-guard.js checks this; handy in devtools
 
   let last = performance.now();
   function frame(now) {
@@ -300,6 +430,8 @@ async function boot() {
     last = now;
     player.update(dt);
     wayfinder.update(dt);
+    sonar.update(dt);
+    session.update(dt);
     overhead.update(dt);
     world.renderer.render(world.scene, world.camera);
     requestAnimationFrame(frame);

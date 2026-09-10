@@ -1,6 +1,6 @@
 # UC Davis Health Sacramento — 3D Walkable Campus: Build Plan
 
-Status: **Phases 1, 2, 3, 5 and 6 built; 4, 7, 8, 9 remain.** Written 2026-09-09 on branch
+Status: **Phases 1–8 built; Phase 9 (hardening) in progress.** Written 2026-09-09 on branch
 `claude/ucd-health-campus-3d-82ad07`.
 
 Sibling reference implementation: `/mnt/devdrive/Workbook/3D-UCDCampusMap/3d/`
@@ -290,7 +290,22 @@ Original Phase 3 brief follows.
 **Acceptance:** keyboard-only walk of the full campus with no mouse; WASD + arrow
 look; `V` toggles overhead.
 
-### Phase 4 — Accessibility spine (not a later polish pass)
+### Phase 4 — Accessibility spine ✅ **done 2026-09-09**
+
+`speech.js` (Web Speech voice for every announcement, off by default so a
+screen-reader user isn't read to twice; HRTF-panned blips), `picking.js`
+(`E` or a click identifies the building ahead: "Medical Center, 30 metres
+ahead, 8 floors (estimated)", with a card — category, departments, Guide me
+here, Open in Maps), `sonar.js` (`P`: a pulse ticking every 10 m to 40 m,
+each building or room echoing from its position, the whole list written to the
+live region at once; indoors it lists rooms, elevators and stairs), and
+`spatial-core.js` (pure, tested). Piper's neural voice (154 MB, wider CSP)
+stays a documented follow-up: Web Speech costs nothing and the page is already
+accessible without any voice.
+
+Original brief follows.
+
+### Phase 4 — Accessibility spine (original brief)
 
 * `role="application"` canvas with a full instruction `aria-label`, all speech
   mirrored to an `aria-live` region.
@@ -362,13 +377,43 @@ The one phase with no Davis precedent, so it carries the real risk.
 **Acceptance:** one unbroken guided route from a P3 parking stall to a named
 Cancer Center clinic room, spoken at each transition.
 
-### Phase 7 — Health-specific layers
+### Phase 7 — Health-specific layers ✅ **done 2026-09-09**
+
+`layers.js`: active construction zones as safety-orange fences with posts every
+3 m, a translucent fill and a "🚧 name · until date" label — and they are solid
+to the walker, who hears "Construction fencing: California Tower Construction,
+closed until 2030-02-02. Go around — guidance routes around it." Shuttle stops
+(21), curated + OSM SacRT bus stops, and typed POIs (valet, assisted drop-off,
+bike lockers, repair stations) as sign posts. Layer checkboxes mirror the 2D
+defaults (construction on, the rest off), and every stop and POI is a
+destination in the guide list (six groups, 186 destinations).
+
+Original brief follows.
+
+### Phase 7 — Health-specific layers (original brief)
 
 Shuttle stops + routes, valet, ADA entrances, POI markers by type, construction
 barriers/noise, emergency department signage. All already curated in 2D; this is
 projection + representation.
 
-### Phase 8 — Group tour sessions (in scope for v1)
+### Phase 8 — Group tour sessions ✅ **done 2026-09-09**
+
+`serve.py` (stdlib; static files + the session API, ported from Davis with the
+admin/editor roles and world actions removed and a `floor` added to the synced
+state), `session.js` (lobby as a native `<dialog>` gate — Guest / Lead a Tour /
+Host an Event / Join; code chip; group panel with live distances that say
+"Level 8" when someone is on another floor; two-tap Remove; 200 ft tether that
+only applies on the same floor), `peers.js` (capsule avatars, hidden through
+slabs). `serve.sh` now runs `serve.py`; a plain static server still serves the
+map and greys out Tour/Event/Join.
+
+Verified on the served build: lobby → tour code spoken letter by letter → a
+second participant joined over the API → their avatar and roster row appeared
+→ two-tap remove → "Pat was removed from the tour."
+
+Original brief follows.
+
+### Phase 8 — Group tour sessions (original brief)
 
 Port `serve.py` + `session.js` + `peers.js` for guided group tours: new-employee
 orientation, pre-surgery family walkthroughs, patient-navigator training. Runs

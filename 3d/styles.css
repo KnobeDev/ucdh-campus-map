@@ -140,3 +140,94 @@ main { position: fixed; inset: 0; }
 #wf-stop { background: #8b1a1a; border-color: #8b1a1a; color: #fff; }
 :root[data-theme="dark"] #wf-stop { background: #ff9d9d; border-color: #ff9d9d; color: #16232f; }
 .floor-list button.preferred { border-width: 3px; box-shadow: inset 0 0 0 2px var(--panel); background: var(--accent); color: var(--accent-text); }
+
+/* --- layers ------------------------------------------------------------ */
+#layers { margin: 0.9rem 0 0; padding: 0.5rem 0.75rem 0.25rem; border: 1px solid var(--panel-border); border-radius: 0.6rem; }
+#layers legend { font-size: 0.85rem; font-weight: 700; padding: 0 0.3rem; }
+#layers .wf-check { margin: 0.1rem 0 0.35rem; }
+
+/* --- info card ---------------------------------------------------------- */
+#info { margin-top: 0.8rem; padding: 0.7rem 0.85rem; border: 1px solid var(--panel-border); border-radius: 0.6rem; background: var(--panel); }
+#info h2 { margin: 0 0 0.25rem; font-size: 1rem; }
+.info-depts { margin: 0.3rem 0 0.5rem; padding-left: 1.1rem; font-size: 0.83rem; line-height: 1.4; }
+.hud-link-btn { background: none; border: 2px solid transparent; color: var(--link); text-decoration: underline; font: inherit; font-weight: 600; cursor: pointer; min-height: 44px; padding: 0.3rem 0.5rem; }
+.hud-link-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+#info .hud-buttons { align-items: center; }
+#construction-list { margin: 0.2rem 0 0.4rem; font-size: 0.83rem; }
+#construction-list summary { cursor: pointer; font-weight: 600; min-height: 32px; display: flex; align-items: center; }
+#construction-list summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 3px; }
+#construction-items { margin: 0.2rem 0 0; padding-left: 1.1rem; line-height: 1.4; }
+
+/* --- session lobby ------------------------------------------------------- */
+#lobby { max-width: min(34rem, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); overflow-y: auto; box-sizing: border-box;
+  padding: 0; border: 0; border-radius: 14px; background: transparent; }
+#lobby::backdrop { background: rgba(4, 10, 24, 0.72); }
+.lobby-card { background: var(--panel); color: var(--text); border-radius: 14px; border-left: 6px solid var(--accent);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55); padding: 1.25rem 1.4rem 1.1rem; }
+.lobby-card h2 { margin: 0 0 0.2rem; font-size: 1.25rem; }
+.lobby-card h2 span { color: var(--accent); font-weight: 800; }
+.lobby-tagline { margin: 0.1rem 0 0.8rem; font-weight: 700; }
+.lobby-choices { display: grid; gap: 0.5rem; margin-bottom: 0.9rem; }
+.lobby-choice { display: grid; grid-template-columns: auto auto 1fr; align-items: center; column-gap: 0.55rem; text-align: left;
+  font: inherit; color: var(--text); background: transparent; cursor: pointer; min-height: 44px;
+  border: 2px solid var(--accent); border-radius: 10px; padding: 0.6rem 0.75rem; }
+.lobby-choice:hover { background: rgba(0, 40, 85, 0.06); }
+.lobby-choice:focus-visible, .lobby-field input:focus-visible, .lobby-primary:focus-visible, .lobby-back:focus-visible,
+.lobby-code-actions button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.lobby-choice:disabled { opacity: 0.5; cursor: default; }
+.lobby-ico { font-size: 1.35rem; }
+.lobby-choice-name { font-weight: 800; white-space: nowrap; }
+.lobby-choice-sub { grid-column: 2 / 4; font-size: 0.85rem; color: var(--muted); }
+.lobby-field { display: grid; gap: 0.25rem; margin-bottom: 0.7rem; }
+.lobby-field label { font-weight: 700; font-size: 0.9rem; }
+.lobby-req { font-weight: 400; color: var(--muted); }
+.lobby-field input { font: inherit; color: var(--text); background: var(--panel); border: 2px solid var(--accent); border-radius: 8px; padding: 0.45rem 0.6rem; min-height: 40px; box-sizing: border-box; }
+#lobby-code, #late-code { text-transform: uppercase; letter-spacing: 0.2em; font-weight: 700; width: 10rem; }
+.lobby-join { border: 1px solid var(--accent); border-radius: 10px; padding: 0.6rem 0.75rem 0.7rem; margin: 0; }
+.lobby-join legend { font-weight: 800; padding: 0 0.3rem; }
+.lobby-join-row { display: flex; align-items: end; gap: 0.6rem; flex-wrap: wrap; }
+.lobby-join-row .lobby-field { margin-bottom: 0; }
+.lobby-primary, .lobby-code-actions button { font: inherit; font-weight: 700; cursor: pointer; color: var(--accent-text); background: var(--accent);
+  border: 2px solid var(--accent); border-radius: 8px; padding: 0.5rem 1rem; min-height: 44px; }
+.lobby-primary:disabled { opacity: 0.5; cursor: default; }
+.lobby-status { min-height: 1.2em; margin: 0.6rem 0 0; font-weight: 700; }
+.lobby-code-help { margin: 0 0 0.6rem; font-size: 0.92rem; }
+.lobby-code-value { margin: 0 0 0.8rem; text-align: center; font-size: 2.4rem; font-weight: 800; letter-spacing: 0.35em; text-indent: 0.35em;
+  color: var(--accent); border: 3px dashed var(--accent); border-radius: 12px; padding: 0.5rem 0; user-select: all; }
+.lobby-code-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+.lobby-back-row { margin: 0.7rem 0 0; }
+.lobby-back { font: inherit; font-weight: 700; cursor: pointer; min-height: 44px; color: var(--text); background: transparent; border: 2px solid var(--accent); border-radius: 8px; padding: 0.4rem 0.9rem; }
+
+/* --- group panel + code chip ---------------------------------------------- */
+#conn-panel { position: fixed; bottom: calc(12px + 66px); right: 12px; z-index: 32; width: min(19rem, calc(100vw - 1.5rem));
+  max-height: calc(100vh - 66px - 1.5rem); overflow-y: auto; background: var(--panel); color: var(--text);
+  border-radius: 10px; border-right: 5px solid var(--accent); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35); padding: 0.75rem 1rem; box-sizing: border-box; }
+#conn-panel h2 { margin: 0 1.5rem 0.2rem 0; font-size: 1rem; }
+#conn-close { position: absolute; top: 0.4rem; right: 0.5rem; width: 36px; height: 36px; font: inherit; font-size: 1.15rem; line-height: 1; cursor: pointer;
+  color: var(--text); background: transparent; border: 2px solid var(--accent); border-radius: 6px; }
+#conn-close:focus-visible, .conn-copy:focus-visible, .conn-kick:focus-visible, .conn-leave:focus-visible, #code-chip:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.conn-code-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin: 0 0 0.5rem; }
+.conn-code { font-size: 0.85rem; }
+.conn-copy, .conn-kick, .conn-leave { font: inherit; font-weight: 700; cursor: pointer; color: var(--text); background: transparent; border: 2px solid var(--accent); border-radius: 6px; }
+.conn-copy { font-size: 0.82rem; min-height: 32px; padding: 0.2rem 0.6rem; white-space: nowrap; }
+#conn-list { list-style: none; margin: 0 0 0.5rem; padding: 0; display: grid; gap: 0.35rem; }
+.conn-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; border: 1px solid var(--panel-border); border-radius: 8px; padding: 0.35rem 0.55rem; }
+.conn-name { font-weight: 700; margin-right: auto; }
+.conn-guide { color: var(--accent); }
+:root[data-theme="dark"] .conn-guide { color: #ffd75e; }
+.conn-dist { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+.conn-kick { font-size: 0.85rem; padding: 0.25rem 0.7rem; min-height: 44px; }
+.conn-kick + .conn-kick { margin-left: 0.35rem; }
+.conn-kick-confirm { color: #fff; background: #8b1a1a; border-color: #8b1a1a; }
+/* The destructive tap must be unmistakable in both themes: #8b1a1a is 1.95:1
+   against the dark panel, so dark mode flips to the light-on-dark pairing. */
+:root[data-theme="dark"] .conn-kick-confirm { background: #ff9d9d; border-color: #ff9d9d; color: #16232f; }
+.conn-leave { padding: 0.4rem 0.8rem; min-height: 44px; }
+body.sess-member #wf-go, body.sess-member #info-guide { display: none; }
+#code-chip { position: fixed; right: 12px; bottom: 12px; z-index: 32; display: inline-flex; align-items: center; gap: 0.5rem;
+  font: inherit; cursor: pointer; min-height: 44px; padding: 0.4rem 0.85rem; color: var(--text); background: var(--panel);
+  border: 2px dashed var(--accent); border-radius: 10px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45); }
+#code-chip .chip-ico { font-size: 1.1rem; }
+#code-chip .chip-col { display: flex; flex-direction: column; align-items: flex-start; }
+#code-chip .chip-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+#code-chip #code-chip-text { font-weight: 800; font-size: 1.1rem; letter-spacing: 0.14em; }

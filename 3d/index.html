@@ -12,15 +12,95 @@
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
 <title>UC Davis Health — 3D Walkable Campus</title>
-<link rel="stylesheet" href="styles.css?v=9">
+<link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body>
 <main>
   <canvas id="scene" tabindex="0" role="application"
-          aria-label="3D walkable map of the UC Davis Health Sacramento campus, first person. W A S D walks, Shift runs, arrow keys look around, E uses the elevator or stairs you are standing at, G starts or stops guidance to the chosen destination, V switches to the overhead view and back. Walk into a Medical Center entrance to go inside. Press Tab to leave the map."></canvas>
+          aria-label="3D walkable map of the UC Davis Health Sacramento campus, first person. W A S D walks, Shift runs, arrow keys look around, E identifies the building ahead, or uses the elevator or stairs you are standing at, P sends a sonar pulse, G starts or stops guidance to the chosen destination, V switches to the overhead view and back. Walk into a Medical Center entrance to go inside. Press Tab to leave the map."></canvas>
 </main>
 
 <p id="loading" role="status">Loading the 3D campus…</p>
+
+<!-- Session lobby: shown at boot, before the HUD. Guest = solo walkthrough;
+     Tour / Event create a shared live session (serve.py) and hand the guide a
+     join code; the code field joins an existing one. A native dialog: focus
+     trapping, the dialog role and Escape handling come from the platform
+     (session.js keeps Escape from dismissing the boot gate). -->
+<dialog id="lobby" aria-labelledby="lobby-title" hidden>
+  <div class="lobby-card">
+    <h2 id="lobby-title">UC Davis Health <span>3D Campus</span></h2>
+    <div id="lobby-view-choose">
+      <p class="lobby-tagline">How do you want to walk the campus?</p>
+      <div class="lobby-field">
+        <label for="lobby-name">Your name <span class="lobby-req">(shown to the group for tours, events and joining — guests can skip it)</span></label>
+        <input id="lobby-name" type="text" maxlength="24" autocomplete="nickname" spellcheck="false">
+      </div>
+      <div class="lobby-choices">
+        <button id="lobby-guest" type="button" class="lobby-choice"><span class="lobby-ico" aria-hidden="true">🧍</span><span class="lobby-choice-name">Guest</span><span class="lobby-choice-sub">Explore on your own — the whole campus, every feature, no one else around.</span></button>
+        <button id="lobby-tour" type="button" class="lobby-choice"><span class="lobby-ico" aria-hidden="true">🚩</span><span class="lobby-choice-name">Lead a Tour</span><span class="lobby-choice-sub">Walk a group through campus — orientation, a pre-surgery walkthrough. You get a code others use to join you live.</span></button>
+        <button id="lobby-event" type="button" class="lobby-choice"><span class="lobby-ico" aria-hidden="true">🎪</span><span class="lobby-choice-name">Host an Event</span><span class="lobby-choice-sub">A bigger gathering on the live map — attendees join with your code.</span></button>
+      </div>
+      <fieldset class="lobby-join">
+        <legend>Join a tour or event</legend>
+        <div class="lobby-join-row">
+          <div class="lobby-field">
+            <label for="lobby-code">Tour or event code</label>
+            <input id="lobby-code" type="text" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. KWX7PQ">
+          </div>
+          <button id="lobby-join" type="button" class="lobby-primary">Join</button>
+        </div>
+      </fieldset>
+    </div>
+    <div id="lobby-view-code" hidden>
+      <p id="lobby-code-kind" class="lobby-tagline">Your tour is live</p>
+      <p class="lobby-code-help">Share this code — anyone who opens the 3D map and enters it joins your session, live.</p>
+      <p id="lobby-code-value" class="lobby-code-value"></p>
+      <div class="lobby-code-actions">
+        <button id="lobby-code-copy" type="button">Copy code</button>
+        <button id="lobby-code-start" type="button" class="lobby-primary">Start walking</button>
+      </div>
+      <p class="lobby-back-row"><button id="lobby-code-back" type="button" class="lobby-back">← Cancel this and choose again</button></p>
+    </div>
+    <div id="lobby-view-join" hidden>
+      <p class="lobby-tagline">Join a tour or event</p>
+      <div class="lobby-field">
+        <label for="late-name">Your name <span class="lobby-req">(shown to the group)</span></label>
+        <input id="late-name" type="text" maxlength="24" autocomplete="nickname" spellcheck="false">
+      </div>
+      <div class="lobby-join-row">
+        <div class="lobby-field">
+          <label for="late-code">Tour or event code</label>
+          <input id="late-code" type="text" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. KWX7PQ">
+        </div>
+        <button id="late-join" type="button" class="lobby-primary">Join</button>
+      </div>
+      <p class="lobby-back-row"><button id="late-cancel" type="button" class="lobby-back">← Never mind — keep exploring solo</button></p>
+    </div>
+    <div id="lobby-view-notice" hidden>
+      <p id="lobby-notice-title" class="lobby-tagline" tabindex="-1"></p>
+      <p id="lobby-notice-msg" class="lobby-code-help"></p>
+      <div class="lobby-code-actions"><button id="lobby-notice-solo" type="button" class="lobby-primary">Keep exploring solo</button></div>
+    </div>
+    <p id="lobby-status" role="status" class="lobby-status"></p>
+  </div>
+</dialog>
+
+<!-- Group panel: everyone sees who's in the session; the guide also gets
+     two-step Remove controls per person. Toggled by #conn-btn or the chip. -->
+<aside id="conn-panel" hidden aria-labelledby="conn-title">
+  <button id="conn-close" type="button" aria-label="Minimize the group panel">×</button>
+  <h2 id="conn-title" tabindex="-1">Tour group</h2>
+  <p class="conn-code-row"><span id="conn-code" class="conn-code"></span> <button id="conn-copy" type="button" class="conn-copy">Copy code</button></p>
+  <ul id="conn-list" aria-label="People in this session"></ul>
+  <p id="conn-hint" class="hud-hint"></p>
+  <p><button id="conn-leave" type="button" class="conn-leave">Leave session</button></p>
+</aside>
+<!-- Minimized session control: the code chip is the group panel's disclosure button. -->
+<button id="code-chip" type="button" hidden aria-expanded="false" aria-controls="conn-panel">
+  <span class="chip-ico" aria-hidden="true">🚩</span>
+  <span class="chip-col"><span id="code-chip-label" class="chip-label">Tour code</span><span id="code-chip-text"></span></span>
+</button>
 <!-- Live region for announcements. Deliberately NOT inside #hud: a hidden
      ancestor removes it from the accessibility tree, and a mutation made
      while hidden is never announced, even after the ancestor is shown. -->
@@ -34,8 +114,40 @@
     <button id="view-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🚁</span><span class="btn-txt">Overhead view</span></button>
     <button id="use-btn" type="button" hidden><span class="btn-ico" aria-hidden="true">🛗</span><span class="btn-txt">Use elevator</span></button>
     <button id="theme-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🌙</span><span class="btn-txt">Dark mode</span></button>
+    <button id="join-btn" type="button" hidden><span class="btn-ico" aria-hidden="true">🎟️</span><span class="btn-txt">Join a tour</span></button>
+    <button id="conn-btn" type="button" hidden aria-expanded="false" aria-controls="conn-panel"><span class="btn-ico" aria-hidden="true">👥</span><span class="btn-txt">Group</span></button>
+    <button id="voice-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🔇</span><span class="btn-txt">Voice off</span></button>
+    <button id="sonar-btn" type="button"><span class="btn-ico" aria-hidden="true">📡</span><span class="btn-txt">Sonar</span></button>
+    <button id="identify-btn" type="button"><span class="btn-ico" aria-hidden="true">👁️</span><span class="btn-txt">What's ahead</span></button>
   </div>
-  <p id="hint" class="hud-hint">Walk: W A S D · Shift runs · arrows look · E at an elevator or stairs · G guide me · V overhead · drag to look</p>
+  <!-- Info card for the identified building. Not a live region: the
+       announcement goes through #status; this is the persistent, readable copy. -->
+  <section id="info" hidden aria-labelledby="info-title">
+    <h2 id="info-title"></h2>
+    <p id="info-meta" class="hud-hint"></p>
+    <ul id="info-depts" class="info-depts"></ul>
+    <div class="hud-buttons">
+      <button id="info-guide" type="button"><span class="btn-ico" aria-hidden="true">🧭</span><span class="btn-txt">Guide me here</span></button>
+      <a id="info-maps" class="hud-link" target="_blank" rel="noopener">Open in Maps<span class="sr-only"> (opens in a new tab)</span></a>
+      <button id="info-close" type="button" class="hud-link-btn">Close</button>
+    </div>
+  </section>
+  <p id="hint" class="hud-hint">Walk: W A S D · Shift runs · arrows look · E what's ahead / use elevator · P sonar · G guide me · V overhead · drag to look</p>
+
+  <fieldset id="layers">
+    <legend>Layers</legend>
+    <label class="wf-check"><input type="checkbox" id="layer-construction" checked> Construction labels</label>
+    <!-- Text equivalent for the fences: every active closure by name and end date,
+         so it's discoverable without walking into one. Fences themselves are
+         always shown and always solid — you can't switch off a wall. -->
+    <details id="construction-list">
+      <summary>Active construction</summary>
+      <ul id="construction-items"></ul>
+    </details>
+    <label class="wf-check"><input type="checkbox" id="layer-shuttle"> Shuttle stops</label>
+    <label class="wf-check"><input type="checkbox" id="layer-bus"> Bus stops</label>
+    <label class="wf-check"><input type="checkbox" id="layer-pois"> Points of interest</label>
+  </fieldset>
 
   <section id="wayfind" aria-labelledby="wayfind-title">
     <h2 id="wayfind-title">Wayfinding</h2>
@@ -71,6 +183,6 @@
 </dialog>
 
 <script src="boot-guard.js?v=6"></script>
-<script type="module" src="main.js?v=13"></script>
+<script type="module" src="main.js?v=24"></script>
 </body>
 </html>
