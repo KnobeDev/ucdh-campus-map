@@ -119,3 +119,24 @@ main { position: fixed; inset: 0; }
 .floor-list button[disabled] { opacity: 0.55; cursor: default; border-style: dashed; }
 .floor-list button:focus-visible, .floor-actions button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 .floor-actions { margin: 0.9rem 0 0; }
+
+/* --- wayfinding panel ------------------------------------------------------ */
+#hud { max-height: calc(100vh - 1.5rem); overflow-y: auto; box-sizing: border-box; }
+#wayfind { margin-top: 0.9rem; padding-top: 0.75rem; border-top: 1px solid var(--panel-border); }
+#wayfind h2 { margin: 0 0 0.5rem; font-size: 0.95rem; }
+.wf-row { display: grid; grid-template-columns: 6rem 1fr; align-items: center; gap: 0.4rem; margin-bottom: 0.45rem; }
+.wf-row label, .wf-check { font-size: 0.85rem; font-weight: 600; }
+.wf-row select {
+  min-height: 40px; width: 100%; padding: 0.3rem 0.4rem;
+  border: 2px solid var(--panel-border); border-radius: 0.5rem;
+  background: var(--panel); color: var(--text); font: inherit; font-size: 0.85rem;
+}
+.wf-row select:focus-visible, .wf-check input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.wf-check { display: flex; align-items: center; gap: 0.45rem; margin: 0.2rem 0 0.6rem; min-height: 32px; }
+.wf-check input { width: 24px; height: 24px; margin: 0; } /* 2.2 target-size recommendation */
+.wf-summary { margin: 0.6rem 0 0; font-size: 0.9rem; font-weight: 700; color: var(--text); min-height: 1.2em; }
+.wf-steps { margin: 0.35rem 0 0; padding-left: 1.25rem; font-size: 0.83rem; line-height: 1.45; color: var(--text); }
+.wf-steps li + li { margin-top: 0.2rem; }
+#wf-stop { background: #8b1a1a; border-color: #8b1a1a; color: #fff; }
+:root[data-theme="dark"] #wf-stop { background: #ff9d9d; border-color: #ff9d9d; color: #16232f; }
+.floor-list button.preferred { border-width: 3px; box-shadow: inset 0 0 0 2px var(--panel); background: var(--accent); color: var(--accent-text); }

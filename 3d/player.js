@@ -228,6 +228,9 @@ export function createPlayer(world, index, hospital, spawn) {
 
   const floorY = () => (state.floor === null ? 0 : hospital.floor(state.floor).y);
 
+  /** Put the walker somewhere outdoors (the Start select). */
+  api.teleport = (x, z) => { yawObj.position.x = x; yawObj.position.z = z; };
+  api.leaveBuilding = () => { if (state.floor !== null) { state.floor = null; hospital.setInside(null); } };
   api.setMode = setMode;
   api.goToFloor = goToFloor;
   api.useNearby = useNearby;

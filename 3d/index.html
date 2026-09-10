@@ -12,12 +12,12 @@
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
 <title>UC Davis Health — 3D Walkable Campus</title>
-<link rel="stylesheet" href="styles.css?v=7">
+<link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
 <main>
   <canvas id="scene" tabindex="0" role="application"
-          aria-label="3D walkable map of the UC Davis Health Sacramento campus, first person. W A S D walks, Shift runs, arrow keys look around, E uses the elevator or stairs you are standing at, V switches to the overhead view and back. Walk into a Medical Center entrance to go inside. Press Tab to leave the map."></canvas>
+          aria-label="3D walkable map of the UC Davis Health Sacramento campus, first person. W A S D walks, Shift runs, arrow keys look around, E uses the elevator or stairs you are standing at, G starts or stops guidance to the chosen destination, V switches to the overhead view and back. Walk into a Medical Center entrance to go inside. Press Tab to leave the map."></canvas>
 </main>
 
 <p id="loading" role="status">Loading the 3D campus…</p>
@@ -35,7 +35,28 @@
     <button id="use-btn" type="button" hidden><span class="btn-ico" aria-hidden="true">🛗</span><span class="btn-txt">Use elevator</span></button>
     <button id="theme-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🌙</span><span class="btn-txt">Dark mode</span></button>
   </div>
-  <p id="hint" class="hud-hint">Walk: W A S D · Shift runs · arrows look · E at an elevator or stairs · V overhead · drag to look</p>
+  <p id="hint" class="hud-hint">Walk: W A S D · Shift runs · arrows look · E at an elevator or stairs · G guide me · V overhead · drag to look</p>
+
+  <section id="wayfind" aria-labelledby="wayfind-title">
+    <h2 id="wayfind-title">Wayfinding</h2>
+    <div class="wf-row">
+      <label for="wf-start">Start</label>
+      <select id="wf-start"><option value="">Where I am</option></select>
+    </div>
+    <div class="wf-row">
+      <label for="wf-dest">Guide me to</label>
+      <select id="wf-dest"></select>
+    </div>
+    <label class="wf-check"><input type="checkbox" id="wf-stepfree"> Step-free route (no stairs)</label>
+    <div class="hud-buttons">
+      <button id="wf-go" type="button"><span class="btn-ico" aria-hidden="true">🧭</span><span class="btn-txt">Guide me</span></button>
+      <button id="wf-stop" type="button" hidden><span class="btn-ico" aria-hidden="true">✋</span><span class="btn-txt">Stop guiding</span></button>
+    </div>
+    <!-- Visual only, on purpose: #status is the single spoken channel. Two polite
+         live regions updating together interleave in screen readers. -->
+    <p id="wf-summary" class="wf-summary"></p>
+    <ol id="wf-steps" class="wf-steps"></ol>
+  </section>
   <p class="hud-attrib">Building and path geometry © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors</p>
 </header>
 
@@ -50,6 +71,6 @@
 </dialog>
 
 <script src="boot-guard.js?v=6"></script>
-<script type="module" src="main.js?v=10"></script>
+<script type="module" src="main.js?v=13"></script>
 </body>
 </html>

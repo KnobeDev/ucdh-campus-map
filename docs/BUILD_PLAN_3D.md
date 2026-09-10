@@ -1,6 +1,6 @@
 # UC Davis Health Sacramento — 3D Walkable Campus: Build Plan
 
-Status: **Phases 1, 2, 3 and 6 built (6 pulled forward at the owner's request); 4, 5, 7, 8, 9 remain.** Written 2026-09-09 on branch
+Status: **Phases 1, 2, 3, 5 and 6 built; 4, 7, 8, 9 remain.** Written 2026-09-09 on branch
 `claude/ucd-health-campus-3d-82ad07`.
 
 Sibling reference implementation: `/mnt/devdrive/Workbook/3D-UCDCampusMap/3d/`
@@ -303,7 +303,34 @@ look; `V` toggles overhead.
 **Acceptance:** `a11y-architect` agent pass, keyboard-only + screen-reader +
 **dictation** walkthrough, WCAG 2.1 A/AA clean.
 
-### Phase 5 — Outdoor wayfinding
+### Phase 5 — Wayfinding ✅ **done 2026-09-09** — outdoors AND through the door
+
+`route-core.js` (pure, node-testable): a graph from the OSM pedestrian network
+keyed by shared junction nodes, grid-indexed snapping, Dijkstra with surface
+penalties (footways first, streets last), step-free mode that excludes `steps`,
+and construction cuts using the 2D app's exact expiry rule. `wayfind.js`: gold
+ribbon along real walkways, live re-route, spoken legs and distance milestones,
+arrival — and when the goal is inside the Medical Center the route continues:
+to the accessible entrance, to the elevators, to the floor, to the room. The
+elevator picker pre-focuses the floor the route continues on.
+
+HUD: Start (any building) and Guide-me-to (148 destinations: buildings,
+entrances, departments, every Medical Center room by floor), step-free
+checkbox, summary + numbered steps. `G` starts/stops guidance.
+
+Verified live: **P3 → Cancer Center South, 439 m, ~5 min, "Follow the service
+drive for 181 m, follow X Street for 215 m"**, milestones every ~30 m, arrival.
+And the sentence this whole plan was written around: **P3 → Oncology (36),
+Level 8** — service drive → Main Entrance → "Take the Main elevators to Level
+8, 41 m, follow the gold line" → picker with Level 8 pre-focused → "You're on
+Level 8, Oncology is 33 m ahead" → arrived. 28 tests pass.
+
+Indoor legs are straight lines because corridors are untraced (§4 item 4);
+they become real corridors the day the 2D editor has them, with no 3D change.
+
+Original brief follows.
+
+### Phase 5 — Outdoor wayfinding (original brief)
 
 `route-graph.js` over the OSM pedestrian network, snapped to curated ADA
 entrances; `wayfind.js` gold ribbon + beacon + live re-route + arrival

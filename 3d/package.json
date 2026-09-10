@@ -1,0 +1,1 @@
+{ "type": "module", "private": true, "description": "Makes 3d/*.js importable from node for tests; the browser ignores this file." }

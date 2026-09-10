@@ -41,12 +41,25 @@ same-origin CSP).
 | Arrow keys | look around — one tap turns a little, holding keeps turning |
 | Drag | look around (mouse / touch) |
 | `E` / **Use …** button | use the elevator or stairs you are standing at |
+| `G` / **Guide me** button | start (or stop) guidance to the chosen destination |
 | `V` / **Overhead view** button | switch to the overhead orbit camera and back |
 | Overhead: arrows, `Q` `E`, `PgUp` `PgDn`, `+` `−` | pan, rotate, tilt, zoom |
 | `Tab` | leave the map (nothing traps focus) |
 
 Walk into a Medical Center entrance to go inside; walk back through the door to
 leave. Every transition and every floor change is announced in a live region.
+
+## Wayfinding
+
+Pick a **Start** (any building, or where you stand) and a destination — a
+building, a department, a Medical Center entrance, or any numbered room on any
+floor — and press **Guide me**. A gold ribbon follows real walkways (footways
+first, streets only as a last resort; **Step-free** excludes steps; active
+construction zones are cut exactly as the 2D map cuts them), the panel lists
+the legs ("Follow X Street for 215 m"), and distances are spoken every ~30 m.
+For a room, the route continues through the accessible entrance, to the
+elevators (the picker pre-selects your floor), and on to the room. Indoor legs
+are straight lines until corridors are traced in the 2D editor.
 
 ## Files
 
@@ -60,6 +73,8 @@ leave. Every transition and every floor change is announced in a live region.
 | `hospital.js` | Medical Center massing + interiors + walkability helpers |
 | `player.js` | first-person walker, doors, elevator/stairs proximity |
 | `elevator-ui.js` | floor picker (`<dialog>`) |
+| `route-core.js` | pedestrian router over the OSM network (pure; node-tested) |
+| `wayfind.js` | guided route: ribbon, legs, re-routing, arrival, indoor continuation |
 | `overhead.js` | keyboard-first orbit camera |
 | `labels.js` | canvas-texture text sprites |
 | `geometry.js` | shared ring → shape/extrude helpers, the merge-bucket rule |

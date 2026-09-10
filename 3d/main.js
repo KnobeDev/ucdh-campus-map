@@ -5,8 +5,10 @@ import { buildGroundSurfaces } from "./ground.js?v=6";
 import { createOverheadCamera } from "./overhead.js?v=6";
 import { initialTheme, saveTheme } from "./theme.js?v=6";
 import { buildHospital } from "./hospital.js?v=8";
-import { createPlayer } from "./player.js?v=8";
-import { createFloorPicker } from "./elevator-ui.js?v=8";
+import { createPlayer } from "./player.js?v=9";
+import { createFloorPicker } from "./elevator-ui.js?v=9";
+import { buildRouteGraph, snapToGraph } from "./route-core.js?v=1";
+import { createWayfinder } from "./wayfind.js?v=2";
 
 const $ = (id) => document.getElementById(id);
 
@@ -77,7 +79,7 @@ function wireWalker(world, player, overhead, hospital, canvas) {
     viewBtn.querySelector(".btn-ico").textContent = over ? "🚶" : "🚁";
     hint.textContent = over
       ? "Overhead: arrows pan · Q E rotate · PgUp PgDn tilt · + − zoom · V or the Walk button to walk"
-      : "Walk: W A S D · Shift runs · arrows look · E at an elevator or stairs · V overhead · drag to look";
+      : "Walk: W A S D · Shift runs · arrows look · E at an elevator or stairs · G guide me · V overhead · drag to look";
     say(over ? "Overhead view." : "Walking view.");
     canvas.focus();
   }
@@ -106,15 +108,17 @@ function wireWalker(world, player, overhead, hospital, canvas) {
   });
   let pendingCell = null;
 
+  let wayfinder = null;
   player.onUse = (cell) => {
     pendingCell = cell;
     player.pause(); // nothing keeps walking behind the modal
     if (cell.kind === "elevator") {
       const ids = hospital.reachableBy(cell.node.elevatorId);
+      const preferred = wayfinder && wayfinder.preferredFloor();
       picker.open({
         title: cell.node.label || "Elevator",
-        hint: "Choose a floor.",
-        floors: ids.map((id) => ({ id, name: floorName(id), current: id === cell.floor })),
+        hint: preferred && preferred !== cell.floor ? `Your route continues on ${floorName(preferred)}.` : "Choose a floor.",
+        floors: ids.map((id) => ({ id, name: floorName(id), current: id === cell.floor, preferred: id === preferred })),
       });
     } else {
       const { up, down } = hospital.stairNeighbours(cell.floor);
@@ -138,7 +142,111 @@ function wireWalker(world, player, overhead, hospital, canvas) {
   player.onEnter = (d) => { setWhere(); say(`Entered the Medical Center through the ${d.label || "entrance"}. Level 1, street level.`); };
   player.onExit = (d) => { setWhere(); say(`Left the Medical Center through the ${d.label || "entrance"}.`); };
   setWhere();
-  return { dispose() { window.removeEventListener("keydown", onViewKey); player.dispose(); } };
+  return {
+    setWayfinder(w) { wayfinder = w; },
+    setWhere,
+    dispose() { window.removeEventListener("keydown", onViewKey); player.dispose(); },
+  };
+}
+
+/** The wayfinder's view of the HUD: summary line, steps list, active state. */
+function wayfindUi() {
+  return {
+    summary: (text) => { $("wf-summary").textContent = text; },
+    steps: (items) => {
+      const ol = $("wf-steps");
+      ol.replaceChildren();
+      for (const t of items) {
+        const li = document.createElement("li");
+        li.textContent = t;
+        ol.append(li);
+      }
+    },
+    active: (on) => { $("wf-stop").hidden = !on; },
+  };
+}
+
+/** Destinations: every campus building, every department (→ its building),
+ *  every Medical Center room (→ floor + node). Starts: any building. */
+function wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker) {
+  const dest = $("wf-dest");
+  const start = $("wf-start");
+  const byCode = new Map(data.buildings.map((b) => [b.code, b]));
+  const targets = new Map();
+  const group = (label) => { const g = document.createElement("optgroup"); g.label = label; return g; };
+  const opt = (id, text) => { const o = document.createElement("option"); o.value = id; o.textContent = text; return o; };
+
+  const buildingTarget = (b) => ({
+    kind: "building", name: b.name, x: b.center.x, z: b.center.z, code: b.code,
+    // A big footprint counts as reached from further out.
+    radius: b.footprints.length ? Math.max(...b.footprints.map((f) => {
+      const xs = f.ring.map((p) => p[0]); const zs = f.ring.map((p) => p[1]);
+      return Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs)) / 2 + 6;
+    })) : 0,
+  });
+
+  const gB = group("Buildings");
+  const gS = group("Buildings");
+  for (const b of [...data.buildings].sort((a, c) => a.name.localeCompare(c.name))) {
+    if (b.renderedBy === "hospital") continue; // reached via its rooms and entrances below
+    targets.set(`b:${b.code}`, buildingTarget(b));
+    gB.append(opt(`b:${b.code}`, b.name));
+    gS.append(opt(`b:${b.code}`, b.name));
+  }
+  const gE = group("Medical Center entrances");
+  for (const e of hospital.entrances) {
+    targets.set(`e:${e.id}`, { kind: "building", name: e.label || "Entrance", x: e.x, z: e.z, radius: 6 });
+    gE.append(opt(`e:${e.id}`, `${e.label}${e.accessible ? " ♿" : ""}`));
+    gS.append(opt(`e:${e.id}`, `Medical Center · ${e.label}`));
+  }
+  const gD = group("Departments");
+  for (const d of [...data.buildings.flatMap((b) => b.departments.map((d) => ({ ...d, b })))].sort((a, c) => a.name.localeCompare(c.name))) {
+    if (d.b.renderedBy === "hospital") continue;
+    const id = `d:${d.b.code}:${d.name}`; // keyed by building too — two buildings may share a department name
+    targets.set(id, { ...buildingTarget(d.b), name: `${d.name} (${d.b.name})` });
+    gD.append(opt(id, `${d.name} — ${d.b.label || d.b.name}`));
+  }
+  const gR = group("Medical Center — by floor");
+  for (const f of hospital.floors) {
+    for (const n of f.nodes.filter((n) => n.kind === "room").sort((a, c) => (a.roomN ?? 999) - (c.roomN ?? 999))) {
+      const id = `r:${f.id}:${n.id}`;
+      const name = n.roomN != null ? `${n.roomN} · ${n.label}` : n.label;
+      targets.set(id, { kind: "room", name, floor: f.id, floorName: floorName(f.id), node: n, x: n.x, z: n.z });
+      gR.append(opt(id, `${floorName(f.id)} — ${name}`));
+    }
+  }
+  dest.append(gB, gE, gD, gR);
+  start.append(gS);
+
+  // Sensible defaults for the first try: P3 → Cancer Center South.
+  if (targets.has("b:P3")) start.value = "b:P3";
+  if (targets.has("b:L")) dest.value = "b:L";
+
+  $("wf-stepfree").addEventListener("change", (e) => wayfinder.setStepFree(e.target.checked));
+  $("wf-go").addEventListener("click", () => {
+    const t = targets.get(dest.value);
+    if (!t) return;
+    const s = targets.get(start.value);
+    if (s) {
+      // Begin on the nearest walkway outside the chosen start — never inside its footprint.
+      const snap = snapToGraph(graph, s.x, s.z);
+      player.leaveBuilding();
+      player.teleport(snap ? snap.x : s.x, snap ? snap.z : s.z);
+      walker.setWhere();
+      say(`Starting at ${s.name}.`);
+    }
+    wayfinder.guideTo(t);
+    canvas.focus();
+  });
+  $("wf-stop").addEventListener("click", () => { wayfinder.stop(); canvas.focus(); });
+  const onGuideKey = (e) => {
+    if ((e.code === "KeyG" || String(e.key).toLowerCase() === "g") && !e.repeat && document.activeElement === canvas
+        && !document.querySelector("dialog[open]")) {
+      if (wayfinder.active) wayfinder.stop(); else $("wf-go").click();
+    }
+  };
+  window.addEventListener("keydown", onGuideKey);
+  return { dispose() { window.removeEventListener("keydown", onGuideKey); } };
 }
 
 async function boot() {
@@ -161,6 +269,10 @@ async function boot() {
   const player = createPlayer(world, index, hospital, { x: door.x, z: door.z + 28, yaw: 0 });
   setTheme(world, initialTheme());
   const walker = wireWalker(world, player, overhead, hospital, canvas);
+  const graph = buildRouteGraph(data.paths, { construction: data.construction });
+  const wayfinder = createWayfinder(world, { graph, hospital, player, say, ui: wayfindUi() });
+  walker.setWayfinder(wayfinder);
+  const wayfindingWiring = wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker);
 
   $("theme-btn").addEventListener("click", () => {
     setTheme(world, document.documentElement.dataset.theme === "dark" ? "light" : "dark");
@@ -180,13 +292,14 @@ async function boot() {
   $("status").textContent =
     `Loaded ${data.buildings.length} campus buildings (${shells} footprints, ${named} from OpenStreetMap), ` +
     `${data.context.length} neighbourhood buildings and ${data.paths.length} paths.`;
-  window.__ucd3d = { world, index, data, overhead, player, hospital, walker }; // boot-guard.js checks this; handy in devtools
+  window.__ucd3d = { world, index, data, overhead, player, hospital, walker, wayfinder, wayfindingWiring, graph }; // boot-guard.js checks this; handy in devtools
 
   let last = performance.now();
   function frame(now) {
     const dt = Math.min((now - last) / 1000, 0.1);
     last = now;
     player.update(dt);
+    wayfinder.update(dt);
     overhead.update(dt);
     world.renderer.render(world.scene, world.camera);
     requestAnimationFrame(frame);

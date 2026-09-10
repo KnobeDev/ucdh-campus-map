@@ -37,6 +37,10 @@ export function createFloorPicker({ onChoose, onCancel }) {
           btn.disabled = true;
           btn.setAttribute("aria-label", `${f.name} (you are here)`);
         }
+        if (f.preferred) {
+          btn.classList.add("preferred");
+          btn.setAttribute("aria-label", `${f.name} (your route continues here)`);
+        }
         btn.addEventListener("click", () => {
           if (!dialog.open) return; // a stale button from an earlier, already-closed picker
           closing = true;
@@ -48,7 +52,7 @@ export function createFloorPicker({ onChoose, onCancel }) {
       }
       dialog.showModal();
       // Focus the first enabled choice so keyboard users land on a real option.
-      list.querySelector("button:not([disabled])")?.focus();
+      (list.querySelector("button.preferred") || list.querySelector("button:not([disabled])"))?.focus();
     },
     get isOpen() {
       return dialog.open;
