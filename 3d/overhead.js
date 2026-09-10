@@ -23,6 +23,7 @@ export function createOverheadCamera(world, canvas) {
   const keys = new Set();
   let dragging = false;
   let last = null;
+  let enabled = true; // false while the first-person walker owns the camera
 
   function apply() {
     const cp = Math.cos(pitch);
@@ -94,6 +95,7 @@ export function createOverheadCamera(world, canvas) {
   }
 
   function press(e) {
+    if (!enabled) return;
     const action = actionOf(e);
     if (!action) return;
     e.preventDefault();
@@ -103,7 +105,7 @@ export function createOverheadCamera(world, canvas) {
   }
 
   function onPointerDown(e) {
-    if (e.button !== 0) return;
+    if (!enabled || e.button !== 0) return;
     dragging = true;
     last = [e.clientX, e.clientY];
     canvas.setPointerCapture(e.pointerId);
@@ -122,6 +124,7 @@ export function createOverheadCamera(world, canvas) {
   }
   const endDrag = () => { dragging = false; last = null; };
   function onWheel(e) {
+    if (!enabled) return;
     e.preventDefault();
     zoom(e.deltaY > 0 ? ZOOM_RATE : 1 / ZOOM_RATE);
   }
@@ -152,7 +155,18 @@ export function createOverheadCamera(world, canvas) {
   apply();
   return {
     focus,
+    /** Take or release the camera. Taking it re-parents the camera to the scene. */
+    setEnabled(on) {
+      enabled = on;
+      keys.clear();
+      dragging = false;
+      if (on) {
+        if (cam.parent !== world.scene) world.scene.add(cam);
+        apply();
+      }
+    },
     update(dt) {
+      if (!enabled) return;
       if (keys.size) {
         const step = PAN_SPEED * dt * (dist / 900);
         if (keys.has("up")) pan(0, step);

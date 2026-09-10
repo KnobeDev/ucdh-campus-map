@@ -12,7 +12,7 @@
 // carry position/normal/uv and are indexed, so they may share a bucket; never
 // add a BoxGeometry (uv layout differs) to either.
 import * as THREE from "./lib/three.module.js";
-import { flatPatch, extrudedRing, mergeBuckets } from "./geometry.js?v=4";
+import { flatPatch, extrudedRing, mergeBuckets } from "./geometry.js?v=6";
 
 const CELL = 60; // metres, spatial hash cell
 const FLAT_Y = 0.05; // ground patches: above lawn (0.03), below walkways (0.07)
@@ -68,6 +68,14 @@ export function buildBuildings(world, buildings, context) {
   for (const b of buildings) {
     for (const f of b.footprints) {
       const solid = f.height > 0;
+      // Rendered by another module (the Medical Center is built from its floor
+      // plan by hospital.js): keep the footprint solid for collision, skip the box.
+      if (b.renderedBy) {
+        const entry = { building: b, footprint: f, ring: f.ring, bbox: bboxOf(f.ring), solid: true };
+        index.entries.push(entry);
+        registerInIndex(index, entry);
+        continue;
+      }
       add(solid ? b.cat : `${b.cat}#flat`, f.ring, f.height, {
         building: b,
         footprint: f,

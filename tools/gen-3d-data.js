@@ -22,6 +22,7 @@ const { loadCurated } = require("./lib/curated");
 const { loadOsm } = require("./lib/osm");
 const { matchBuildings } = require("./lib/match");
 const { resolveHeight, FLOOR_H } = require("./lib/heights");
+const { registerHospital } = require("./lib/floorplan");
 const { centroid, area, cleanRing, roundRing, round } = require("./lib/geom");
 
 const ROOT = path.join(__dirname, "..");
@@ -36,6 +37,7 @@ function loadDecisions() {
 }
 
 const pt = ([x, z]) => ({ x: round(x), z: round(z) });
+
 const pxPt = (o) => pt(pxToEnu(o.x, o.y));
 
 // The OSM extract is deliberately fetched with ~200 m of margin so buildings on
@@ -356,6 +358,23 @@ function main() {
   const { results, unclaimed } = matchBuildings(curatedEnu, osm);
   const buildings = buildBuildingRecords(curatedEnu, results, curated);
 
+  // The Medical Center is built from its floor plan, not from extruded OSM
+  // shells: the OSM outline is a 344 m podium that, extruded eight storeys,
+  // reads as one squat box. The floor plan carries the true massing AND the
+  // walkable interior. The T record keeps its footprints for the join
+  // provenance and outdoor collision; renderedBy tells buildings.js to leave
+  // the extrusion to hospital.js.
+  const medCenter = buildings.find((b) => b.code === "T");
+  const floorsPx = (curated.floorplans.T || {}).floors;
+  let hospital = null;
+  if (medCenter && floorsPx) {
+    const doors = curated.entrances
+      .filter((e) => e.building === "T")
+      .map((e) => ({ id: e.id, label: e.label || null, accessible: !!e.accessible, ...pxPt(e) }));
+    hospital = registerHospital(floorsPx, medCenter.footprints, FLOOR_H.hospital, doors);
+    medCenter.renderedBy = "hospital";
+  }
+
   const data = {
     meta: {
       generated: new Date().toISOString(),
@@ -378,6 +397,7 @@ function main() {
     points: buildPointFeatures(curated),
     graph: buildGraph(curated),
     construction: buildConstruction(curated),
+    hospital,
     osmBusStops: osm.points.filter((p) => touchesWorld([[p.x, p.z]])),
   };
   data.meta.counts = {
@@ -387,6 +407,7 @@ function main() {
     paths: data.paths.length,
     areas: data.areas.length,
     construction: data.construction.length,
+    hospitalFloors: data.hospital ? data.hospital.floors.length : 0,
     ...Object.fromEntries(Object.entries(data.points).map(([k, v]) => [k, v.length])),
   };
 

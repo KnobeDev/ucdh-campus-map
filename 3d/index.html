@@ -12,12 +12,12 @@
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
 <title>UC Davis Health — 3D Walkable Campus</title>
-<link rel="stylesheet" href="styles.css?v=4">
+<link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
 <main>
   <canvas id="scene" tabindex="0" role="application"
-          aria-label="3D map of the UC Davis Health Sacramento campus, seen from above. Arrow keys pan, Q and E rotate, Page Up and Page Down tilt, plus and minus zoom. Press Tab to leave the map."></canvas>
+          aria-label="3D walkable map of the UC Davis Health Sacramento campus, first person. W A S D walks, Shift runs, arrow keys look around, E uses the elevator or stairs you are standing at, V switches to the overhead view and back. Walk into a Medical Center entrance to go inside. Press Tab to leave the map."></canvas>
 </main>
 
 <p id="loading" role="status">Loading the 3D campus…</p>
@@ -29,14 +29,27 @@
 <header id="hud" hidden>
   <a class="hud-link" href="../index.html"><span aria-hidden="true">←</span> 2D map</a>
   <h1>UC Davis Health <span>3D Campus</span></h1>
+  <p id="where" class="hud-where">Outside · near the Main Entrance</p>
   <div class="hud-buttons">
+    <button id="view-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🚁</span><span class="btn-txt">Overhead view</span></button>
+    <button id="use-btn" type="button" hidden><span class="btn-ico" aria-hidden="true">🛗</span><span class="btn-txt">Use elevator</span></button>
     <button id="theme-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🌙</span><span class="btn-txt">Dark mode</span></button>
   </div>
-  <p class="hud-hint">Overhead view · arrows pan · Q E rotate · PgUp PgDn tilt · + − zoom · drag to orbit, Shift-drag to pan</p>
+  <p id="hint" class="hud-hint">Walk: W A S D · Shift runs · arrows look · E at an elevator or stairs · V overhead · drag to look</p>
   <p class="hud-attrib">Building and path geometry © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors</p>
 </header>
 
-<script src="boot-guard.js?v=4"></script>
-<script type="module" src="main.js?v=5"></script>
+<!-- Elevator / stairs floor picker. A native dialog: focus trap, Escape and the
+     dialog role come from the browser. Choices are buttons whose visible text
+     is the floor name, so "click Level 5" works for voice control. -->
+<dialog id="floor-dialog" aria-labelledby="floor-dialog-title" aria-describedby="floor-dialog-hint">
+  <h2 id="floor-dialog-title">Elevator</h2>
+  <p id="floor-dialog-hint" class="hud-hint"></p>
+  <ul id="floor-dialog-list" class="floor-list"></ul>
+  <p class="floor-actions"><button id="floor-dialog-cancel" type="button">Stay on this floor</button></p>
+</dialog>
+
+<script src="boot-guard.js?v=6"></script>
+<script type="module" src="main.js?v=10"></script>
 </body>
 </html>

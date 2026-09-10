@@ -2,7 +2,7 @@
 // flat patches. Walkways sit on top of everything they cross — on a wayfinding
 // map they are the primary circulation and must never be hidden by a lot edge.
 import * as THREE from "./lib/three.module.js";
-import { flatPatch, mergeBuckets } from "./geometry.js?v=4";
+import { flatPatch, mergeBuckets } from "./geometry.js?v=6";
 
 // y-stack: lawn/park 0.015 < street 0.02 < service 0.03 < lot 0.04 < flat
 // building patch 0.05 < cycle 0.06 < foot 0.07 < steps 0.08.

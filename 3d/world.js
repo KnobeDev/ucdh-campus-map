@@ -4,7 +4,7 @@
 // origin at the map centre (campus-data.json meta.georef.enuOrigin). Nothing
 // here scales pixels — that was done once, in the pipeline.
 import * as THREE from "./lib/three.module.js";
-import { PALETTES } from "./theme.js?v=4";
+import { PALETTES } from "./theme.js?v=6";
 
 export const EYE = 1.7; // metres, standing eye height
 

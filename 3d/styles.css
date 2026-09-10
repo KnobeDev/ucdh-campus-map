@@ -25,6 +25,8 @@
 }
 
 html, body { margin: 0; height: 100%; overflow: hidden; }
+/* Any component display rule would otherwise beat the UA's [hidden] { display: none }. */
+[hidden] { display: none !important; }
 body {
   font-family: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   color: var(--text);
@@ -84,3 +86,36 @@ main { position: fixed; inset: 0; }
 @media (prefers-reduced-motion: reduce) {
   .hud-buttons button:active { transform: none; }
 }
+
+/* --- walker HUD ------------------------------------------------------------ */
+.hud-where { margin: 0.4rem 0 0.6rem; font-size: 0.9rem; font-weight: 600; color: var(--text); }
+#use-btn { background: #0a7a3f; border-color: #0a7a3f; color: #ffffff; } /* 5.4:1 */
+:root[data-theme="dark"] #use-btn { background: #2fd27a; border-color: #2fd27a; color: #16232f; }
+
+/* --- floor picker ------------------------------------------------------------ */
+#floor-dialog {
+  max-width: min(24rem, calc(100vw - 2rem));
+  /* body is overflow:hidden, so the dialog must scroll itself: 13 floors at 400% zoom */
+  max-height: min(80vh, calc(100vh - 2rem));
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 1.1rem 1.25rem 1rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 0.9rem;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+#floor-dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+#floor-dialog h2 { margin: 0 0 0.25rem; font-size: 1.05rem; }
+.floor-list { list-style: none; margin: 0.75rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr)); gap: 0.45rem; }
+.floor-list button, .floor-actions button {
+  width: 100%; min-height: 44px; padding: 0.45rem 0.7rem;
+  border: 2px solid var(--accent); border-radius: 0.6rem;
+  background: var(--panel); color: var(--text);
+  font: inherit; font-weight: 600; cursor: pointer;
+}
+.floor-list button:hover:not([disabled]) { background: var(--accent); color: var(--accent-text); }
+.floor-list button[disabled] { opacity: 0.55; cursor: default; border-style: dashed; }
+.floor-list button:focus-visible, .floor-actions button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.floor-actions { margin: 0.9rem 0 0; }

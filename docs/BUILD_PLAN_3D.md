@@ -1,6 +1,6 @@
 # UC Davis Health Sacramento — 3D Walkable Campus: Build Plan
 
-Status: **Phases 1–2 built; Phase 3 next.** Written 2026-09-09 on branch
+Status: **Phases 1, 2, 3 and 6 built (6 pulled forward at the owner's request); 4, 5, 7, 8, 9 remain.** Written 2026-09-09 on branch
 `claude/ucd-health-campus-3d-82ad07`.
 
 Sibling reference implementation: `/mnt/devdrive/Workbook/3D-UCDCampusMap/3d/`
@@ -244,7 +244,44 @@ each one cost a debugging session):
 
 **Acceptance:** campus renders, 60 fps at desktop, no console errors.
 
-### Phase 3 — Player, collision, camera
+### Phase 3 — Player, collision, camera ✅ **done 2026-09-09** (with Phase 6)
+
+`player.js`: first-person walker, WASD/Shift, arrow-key look with a discrete
+nudge per tap, drag look, footprint collision with axis sliding and a
+never-trap rule, `V` hands the camera to `overhead.js` and back. Third-person
+and minimap deferred. Spawns on the street facing the Main Entrance.
+
+### Phase 6 (pulled forward) — Medical Center interior ✅ **done 2026-09-09**
+
+Owner's request: *"the medical center seems small … make it something users
+can walk into and use elevators/stairs."* The measurement behind "small": the
+OSM `UC Davis Medical Center` way is a **344 × 199 m outline of the whole
+complex**, which extruded eight storeys read as one squat box with the towers
+poking out of it. Building from the floor plan fixed size and interior together.
+
+* `tools/lib/floorplan.js` registers the 13 traced floors onto real footprints
+  with per-floor anisotropic bbox fits, keyed by what the diagram itself shows:
+  LL/1 → podium outline; 2–3 → towers + Surgery & Emergency Pavilion (the bands
+  still carry the Burn Unit and main ORs); 4–8 → the three towers; 10–14 →
+  Davis Tower. Storey index skips 9 and 13 like the building does; Davis Tower
+  tops out at 50.4 m as before. Entrances are **snapped onto the floor-1 wall**
+  (18.6 m and 5.4 m from where the 2D polygon had them) so the door is in the
+  wall the walker collides with; the curated point is kept for provenance.
+* `hospital.js`: exterior massing per floor; per-floor slab, lit ceiling,
+  perimeter walls, elevator cores, one **estimated** stairwell beside the main
+  elevators, numbered room zones with labels; cutaway hides floors above the
+  one you're on. `elevator-ui.js`: a native `<dialog>` picker — every choice is
+  a button whose visible text is the floor name.
+* Verified in the pane by driving `player.update()` directly: street → Main
+  Entrance → Level 1 → elevator → Level 8 (y = 31.1 m, inside the floor-8
+  ring) → stairs → Level 10 → back out through the door, each step announced.
+
+Honest limits, all labelled in the scene: not-to-scale plan so rooms are
+approximate; no corridors traced so floors are open space; stair positions
+are invented. Corridor tracing in the 2D editor remains the data task that
+lifts indoor routing from coarse to real (§4 item 4).
+
+Original Phase 3 brief follows.
 
 `player.js` (first-person + overhead + third-person), `picking.js`
 (pointer-**cancellation-safe** select — fires on up-event, per SC 2.5.2),
