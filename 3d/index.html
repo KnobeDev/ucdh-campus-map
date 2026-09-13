@@ -12,7 +12,7 @@
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
 <title>UC Davis Health — 3D Walkable Campus</title>
-<link rel="stylesheet" href="styles.css?v=14">
+<link rel="stylesheet" href="styles.css?v=18">
 </head>
 <body>
 <main>
@@ -107,70 +107,103 @@
 <p id="status" role="status" class="sr-only"></p>
 
 <header id="hud" hidden>
-  <a class="hud-link" href="../index.html"><span aria-hidden="true">←</span> 2D map</a>
-  <h1>UC Davis Health <span>3D Campus</span></h1>
-  <p id="where" class="hud-where">Outside · near the Main Entrance</p>
-  <div class="hud-buttons">
-    <button id="view-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🚁</span><span class="btn-txt">Overhead view</span></button>
+  <!-- The panel collapses to this row. Use elevator lives here, not in the body,
+       so a touch user keeps it with the panel collapsed. -->
+  <div class="hud-top hud-buttons">
+    <button id="hud-toggle" type="button" aria-expanded="true" aria-controls="hud-body"><span class="btn-ico" aria-hidden="true">✕</span><span class="btn-txt">Menu</span></button>
     <button id="use-btn" type="button" hidden><span class="btn-ico" aria-hidden="true">🛗</span><span class="btn-txt">Use elevator</span></button>
-    <button id="theme-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🌙</span><span class="btn-txt">Dark mode</span></button>
-    <button id="join-btn" type="button" hidden><span class="btn-ico" aria-hidden="true">🎟️</span><span class="btn-txt">Join a tour</span></button>
-    <button id="conn-btn" type="button" hidden aria-expanded="false" aria-controls="conn-panel"><span class="btn-ico" aria-hidden="true">👥</span><span class="btn-txt">Group</span></button>
-    <button id="voice-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🔇</span><span class="btn-txt">Voice off</span></button>
-    <button id="sonar-btn" type="button"><span class="btn-ico" aria-hidden="true">📡</span><span class="btn-txt">Sonar</span></button>
-    <button id="identify-btn" type="button"><span class="btn-ico" aria-hidden="true">👁️</span><span class="btn-txt">What's ahead</span></button>
   </div>
-  <!-- Info card for the identified building. Not a live region: the
-       announcement goes through #status; this is the persistent, readable copy. -->
-  <section id="info" hidden aria-labelledby="info-title">
-    <h2 id="info-title"></h2>
-    <p id="info-meta" class="hud-hint"></p>
-    <ul id="info-depts" class="info-depts"></ul>
+  <!-- The page's only h1: outside the collapsible body so it is never removed
+       from the accessibility tree; collapsed, it is only visually hidden. -->
+  <h1>UC Davis Health <span>3D Campus</span></h1>
+  <div id="hud-body">
+    <a class="hud-link" href="../index.html"><span aria-hidden="true">←</span> 2D map</a>
+    <p id="where" class="hud-where">Outside · near the Main Entrance</p>
     <div class="hud-buttons">
-      <button id="info-guide" type="button"><span class="btn-ico" aria-hidden="true">🧭</span><span class="btn-txt">Guide me here</span></button>
-      <a id="info-maps" class="hud-link" target="_blank" rel="noopener">Open in Maps<span class="sr-only"> (opens in a new tab)</span></a>
-      <button id="info-close" type="button" class="hud-link-btn">Close</button>
+      <button id="view-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🚁</span><span class="btn-txt">Overhead view</span></button>
+      <button id="theme-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🌙</span><span class="btn-txt">Dark mode</span></button>
+      <button id="join-btn" type="button" hidden><span class="btn-ico" aria-hidden="true">🎟️</span><span class="btn-txt">Join a tour</span></button>
+      <button id="conn-btn" type="button" hidden aria-expanded="false" aria-controls="conn-panel"><span class="btn-ico" aria-hidden="true">👥</span><span class="btn-txt">Group</span></button>
+      <button id="voice-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🔇</span><span class="btn-txt">Voice off</span></button>
+      <button id="sonar-btn" type="button"><span class="btn-ico" aria-hidden="true">📡</span><span class="btn-txt">Sonar</span></button>
+      <button id="identify-btn" type="button"><span class="btn-ico" aria-hidden="true">👁️</span><span class="btn-txt">What's ahead</span></button>
     </div>
-  </section>
-  <p id="hint" class="hud-hint">Walk: W A S D · Shift runs · arrows look · E what's ahead / use elevator · P sonar · G guide me · V overhead · drag to look</p>
+    <!-- Info card for the identified building. Not a live region: the
+         announcement goes through #status; this is the persistent, readable copy. -->
+    <section id="info" hidden aria-labelledby="info-title">
+      <h2 id="info-title"></h2>
+      <p id="info-meta" class="hud-hint"></p>
+      <ul id="info-depts" class="info-depts"></ul>
+      <div class="hud-buttons">
+        <button id="info-guide" type="button"><span class="btn-ico" aria-hidden="true">🧭</span><span class="btn-txt">Guide me here</span></button>
+        <a id="info-maps" class="hud-link" target="_blank" rel="noopener">Open in Maps<span class="sr-only"> (opens in a new tab)</span></a>
+        <button id="info-close" type="button" class="hud-link-btn">Close</button>
+      </div>
+    </section>
+    <p id="hint" class="hud-hint">Walk: W A S D · Shift runs · arrows look · E what's ahead / use elevator · P sonar · G guide me · V overhead · drag to look</p>
 
-  <fieldset id="layers">
-    <legend>Layers</legend>
-    <label class="wf-check"><input type="checkbox" id="layer-construction" checked> Construction labels</label>
-    <!-- Text equivalent for the fences: every active closure by name and end date,
-         so it's discoverable without walking into one. Fences themselves are
-         always shown and always solid — you can't switch off a wall. -->
-    <details id="construction-list">
-      <summary>Active construction</summary>
-      <ul id="construction-items"></ul>
-    </details>
-    <label class="wf-check"><input type="checkbox" id="layer-shuttle"> Shuttle stops</label>
-    <label class="wf-check"><input type="checkbox" id="layer-bus"> Bus stops</label>
-    <label class="wf-check"><input type="checkbox" id="layer-pois"> Points of interest</label>
-  </fieldset>
+    <fieldset id="layers">
+      <legend>Layers</legend>
+      <label class="wf-check"><input type="checkbox" id="layer-construction" checked> Construction labels</label>
+      <!-- Text equivalent for the fences: every active closure by name and end date,
+           so it's discoverable without walking into one. Fences themselves are
+           always shown and always solid — you can't switch off a wall. -->
+      <details id="construction-list">
+        <summary>Active construction</summary>
+        <ul id="construction-items"></ul>
+      </details>
+      <label class="wf-check"><input type="checkbox" id="layer-shuttle"> Shuttle stops</label>
+      <label class="wf-check"><input type="checkbox" id="layer-bus"> Bus stops</label>
+      <label class="wf-check"><input type="checkbox" id="layer-pois"> Points of interest</label>
+    </fieldset>
 
-  <section id="wayfind" aria-labelledby="wayfind-title">
-    <h2 id="wayfind-title">Wayfinding</h2>
-    <div class="wf-row">
-      <label for="wf-start">Start</label>
-      <select id="wf-start"><option value="">Where I am</option></select>
-    </div>
-    <div class="wf-row">
-      <label for="wf-dest">Guide me to</label>
-      <select id="wf-dest"></select>
-    </div>
-    <label class="wf-check"><input type="checkbox" id="wf-stepfree"> Step-free route (no stairs)</label>
-    <div class="hud-buttons">
-      <button id="wf-go" type="button"><span class="btn-ico" aria-hidden="true">🧭</span><span class="btn-txt">Guide me</span></button>
-      <button id="wf-stop" type="button" hidden><span class="btn-ico" aria-hidden="true">✋</span><span class="btn-txt">Stop guiding</span></button>
-    </div>
-    <!-- Visual only, on purpose: #status is the single spoken channel. Two polite
-         live regions updating together interleave in screen readers. -->
-    <p id="wf-summary" class="wf-summary"></p>
-    <ol id="wf-steps" class="wf-steps"></ol>
-  </section>
-  <p class="hud-attrib">Building and path geometry © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors</p>
+    <section id="wayfind" aria-labelledby="wayfind-title">
+      <h2 id="wayfind-title">Wayfinding</h2>
+      <div class="wf-row">
+        <label for="wf-start">Start</label>
+        <select id="wf-start"><option value="">Where I am</option></select>
+      </div>
+      <div class="wf-row">
+        <label for="wf-dest">Guide me to</label>
+        <select id="wf-dest"></select>
+      </div>
+      <label class="wf-check"><input type="checkbox" id="wf-stepfree"> Step-free route (no stairs)</label>
+      <div class="hud-buttons">
+        <button id="wf-go" type="button"><span class="btn-ico" aria-hidden="true">🧭</span><span class="btn-txt">Guide me</span></button>
+        <button id="wf-stop" type="button" hidden><span class="btn-ico" aria-hidden="true">✋</span><span class="btn-txt">Stop guiding</span></button>
+      </div>
+      <!-- Visual only, on purpose: #status is the single spoken channel. Two polite
+           live regions updating together interleave in screen readers. -->
+      <p id="wf-summary" class="wf-summary"></p>
+      <ol id="wf-steps" class="wf-steps"></ol>
+    </section>
+    <p class="hud-attrib">Building and path geometry © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors</p>
+  </div>
 </header>
+
+<!-- Inset 2D map (minimap.js): a north-up top view that follows you. Lower left
+     by default; Move sends it to the top right and back; Hide leaves only the
+     Show map button in that corner. The canvas is a visual aid: its content is
+     also given as text (location line, route steps, construction list).
+     After #hud in source order on purpose: Tab reaches Menu and the h1 first
+     (SC 2.4.3, 1.3.1); where it sits on screen is CSS. -->
+<aside id="minimap" hidden aria-labelledby="minimap-title" class="corner-bottom-left">
+  <div id="minimap-panel">
+    <div class="mm-head">
+      <h2 id="minimap-title" class="mm-title">Map</h2>
+      <p id="minimap-scale" class="mm-scale"></p>
+    </div>
+    <div class="mm-bar">
+      <button id="minimap-in" type="button"><span aria-hidden="true">+</span><span class="sr-only">Zoom in map</span></button>
+      <button id="minimap-out" type="button"><span aria-hidden="true">−</span><span class="sr-only">Zoom out map</span></button>
+      <button id="minimap-move" type="button">Move<span id="minimap-move-where" class="sr-only"> map to the top right</span></button>
+      <button id="minimap-hide" type="button">Hide<span class="sr-only"> map</span></button>
+    </div>
+    <canvas id="minimap-canvas" role="img" aria-describedby="minimap-scale"
+            aria-label="Top-down map, north up, centred on you. The arrow is you and the way you face; the gold line is your route; orange dashes are construction. Click a spot to see it from overhead."></canvas>
+  </div>
+  <button id="minimap-show" type="button" hidden><span aria-hidden="true">🗺️</span>Show map</button>
+</aside>
 
 <!-- Elevator / stairs floor picker. A native dialog: focus trap, Escape and the
      dialog role come from the browser. Choices are buttons whose visible text
@@ -183,6 +216,6 @@
 </dialog>
 
 <script src="boot-guard.js?v=6"></script>
-<script type="module" src="main.js?v=27"></script>
+<script type="module" src="main.js?v=29"></script>
 </body>
 </html>

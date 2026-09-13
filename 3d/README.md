@@ -43,6 +43,12 @@ Remove. A refresh resumes the session; the session survives a silent guide for
   toggles mirror the 2D map's defaults.
 - **278 neighbourhood buildings** as unnamed context.
 - Light/dark theme following `prefers-color-scheme`, toggleable, persisted.
+- **An inset 2D map** in the lower-left corner (**Move** sends it to the top
+  right and back, **Hide** tucks it away): north-up, following you — or the
+  overhead camera — with your heading, the floor you're on, construction and
+  the guided route. Click a spot on it to see that spot from overhead.
+- **The side panel collapses to a ☰ Menu button**; it starts collapsed on
+  narrow screens. Menu, map corner, zoom and visibility are remembered.
 
 ### What is estimated, so nobody mistakes the picture for a survey
 
@@ -69,6 +75,9 @@ Remove. A refresh resumes the session; the session survives a silent guide for
 | `G` / **Guide me** button | start (or stop) guidance to the chosen destination |
 | `V` / **Overhead view** button | switch to the overhead orbit camera and back |
 | Overhead: arrows, `Q` `E`, `PgUp` `PgDn`, `+` `−` | pan, rotate, tilt, zoom |
+| **Menu** | collapse or expand the side panel (Use elevator stays visible either way) |
+| Map **+** **−** / **Move** / **Hide** | zoom the inset map (120 m to 2 km across), move it between the lower-left and top-right corners, hide or show it |
+| Click the inset map | look at that spot in the overhead view (the keyboard equivalent is panning the overhead view) |
 | `Tab` | leave the map (nothing traps focus) |
 
 Walk into a Medical Center entrance to go inside; walk back through the door to

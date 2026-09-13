@@ -14,7 +14,7 @@ const Y_BY_KIND = {
 // OSM area kinds we draw, mapped to a surface bucket. Large landuse polygons
 // (residential blocks, whole schools) are deliberately NOT here: they'd paint
 // entire districts and z-fight everything on them.
-const AREA_KIND = {
+export const AREA_KIND = { // also read by the inset map, so both maps colour areas alike
   parking: "parking",
   park: "green", garden: "green", grass: "green", recreation_ground: "green",
   village_green: "green", greenfield: "green", playground: "green",

@@ -1,19 +1,21 @@
 // Entry point: loads campus data, assembles the world, wires the HUD.
 import { createWorld } from "./world.js?v=6";
 import { buildBuildings } from "./buildings.js?v=6";
-import { buildGroundSurfaces } from "./ground.js?v=6";
+import { buildGroundSurfaces } from "./ground.js?v=7";
 import { createOverheadCamera } from "./overhead.js?v=6";
 import { initialTheme, saveTheme } from "./theme.js?v=6";
 import { buildHospital } from "./hospital.js?v=10";
 import { createPlayer } from "./player.js?v=14";
 import { createFloorPicker } from "./elevator-ui.js?v=9";
 import { buildRouteGraph, snapToGraph } from "./route-core.js?v=2";
-import { createWayfinder } from "./wayfind.js?v=3";
+import { createWayfinder } from "./wayfind.js?v=4";
 import { buildConstruction, buildPointLayers } from "./layers.js?v=3";
 import { createSpeech } from "./speech.js?v=4";
 import { createSonar } from "./sonar.js?v=3";
 import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=2";
 import { createSession } from "./session.js?v=3";
+import { createMinimap } from "./minimap.js?v=2";
+import { initialPanelOpen, prefs } from "./minimap-core.js?v=1";
 
 const $ = (id) => document.getElementById(id);
 
@@ -156,6 +158,12 @@ function wireWalker(world, player, overhead, hospital, canvas) {
   return {
     setWayfinder(w) { wayfinder = w; },
     setWhere,
+    /** The inset map's click: look at that spot from overhead, switching view if walking. */
+    showOverheadAt(x, z) {
+      if (player.state.mode !== "over") setView("over");
+      overhead.lookAt(x, z);
+      canvas.focus(); // so the arrow keys pan from there straight away
+    },
     dispose() { window.removeEventListener("keydown", onViewKey); player.dispose(); },
   };
 }
@@ -362,6 +370,24 @@ function wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker
   return { dispose() { window.removeEventListener("keydown", onGuideKey); } };
 }
 
+/** The side panel collapses to its Menu button; the choice persists per browser. */
+const PANEL_KEY = "ucdh3d-panel";
+function wirePanel() {
+  const hud = $("hud");
+  const body = $("hud-body");
+  const btn = $("hud-toggle");
+  // The name stays "Menu"; aria-expanded carries the state, the icon mirrors it.
+  const set = (open, persist) => {
+    body.hidden = !open;
+    hud.classList.toggle("collapsed", !open);
+    btn.setAttribute("aria-expanded", String(open));
+    btn.querySelector(".btn-ico").textContent = open ? "✕" : "☰";
+    if (persist) prefs.set(PANEL_KEY, open ? "open" : "closed");
+  };
+  set(initialPanelOpen(prefs.get(PANEL_KEY), innerWidth), false);
+  btn.addEventListener("click", () => set(body.hidden, true));
+}
+
 async function boot() {
   document.documentElement.dataset.theme = initialTheme();
   // The lobby (Guest / Tour / Event / Join) opens first; the data downloads
@@ -398,6 +424,11 @@ async function boot() {
   const wayfinder = createWayfinder(world, { graph, hospital, player, say, ui: wayfindUi() });
   walker.setWayfinder(wayfinder);
   const wayfindingWiring = wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker, session);
+  const minimap = createMinimap({
+    data, hospital, construction, player, overhead, wayfinder,
+    onLookAt: (x, z) => walker.showOverheadAt(x, z),
+  });
+  wirePanel();
   session.start({
     player, world, say,
     speak: (msg) => speech.speak(msg),
@@ -411,6 +442,8 @@ async function boot() {
 
   $("loading").hidden = true;
   $("hud").hidden = false;
+  $("minimap").hidden = false;
+  minimap.layout(); // measured only once visible: it reserves room under the panel
   canvas.focus();
 
   // Anyone using assistive tech gets the same summary the sighted user infers
@@ -424,7 +457,7 @@ async function boot() {
   say(`Loaded ${data.buildings.length} campus buildings (${shells} footprints, ${named} from OpenStreetMap), ` +
     `${data.context.length} neighbourhood buildings and ${data.paths.length} paths. ` +
     (zones ? `${zones} active construction zone${zones === 1 ? "" : "s"} — listed under Layers; routes avoid them.` : ""));
-  window.__ucd3d = { world, index, data, overhead, player, hospital, walker, wayfinder, wayfindingWiring, graph, sonar, picking, speech, session }; // boot-guard.js checks this; handy in devtools
+  window.__ucd3d = { world, index, data, overhead, player, hospital, walker, wayfinder, wayfindingWiring, graph, sonar, picking, speech, session, minimap }; // boot-guard.js checks this; handy in devtools
 
   let last = performance.now();
   function frame(now) {
@@ -435,6 +468,7 @@ async function boot() {
     sonar.update(dt);
     session.update(dt);
     overhead.update(dt);
+    minimap.update(dt);
     world.renderer.render(world.scene, world.camera);
     requestAnimationFrame(frame);
   }

@@ -121,7 +121,41 @@ main { position: fixed; inset: 0; }
 .floor-actions { margin: 0.9rem 0 0; }
 
 /* --- wayfinding panel ------------------------------------------------------ */
-#hud { max-height: calc(100vh - 1.5rem); overflow-y: auto; box-sizing: border-box; }
+/* --mm-reserve: the inset map's height while it sits below the panel (minimap.js). */
+#hud { max-height: max(8rem, calc(100vh - 1.5rem - var(--mm-reserve, 0px))); overflow-y: auto; box-sizing: border-box; }
+
+/* --- collapsible panel --------------------------------------------------- */
+.hud-top { align-items: center; }
+#hud:not(.collapsed) .hud-top { margin-bottom: 0.4rem; }
+#hud.collapsed { padding: 0.45rem; }
+#hud.collapsed h1 { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0; } /* still announced, just not drawn */
+#hud-toggle { background: var(--panel); color: var(--text); }
+#hud-toggle .btn-ico { font-size: 1.1rem; line-height: 1; }
+
+/* --- inset 2D map ----------------------------------------------------------- */
+/* vmin keeps it from swallowing the screen at 400% zoom (SC 1.4.10). */
+:root { --mm-size: clamp(170px, 34vmin, 260px); } /* 170px: the control bar fits on one row */
+#minimap { position: fixed; z-index: 30; }
+#minimap.corner-bottom-left { left: 12px; bottom: 12px; }
+#minimap.corner-top-right { right: 12px; top: 12px; }
+#minimap-panel { width: var(--mm-size); padding: 0.4rem; background: var(--panel); border: 1px solid var(--panel-border);
+  border-radius: 0.75rem; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25); }
+/* Two fixed rows (title + scale, then controls) so nothing wraps raggedly at any width. */
+.mm-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.4rem; margin: 0 0.2rem 0.3rem; }
+.mm-title { margin: 0; font-size: 0.9rem; }
+.mm-bar { display: grid; grid-template-columns: 36px 36px 1fr 1fr; gap: 0.25rem; margin-bottom: 0.35rem; }
+.mm-bar button, #minimap-show {
+  min-height: 36px; min-width: 0; padding: 0.2rem 0.3rem;
+  font: inherit; font-size: 0.85rem; font-weight: 700; line-height: 1;
+  color: var(--text); background: var(--panel);
+  border: 2px solid var(--accent); border-radius: 0.5rem; cursor: pointer;
+}
+.mm-bar button[aria-disabled="true"] { opacity: 0.6; cursor: default; }
+.mm-bar button:focus-visible, #minimap-show:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+#minimap-canvas { display: block; width: var(--mm-size); height: var(--mm-size); border-radius: 0.5rem; cursor: crosshair; }
+.mm-scale { margin: 0; font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+#minimap-show { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 44px; padding: 0.3rem 0.8rem; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3); }
 #wayfind { margin-top: 0.9rem; padding-top: 0.75rem; border-top: 1px solid var(--panel-border); }
 #wayfind h2 { margin: 0 0 0.5rem; font-size: 0.95rem; }
 .wf-row { display: grid; grid-template-columns: 6rem 1fr; align-items: center; gap: 0.4rem; margin-bottom: 0.45rem; }
