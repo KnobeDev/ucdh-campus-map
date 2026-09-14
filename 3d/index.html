@@ -153,9 +153,11 @@
     <fieldset id="layers">
       <legend>Layers</legend>
       <label class="wf-check"><input type="checkbox" id="layer-construction" checked> Construction labels</label>
-      <!-- Text equivalent for the fences: every active closure by name and end date,
-           so it's discoverable without walking into one. Fences themselves are
-           always shown and always solid — you can't switch off a wall. -->
+      <!-- Text equivalent for the fences and caution signs: every active site by
+           name with "Caution — construction site until <date>", so it's
+           discoverable without walking into one. The toggle hides the signs only:
+           fences and the striped cover are always shown and always solid — you
+           can't switch off a wall or a hazard. -->
       <details id="construction-list">
         <summary>Active construction</summary>
         <ul id="construction-items"></ul>
@@ -208,7 +210,7 @@
       <button id="minimap-hide" type="button">Hide<span class="sr-only"> map</span></button>
     </div>
     <canvas id="minimap-canvas" role="img" aria-describedby="minimap-scale"
-            aria-label="Top-down map, north up, centred on you. The arrow is you and the way you face; the gold line is your route; orange dashes are construction. Click a spot to see it from overhead."></canvas>
+            aria-label="Top-down map, north up, centred on you. The arrow is you and the way you face; the gold line is your route; yellow and black hatching is a construction site. Click a spot to see it from overhead."></canvas>
   </div>
   <button id="minimap-show" type="button" hidden><span aria-hidden="true">🗺️</span>Show map</button>
 </aside>
@@ -224,6 +226,6 @@
 </dialog>
 
 <script src="boot-guard.js?v=6"></script>
-<script type="module" src="main.js?v=32"></script>
+<script type="module" src="main.js?v=33"></script>
 </body>
 </html>

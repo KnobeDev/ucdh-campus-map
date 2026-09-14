@@ -9,14 +9,15 @@ import { createPlayer } from "./player.js?v=14";
 import { createFloorPicker } from "./elevator-ui.js?v=9";
 import { buildRouteGraph, snapToGraph } from "./route-core.js?v=2";
 import { createWayfinder } from "./wayfind.js?v=4";
-import { buildConstruction, buildPointLayers } from "./layers.js?v=3";
+import { buildConstruction, buildPointLayers } from "./layers.js?v=4";
+import { zoneListText } from "./caution-core.js?v=1";
 import { createSpeech } from "./speech.js?v=7";
 import { readingMs } from "./speech-core.js?v=3";
 import { createCaptions } from "./captions.js?v=1";
 import { createSonar } from "./sonar.js?v=5";
 import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=2";
 import { createSession } from "./session.js?v=3";
-import { createMinimap } from "./minimap.js?v=3";
+import { createMinimap } from "./minimap.js?v=4";
 import { initialPanelOpen, prefs } from "./minimap-core.js?v=1";
 
 const $ = (id) => document.getElementById(id);
@@ -156,7 +157,8 @@ function wireWalker(world, player, overhead, hospital, canvas) {
   player.onBlocked = throttle(() => say("Wall — no way through here."), 1200);
   player.onZoneBlocked = throttle((z) => {
     const guided = wayfinder && wayfinder.active;
-    say(`Construction fencing: ${z.name}${z.endDate ? `, closed until ${z.endDate}` : ""}. ${guided ? "Follow the gold line — it goes around." : "Go around it, or pick a destination for a route that does."}`);
+    // The same words as the sign on the fence and the Layers list.
+    say(`${zoneListText(z)}. ${guided ? "Follow the gold line — it goes around." : "Go around it, or pick a destination for a route that does."}`);
   }, 2500);
   player.onEnter = (d) => { setWhere(); say(`Entered the Medical Center through the ${d.label || "entrance"}. Level 1, street level.`); };
   player.onExit = (d) => { setWhere(); say(`Left the Medical Center through the ${d.label || "entrance"}.`); };
@@ -238,12 +240,12 @@ function wireLayers(construction, pointLayers) {
     el.addEventListener("change", () => apply(el.checked));
   };
   bind("layer-construction", (v) => construction.setVisible(v));
-  // Text equivalent of the fences: the same list, as real text.
+  // Text equivalent of the fences and the caution signs: the same words, as real text.
   const ul = $("construction-items");
   ul.replaceChildren();
   for (const z of construction.active) {
     const li = document.createElement("li");
-    li.textContent = `${z.name}${z.endDate ? ` — closed until ${z.endDate}` : ""}`;
+    li.textContent = zoneListText(z);
     ul.append(li);
   }
   if (!construction.active.length) {
@@ -466,10 +468,10 @@ async function boot() {
   // With the voice on, a screen-reader user learns here that it exists and how to silence it.
   say(`Loaded ${data.buildings.length} campus buildings (${shells} footprints, ${named} from OpenStreetMap), ` +
     `${data.context.length} neighbourhood buildings and ${data.paths.length} paths. ` +
-    (zones ? `${zones} active construction zone${zones === 1 ? "" : "s"} — listed under Layers; routes avoid them. ` : "") +
+    (zones ? `Caution: ${zones} active construction site${zones === 1 ? "" : "s"}, each with its end date under Layers; routes avoid them. ` : "") +
     (speech.enabled ? "The voice reads buildings aloud when you ask what's ahead or send a sonar pulse; the Voice button turns it off." : ""),
     { speak: false });
-  window.__ucd3d = { world, index, data, overhead, player, hospital, walker, wayfinder, wayfindingWiring, graph, sonar, picking, speech, captions, session, minimap }; // boot-guard.js checks this; handy in devtools
+  window.__ucd3d = { world, index, data, overhead, player, hospital, walker, wayfinder, wayfindingWiring, graph, sonar, picking, speech, captions, session, minimap, construction }; // boot-guard.js checks this; handy in devtools
 
   let last = performance.now();
   function frame(now) {
@@ -480,6 +482,7 @@ async function boot() {
     sonar.update(dt);
     session.update(dt);
     overhead.update(dt);
+    construction.update(); // after the cameras have moved for this frame
     minimap.update(dt);
     world.renderer.render(world.scene, world.camera);
     requestAnimationFrame(frame);

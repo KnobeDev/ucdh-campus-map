@@ -37,7 +37,11 @@ Remove. A refresh resumes the session; the session survives a silent guide for
   departments on each floor.
 - **12.4 km of real pedestrian network**, streets, lots and parks from OSM.
 - **Live construction**: active zones from the 2D map's schedule are fenced,
-  labelled with their end date, solid to the walker, and routed around.
+  covered in yellow/black hazard stripes, signed "Caution — construction site
+  until <end date>" (the admin's date, or "until further notice"), solid to
+  the walker, hatched on the inset map, and routed around. The "Construction
+  labels" toggle hides the signs only; fences and the striped cover always
+  show. The Layers list carries the same words as text.
 - **Shuttle stops, SacRT bus stops and points of interest** (valet, assisted
   drop-off, bike lockers) as sign posts, each also a guide destination. Layer
   toggles mirror the 2D map's defaults.
@@ -150,7 +154,9 @@ are straight lines until corridors are traced in the 2D editor.
 | `hospital.js` | Medical Center massing + interiors + walkability helpers |
 | `player.js` | first-person walker, doors, elevator/stairs proximity |
 | `elevator-ui.js` | floor picker (`<dialog>`) |
-| `layers.js` | construction fencing (solid to the walker), shuttle/bus stops, POIs |
+| `layers.js` | construction fencing (solid to the walker), hazard cover and signs, shuttle/bus stops, POIs |
+| `caution-core.js` | pure: end-date formatting, "Caution — construction site until…" wording, sign sizing and placement (node-tested) |
+| `caution.js` | the hazard stripe texture/material and the yellow caution sprite |
 | `speech.js` / `sonar.js` / `picking.js` | voice, sonar, identify-what's-ahead (`spatial-core.js` is the tested maths) |
 | `session.js` / `peers.js` | tours and events: lobby, sync loop, group panel, peer avatars |
 | `route-core.js` | pedestrian router over the OSM network (pure; node-tested) |

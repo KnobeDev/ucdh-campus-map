@@ -1,18 +1,28 @@
-// Health-specific layers: active construction zones (fenced, filled, labelled,
-// and solid to the walker), shuttle stops, SacRT bus stops and typed points of
-// interest (valet, assisted drop-off, bike lockers…). All from the same curated
-// data the 2D map shows, with the 2D layer toggles mirrored in the HUD.
+// Health-specific layers: active construction zones (fenced, covered in hazard
+// stripes, signed, and solid to the walker), shuttle stops, SacRT bus stops and
+// typed points of interest (valet, assisted drop-off, bike lockers…). All from
+// the same curated data the 2D map shows, with the 2D layer toggles mirrored
+// in the HUD.
+//
+// What the "Construction labels" toggle hides: the signs only. The fence and
+// the striped cover stay — a hazard is a hazard, and the walker still can't
+// pass — just as the fence has always stayed. The Layers list is the text
+// equivalent of everything here, so nothing visual is the only source.
 import * as THREE from "./lib/three.module.js";
 import { mergeGeometries } from "./lib/BufferGeometryUtils.js";
 import { flatPatch } from "./geometry.js?v=6";
 import { labelSprite } from "./labels.js?v=6";
 import { isZoneActive } from "./route-core.js?v=2";
 import { pointInPolygon } from "./buildings.js?v=6";
+import { cautionText, labelHeightFor, labelAnchors, signHeightAt, signHeightCap } from "./caution-core.js?v=1";
+import { hazardMaterial, cautionSprite } from "./caution.js?v=1";
 
 const FENCE_H = 2.2;
 const POST_H = 2.6;
 const POST_SPACING = 3.0; // metres between fence posts
-const FILL_Y = 0.1; // above surfaces (≤0.08), below the guide ribbon (0.12)
+const FILL_Y = 0.1; // above surfaces (≤0.08), below the guide ribbon (0.12); the cover is also polygon-offset toward the camera
+const SIGN_CLEAR = 0.6; // metres of air between the fence top and the sign's bottom edge
+const NAME_H = 1.3; // the zone's name plate, above the sign
 
 /** Vertical fence ribbon around a ring, both faces visible. */
 function fenceGeometry(ring) {
@@ -47,38 +57,68 @@ function postsAlong(ring) {
   return out;
 }
 
-const centroidOf = (ring) => [
-  ring.reduce((s, p) => s + p[0], 0) / ring.length,
-  ring.reduce((s, p) => s + p[1], 0) / ring.length,
-];
+/** Put a sign (and its name plate, if any) at height h; the plate rides on top. */
+function placeSign(s, h) {
+  const f = h / s.base;
+  const signY = FENCE_H + SIGN_CLEAR + h / 2;
+  s.sign.position.y = signY;
+  s.sign.scale.set(h * s.aspect, h, 1);
+  if (!s.name) return;
+  const nameH = NAME_H * f;
+  s.name.position.y = signY + h / 2 + 0.15 * f + nameH / 2;
+  s.name.scale.set(nameH * s.nameAspect, nameH, 1);
+}
+
+/**
+ * The signs for one zone: the caution at every anchor, the name over the
+ * first. Returns them with what the per-frame scaler needs: a sign is its base
+ * height up close and grows with distance so it stays readable from overhead,
+ * never wider than the zone allows (signHeightCap).
+ */
+function addSigns(labels, z) {
+  const base = labelHeightFor(z.ring);
+  const text = cautionText(z);
+  return labelAnchors(z.ring).map(([x, zz], i) => {
+    const sign = cautionSprite(`⚠ ${text}`, base);
+    sign.position.set(x, 0, zz);
+    labels.add(sign);
+    const aspect = sign.scale.x / sign.scale.y;
+    let name = null;
+    if (i === 0) {
+      name = labelSprite(`🚧 ${z.name}`, "stairs", NAME_H);
+      name.position.set(x, 0, zz);
+      labels.add(name);
+    }
+    const s = { sign, name, base, aspect, nameAspect: name ? name.scale.x / name.scale.y : 1, maxH: Math.max(base, signHeightCap(z.ring, aspect)) };
+    placeSign(s, base);
+    return s;
+  });
+}
 
 export function buildConstruction(world, zones, today) {
   const group = new THREE.Group();
   world.scene.add(group);
   const active = zones.filter((z) => z.ring.length >= 3 && isZoneActive(z, today));
   const fenceMat = new THREE.MeshLambertMaterial({ color: 0xff7a1a, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false });
-  const fillMat = new THREE.MeshLambertMaterial({ color: 0xff7a1a, transparent: true, opacity: 0.18, side: THREE.DoubleSide, depthWrite: false });
+  const coverMat = hazardMaterial();
   const postMat = new THREE.MeshLambertMaterial({ color: 0xffb000 });
   const postGeo = new THREE.CylinderGeometry(0.16, 0.16, POST_H, 6);
   postGeo.translate(0, POST_H / 2, 0);
 
-  const labels = new THREE.Group(); // fill + labels: the toggle; fences + posts stay
+  const labels = new THREE.Group(); // the signs: the toggle. Cover, fences and posts stay.
   group.add(labels);
   const fences = [];
   const posts = [];
+  const signs = [];
   for (const z of active) {
     fences.push(fenceGeometry(z.ring));
     try {
-      labels.add(new THREE.Mesh(flatPatch(z.ring, FILL_Y), fillMat));
+      group.add(new THREE.Mesh(flatPatch(z.ring, FILL_Y), coverMat));
     } catch {
-      console.warn(`construction: zone ${z.id} fill is degenerate; fence only`);
+      console.warn(`construction: zone ${z.id} cover is degenerate; fence only`);
     }
     posts.push(...postsAlong(z.ring));
-    const [cx, cz] = centroidOf(z.ring);
-    const until = z.endDate ? ` · until ${z.endDate}` : "";
-    const label = labelSprite(`🚧 ${z.name}${until}`, "stairs", 1.3);
-    label.position.set(cx, 5, cz);
-    labels.add(label);
+    signs.push(...addSigns(labels, z));
   }
   if (fences.length) {
     const merged = mergeGeometries(fences, false);
@@ -95,8 +135,18 @@ export function buildConstruction(world, zones, today) {
   return {
     active,
     group,
-    /** Hides the fill and labels only — the fence is a wall and stays. */
+    /** Hides the signs only — the fence is a wall and the striped cover is the hazard; both stay. */
     setVisible: (v) => { labels.visible = v; },
+    /** Per frame: size each sign for the camera's distance so it reads from the street and from overhead alike. */
+    update() {
+      if (!labels.visible) return;
+      const cam = world.camera;
+      const view = { fovDeg: cam.fov, viewportPx: innerHeight };
+      for (const s of signs) {
+        const d = s.sign.position.distanceTo(cam.position);
+        placeSign(s, signHeightAt(d, s.base, s.maxH, view));
+      }
+    },
     /** The active zone containing (x, z), if any. */
     zoneAt: (x, z) => active.find((zn) => pointInPolygon(x, z, zn.ring)) || null,
   };

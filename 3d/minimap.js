@@ -26,15 +26,19 @@ const STROKE_KINDS = ["street", "service", "cycle", "foot", "steps"]; // drawn i
 const MARKS = {
   light: {
     you: "#002855", youEdge: "#ffffff", route: "#ffbf00", routeEdge: "#16232f",
-    floor: "#002855", floorFill: "rgba(0, 40, 85, 0.18)", fence: "#8a3600", fenceEdge: "rgba(255, 255, 255, 0.9)", fenceFill: "rgba(255, 122, 26, 0.3)",
+    floor: "#002855", floorFill: "rgba(0, 40, 85, 0.18)", fence: "#8a3600", fenceEdge: "rgba(255, 255, 255, 0.9)",
     view: "#16232f", outline: "rgba(22, 35, 47, 0.45)", northBg: "rgba(255, 255, 255, 0.9)", north: "#16232f",
   },
   dark: {
     you: "#9cc4ff", youEdge: "#0c1220", route: "#ffbf00", routeEdge: "#000000",
-    floor: "#ffd75e", floorFill: "rgba(255, 215, 94, 0.2)", fence: "#ff8c1a", fenceEdge: "rgba(12, 18, 32, 0.9)", fenceFill: "rgba(255, 140, 26, 0.3)",
+    floor: "#ffd75e", floorFill: "rgba(255, 215, 94, 0.2)", fence: "#ff8c1a", fenceEdge: "rgba(12, 18, 32, 0.9)",
     view: "#edf1f5", outline: "rgba(0, 0, 0, 0.6)", northBg: "rgba(16, 22, 32, 0.9)", north: "#edf1f5",
   },
 };
+// The construction cover is hazard yellow with black hatching in both themes,
+// matching the striped cover in the scene; the hatch is drawn in screen pixels
+// so it stays readable whether the map shows 150 m or 1.5 km.
+const HAZARD = { fill: "rgba(255, 212, 0, 0.72)", hatch: "rgba(20, 20, 20, 0.85)", pitch: 7, width: 2 };
 
 const $ = (id) => document.getElementById(id);
 
@@ -83,6 +87,27 @@ function buildLayers(data, construction) {
   const fences = new Path2D();
   for (const z of construction.active) addRing(fences, z.ring);
   return { areas, neighbours, cats, lots, outline, strokes, width, fences, hasFences: construction.active.length > 0 };
+}
+
+/**
+ * Hatch the construction zones: clip to them, then rule 45° lines across the
+ * whole canvas in screen space. Called under the world transform; restores it.
+ */
+function drawHazardHatch(ctx, fences, dpr, cw, ch) {
+  ctx.save();
+  ctx.clip(fences);
+  ctx.fillStyle = HAZARD.fill;
+  ctx.fillRect(-1e6, -1e6, 2e6, 2e6); // the clip bounds it
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.strokeStyle = HAZARD.hatch;
+  ctx.lineWidth = HAZARD.width;
+  ctx.beginPath();
+  for (let o = -ch; o < cw + ch; o += HAZARD.pitch) {
+    ctx.moveTo(o, 0);
+    ctx.lineTo(o + ch, ch);
+  }
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawArrow(ctx, x, y, angle, mk) {
@@ -231,7 +256,7 @@ export function createMinimap({ data, hospital, construction, player, overhead, 
     ctx.stroke(layers.outline);
 
     if (layers.hasFences) {
-      fill(layers.fences, mk.fenceFill);
+      drawHazardHatch(ctx, layers.fences, dpr, cw, ch);
       ctx.strokeStyle = mk.fenceEdge; // a halo: the dashes hold 3:1 over lawn, street and building alike
       ctx.lineWidth = 4.5 * px;
       ctx.stroke(layers.fences);
