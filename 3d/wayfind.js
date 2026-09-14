@@ -1,7 +1,7 @@
 // Guided route: a gold ribbon along real walkways to a destination, live
 // re-routing as the walker moves, a beacon at the goal, and — when the goal is
 // inside the Medical Center — the route continues through the door: to the
-// entrance, to the elevators, to the floor, to the room. Every leg is spoken
+// entrance, to the elevators, to the floor, along the corridors to the room. Every leg is spoken
 // through `say`, the single live channel, so a non-visual walker gets the same
 // guidance. The decisions live in wayfind-core.js; this file presents them.
 import * as THREE from "./lib/three.module.js";
@@ -128,11 +128,14 @@ export function createWayfinder(world, { graph, hospital, player, say, ui }) {
     const f = hospital.floor(player.state.floor);
     const y = f.y + 0.1;
     const h = here();
+    // Indoors the line follows the floor's corridors, so it never points through a wall.
+    const walk = (goal) => hospital.route(player.state.floor, h, goal);
     if (leg === "on-floor") {
       const goal = dest.node;
-      const d = distTo(goal);
+      const w = walk(goal);
+      const d = w.length;
       present({
-        pts: [[h.x, h.z], [goal.x, goal.z]], y,
+        pts: w.pts, y,
         beaconAt: { x: goal.x, z: goal.z, y: f.y }, beaconText: dest.name,
         steps: [`Walk to ${dest.name} (${Math.round(d)} m)`],
         summary: `${Math.round(d)} m on ${dest.floorName}`,
@@ -144,9 +147,10 @@ export function createWayfinder(world, { graph, hospital, player, say, ui }) {
     }
     if (leg === "to-door") {
       const dr = door();
-      const d = distTo(dr);
+      const w = walk(dr.inside || dr);
+      const d = w.length;
       present({
-        pts: [[h.x, h.z], [dr.x, dr.z]], y,
+        pts: [...w.pts, [dr.x, dr.z]], y,
         beaconAt: { x: dr.x, z: dr.z, y: f.y }, beaconText: dr.label || "Exit",
         steps: [`Leave through the ${dr.label || "entrance"}`, `Then walk to ${dest.name}`],
         summary: `${Math.round(d)} m to the exit`,
@@ -158,9 +162,10 @@ export function createWayfinder(world, { graph, hospital, player, say, ui }) {
     }
     const targetName = dest.kind === "room" ? dest.floorName : "Level 1";
     const elev = hospital.elevatorOn(player.state.floor, null, h.x, h.z);
-    const d = distTo(elev);
+    const w = walk(elev);
+    const d = w.length;
     present({
-      pts: [[h.x, h.z], [elev.x, elev.z]], y,
+      pts: w.pts, y,
       beaconAt: { x: elev.x, z: elev.z, y: f.y }, beaconText: `Elevator → ${targetName}`,
       steps: [`Walk to the ${elev.label || "elevator"} (${Math.round(d)} m)`, `Take it to ${targetName}`, `Walk to ${dest.name}`],
       summary: `${Math.round(d)} m to the elevator`,
