@@ -110,6 +110,7 @@ export function buildConstruction(world, zones, today) {
   const fences = [];
   const posts = [];
   const signs = [];
+  const camWorld = new THREE.Vector3(); // scratch for update()
   for (const z of active) {
     fences.push(fenceGeometry(z.ring));
     try {
@@ -141,9 +142,12 @@ export function buildConstruction(world, zones, today) {
     update() {
       if (!labels.visible) return;
       const cam = world.camera;
+      // World position, not cam.position: while walking the camera is a child of the
+      // player, so its local position is ~0 and every sign would scale to its maximum.
+      cam.getWorldPosition(camWorld);
       const view = { fovDeg: cam.fov, viewportPx: innerHeight };
       for (const s of signs) {
-        const d = s.sign.position.distanceTo(cam.position);
+        const d = s.sign.position.distanceTo(camWorld);
         placeSign(s, signHeightAt(d, s.base, s.maxH, view));
       }
     },
