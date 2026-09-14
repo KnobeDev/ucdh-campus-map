@@ -3,14 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- Strict same-origin CSP: no CDN, no inline script, no eval. Three.js is
-     vendored in lib/. Widen ONLY with a written reason (the Davis build documents
-     each exception it needed for its TTS engine and embedded players).
+<!-- Strict same-origin CSP: no CDN, no inline script, no eval. Three.js and the
+     Piper voice are vendored in lib/. Widen ONLY with a written reason. The two
+     exceptions, both for the Piper neural voice (speech.js):
+       'wasm-unsafe-eval'  compiles its WebAssembly (the ONNX model and phonemizer);
+                           it does NOT allow JavaScript eval or new Function.
+       connect-src blob:   lets the engine fetch blob URLs it created itself.
      frame-ancestors is deliberately absent: browsers ignore it in a <meta> CSP
      (and log an error); anti-clickjacking must come from the HTTP header when
      this is deployed behind a real server. -->
 <meta http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' blob:; base-uri 'self'; form-action 'self'; object-src 'none'">
 <title>UC Davis Health — 3D Walkable Campus</title>
 <link rel="stylesheet" href="styles.css?v=18">
 </head>
@@ -216,6 +219,6 @@
 </dialog>
 
 <script src="boot-guard.js?v=6"></script>
-<script type="module" src="main.js?v=29"></script>
+<script type="module" src="main.js?v=31"></script>
 </body>
 </html>

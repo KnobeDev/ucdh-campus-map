@@ -11,3 +11,7 @@ node_modules/
 # Throwaway screenshots / sketches from design iteration
 uploads/Screenshot *.png
 uploads/draw-*.png
+
+# Piper neural voice (~160 MB): vendored locally by tools/fetch-piper.sh, verified
+# against tools/piper-manifest.sha256 — too large for git history.
+3d/lib/piper/

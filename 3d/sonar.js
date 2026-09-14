@@ -70,7 +70,7 @@ export function createSonar(world, { index, hospital, player, speech, say }) {
       timers = [];
       for (const n of liveNodes) { try { n.stop(0); } catch { /* already ended */ } }
       liveNodes = [];
-      speech.stop();
+      speech.cancel("sonar"); // replace the last pulse's echoes, never a building description still being read
       const p = player.object.position;
       const yaw = player.object.rotation.y;
       const y = p.y - 1.7 + 0.25;
@@ -83,10 +83,12 @@ export function createSonar(world, { index, hospital, player, speech, say }) {
       for (const [i, h] of hits.entries()) {
         const at = (h.d / RING_M) * RING_SEC;
         try { liveNodes.push(speech.blip({ x: h.x, y: p.y, z: h.z }, RING_M, RING_M * RINGS, at)); } catch { /* audio unavailable */ }
-        timers.push(setTimeout(() => speech.speak(lines[i], { interrupt: false }), at * 1000 + 60));
+        timers.push(setTimeout(() => speech.speak(lines[i], { interrupt: false, tag: "sonar" }), at * 1000 + 60));
       }
-      say(lines.length ? `Sonar: ${lines.join(". ")}.` : `Sonar: nothing within ${RING_M * RINGS} metres.`);
-      if (!lines.length) timers.push(setTimeout(() => speech.speak(`Nothing within ${RING_M * RINGS} metres.`), RINGS * RING_SEC * 1000));
+      // The live region gets the whole list at once; the voice names each echo as it
+      // returns (above). Voicing this too said every building twice.
+      say(lines.length ? `Sonar: ${lines.join(". ")}.` : `Sonar: nothing within ${RING_M * RINGS} metres.`, { speak: false });
+      if (!lines.length) timers.push(setTimeout(() => speech.speak(`Nothing within ${RING_M * RINGS} metres.`, { interrupt: false, tag: "sonar" }), RINGS * RING_SEC * 1000));
       ring.position.set(p.x, y, p.z);
       t = 0;
     },

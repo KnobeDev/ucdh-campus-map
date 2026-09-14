@@ -1,50 +1,126 @@
-// Voice: the Web Speech API reads every announcement aloud when the voice is on,
-// and a lazy AudioContext supplies HRTF-panned blips for sonar. Speech is
-// always mirrored to the live region by the caller, so the voice is a layer on
-// top of an already-accessible page, never the only channel.
+// Voice: announcements are spoken by Piper, a neural text-to-speech voice
+// ("Amy", en_US-amy-low) that runs entirely in the browser from lib/piper/:
+// no server, no CDN. Buildings named by What's ahead, by a click, or by a
+// sonar echo are all read in her voice. The queue in speech-core.js holds
+// announcements during the one-to-two-second warm-up, so the first building is
+// already Amy; the browser's own Web Speech voice is used only if Piper can
+// never start (lib/piper/ not vendored, or no WebAssembly).
 //
-// Piper (the neural voice the Davis build ships) is a 154 MB lazy download and
-// needs a wider CSP; it is a documented follow-up, not a dependency here.
+// Speech is always mirrored to the live region by the caller, so the voice is a
+// layer on top of an already-accessible page, never the only channel. A lazy
+// AudioContext also supplies the HRTF-panned sonar blips.
+//
+// CSP (index.html): the model needs 'wasm-unsafe-eval' (compile WebAssembly; it
+// does not allow JavaScript eval) and connect-src blob: (the engine fetches
+// blob URLs it creates itself).
+import { createVoiceQueue } from "./speech-core.js?v=2";
+
 const KEY = "ucdh3d-voice";
+const VOICE = "en_US-amy-low";
+const PIPER = new URL("./lib/piper/", import.meta.url).href;
+const PLAY_SLACK_MS = 750; // past the clip's length, a playback that never ended is given up on
+
+async function loadPiper() {
+  if (typeof WebAssembly !== "object") throw new Error("WebAssembly is unavailable");
+  const m = await import("./lib/piper/piper-tts-web.js");
+  const engine = new m.PiperWebEngine({
+    // One thread: several would need SharedArrayBuffer, i.e. cross-origin isolation headers.
+    onnxRuntime: new m.OnnxWebRuntime({ basePath: `${PIPER}onnx/`, numThreads: 1 }),
+    phonemizeRuntime: new m.PhonemizeWebRuntime({ basePath: `${PIPER}piper/` }),
+    voiceProvider: new m.RemoteVoiceProvider({ baseUrl: `${PIPER}voices/` }),
+  });
+  await engine.generate("ready", VOICE); // compile the WASM and load the model now, not on the first building
+  return engine;
+}
 
 export function createSpeech() {
-  // Off until asked for: a screen-reader user already hears the live region, and
-  // a second synthetic voice would talk over their own. Sighted and low-vision
-  // users switch it on once and it stays on.
-  let enabled = false;
-  try { enabled = localStorage.getItem(KEY) === "on"; } catch { /* no storage */ }
-  const supported = "speechSynthesis" in window;
-  if (supported) {
+  // On unless switched off: naming buildings aloud is the point of What's ahead
+  // and sonar. A screen-reader user, who already hears the live region, turns it
+  // off once and that choice persists.
+  let enabled = true;
+  try { enabled = localStorage.getItem(KEY) !== "off"; } catch { /* no storage: default on */ }
+  const nativeVoice = "speechSynthesis" in window;
+  if (nativeVoice) {
     speechSynthesis.getVoices(); // Chrome fills the list asynchronously
     speechSynthesis.addEventListener?.("voiceschanged", () => speechSynthesis.getVoices());
   }
+
   let ctx = null;
   const ensureContext = () => {
     if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === "suspended") ctx.resume().catch(() => {});
     return ctx;
   };
+  // A context created before any gesture (a resumed session skips the lobby) starts
+  // suspended; the next key or tap lets it play.
+  const unlock = () => { if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {}); };
+  addEventListener("pointerdown", unlock, true);
+  addEventListener("keydown", unlock, true);
+
+  function nativeSpeak(text) {
+    if (!nativeVoice) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    u.rate = 1.05;
+    const voices = speechSynthesis.getVoices();
+    u.voice = voices.find((v) => /^en/i.test(v.lang) && /female|samantha|karen|zira|google uk english female/i.test(v.name))
+      || voices.find((v) => /^en/i.test(v.lang)) || null;
+    speechSynthesis.speak(u);
+  }
+
+  let current = null; // { source, finish } for the clip playing now
+  const queue = createVoiceQueue({
+    load: loadPiper,
+    synth: async (engine, text) => {
+      const res = await engine.generate(text, VOICE);
+      return ensureContext().decodeAudioData(await res.file.arrayBuffer());
+    },
+    play: (buffer) => new Promise((done) => {
+      const c = ensureContext();
+      const source = c.createBufferSource();
+      source.buffer = buffer;
+      source.connect(c.destination);
+      // A suspended context never ends a source; the guard keeps that from stalling every later announcement.
+      const guard = setTimeout(() => finish(), buffer.duration * 1000 + PLAY_SLACK_MS);
+      const finish = () => {
+        clearTimeout(guard);
+        if (current && current.source === source) current = null;
+        done();
+      };
+      source.onended = finish;
+      current = { source, finish };
+      source.start();
+    }),
+    stopPlayback: () => {
+      if (nativeVoice) speechSynthesis.cancel();
+      if (!current) return;
+      const { source, finish } = current;
+      try { source.stop(); } catch { /* already ended */ }
+      finish();
+    },
+    fallback: nativeSpeak,
+    onError: (err) => console.error("Voice:", err),
+  });
+  if (enabled) queue.preload();
 
   return {
     get enabled() { return enabled; },
-    get supported() { return supported; },
+    get supported() { return typeof WebAssembly === "object" || nativeVoice; },
+    /** idle | loading | ready | failed (failed = the browser's own voice is speaking instead). */
+    get status() { return queue.status; },
     setEnabled(v, persist = true) {
       enabled = !!v;
       if (persist) try { localStorage.setItem(KEY, enabled ? "on" : "off"); } catch { /* fine */ }
-      if (!enabled && supported) speechSynthesis.cancel();
+      if (enabled) queue.preload();
+      else queue.stop();
     },
-    speak(text, { interrupt = true } = {}) {
-      if (!enabled || !supported || !text) return;
-      if (interrupt) speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "en-US";
-      u.rate = 1.05;
-      const voices = speechSynthesis.getVoices();
-      u.voice = voices.find((v) => /^en/i.test(v.lang) && /female|samantha|karen|zira|google uk english female/i.test(v.name))
-        || voices.find((v) => /^en/i.test(v.lang)) || null;
-      speechSynthesis.speak(u);
+    /** tag: lets one source (sonar) later cancel only its own announcements. */
+    speak(text, { interrupt = true, tag } = {}) {
+      if (enabled) queue.speak(text, { interrupt, tag });
     },
-    stop() { if (supported) speechSynthesis.cancel(); },
+    stop() { queue.stop(); },
+    /** Drop one source's queued announcements; cut it off only if it is the one speaking now. */
+    cancel(tag) { queue.cancel(tag); },
 
     /** Ears at the camera: position + orientation from its world matrix. */
     setListenerFromCamera(camera) {

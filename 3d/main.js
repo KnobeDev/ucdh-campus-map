@@ -10,8 +10,8 @@ import { createFloorPicker } from "./elevator-ui.js?v=9";
 import { buildRouteGraph, snapToGraph } from "./route-core.js?v=2";
 import { createWayfinder } from "./wayfind.js?v=4";
 import { buildConstruction, buildPointLayers } from "./layers.js?v=3";
-import { createSpeech } from "./speech.js?v=4";
-import { createSonar } from "./sonar.js?v=3";
+import { createSpeech } from "./speech.js?v=6";
+import { createSonar } from "./sonar.js?v=5";
 import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=2";
 import { createSession } from "./session.js?v=3";
 import { createMinimap } from "./minimap.js?v=2";
@@ -36,8 +36,9 @@ const floorName = (id) => FLOOR_NAMES[id] || `Level ${id}`;
 /** Spoken/live-region announcement. An unchanged value may not be re-announced
  *  by every AT, so identical text is cleared first and re-set a beat later. */
 let speech = null; // set in boot; say() mirrors to the voice when it's on
-function say(text, { interrupt = true } = {}) {
-  speech?.speak(text, { interrupt });
+function say(text, { interrupt = true, speak = true } = {}) {
+  // speak: false writes the live region only, for a caller that voices the same content its own way (sonar).
+  if (speak) speech?.speak(text, { interrupt });
   const el = $("status");
   if (el.textContent !== text) {
     el.textContent = text;
@@ -454,9 +455,13 @@ async function boot() {
   const shells = data.buildings.reduce((n, b) => n + b.footprints.length, 0);
   const named = data.buildings.filter((b) => b.footprints.some((f) => f.geomSource === "osm")).length;
   const zones = construction.active.length;
+  // Live region only: nothing starts talking before the user has done anything (SC 1.4.2).
+  // With the voice on, a screen-reader user learns here that it exists and how to silence it.
   say(`Loaded ${data.buildings.length} campus buildings (${shells} footprints, ${named} from OpenStreetMap), ` +
     `${data.context.length} neighbourhood buildings and ${data.paths.length} paths. ` +
-    (zones ? `${zones} active construction zone${zones === 1 ? "" : "s"} — listed under Layers; routes avoid them.` : ""));
+    (zones ? `${zones} active construction zone${zones === 1 ? "" : "s"} — listed under Layers; routes avoid them. ` : "") +
+    (speech.enabled ? "The voice reads buildings aloud when you ask what's ahead or send a sonar pulse; the Voice button turns it off." : ""),
+    { speak: false });
   window.__ucd3d = { world, index, data, overhead, player, hospital, walker, wayfinder, wayfindingWiring, graph, sonar, picking, speech, session, minimap }; // boot-guard.js checks this; handy in devtools
 
   let last = performance.now();

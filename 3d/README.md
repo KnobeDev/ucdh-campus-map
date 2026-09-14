@@ -71,7 +71,7 @@ Remove. A refresh resumes the session; the session survives a silent guide for
 | Drag | look around (mouse / touch) |
 | `E` / **What's ahead** | identify the building ahead (name, distance, direction, floors and how sure we are); at an elevator or stairs, use it instead |
 | `P` / **Sonar** | a pulse: each nearby building (or room, indoors) echoes from its position, then is named with distance and direction |
-| **Voice on/off** | read every announcement aloud (off by default; screen readers already speak the live region) |
+| **Voice on/off** | Amy, the Piper neural voice, reads buildings and announcements aloud (on by default; a screen-reader user who already hears the live region turns it off once and it stays off) |
 | `G` / **Guide me** button | start (or stop) guidance to the chosen destination |
 | `V` / **Overhead view** button | switch to the overhead orbit camera and back |
 | Overhead: arrows, `Q` `E`, `PgUp` `PgDn`, `+` `−` | pan, rotate, tilt, zoom |
@@ -82,6 +82,41 @@ Remove. A refresh resumes the session; the session survives a silent guide for
 
 Walk into a Medical Center entrance to go inside; walk back through the door to
 leave. Every transition and every floor change is announced in a live region.
+
+## Voice: Piper neural speech
+
+Buildings are read aloud by **Amy** (`en_US-amy-low`), a Piper neural voice that
+runs entirely in the browser: What's ahead, a click on a building, and every
+sonar echo as it returns, plus route guidance and the other announcements.
+Nothing is sent to a server. The first announcement waits for the one-to-two
+second warm-up rather than falling back to another voice, and a new sonar pulse
+replaces only the previous pulse's echoes, never a building description still
+being read. Every spoken line is also written to the live region; the startup
+summary goes to the live region only, so no audio plays before you act.
+
+The voice files (~160 MB) are **not in git**. Vendor them once:
+
+```
+PIPER_SRC=/path/to/3D-UCDCampusMap/3d/lib/piper tools/fetch-piper.sh
+```
+
+The script accepts only the exact files in `tools/piper-manifest.sha256` (no
+extras, no symlinks), verifies every checksum in a staging directory, and swaps
+the result into `3d/lib/piper/`. Without the files the map still runs and speaks
+through the browser's own voice.
+
+- **CSP exceptions**, both for the voice: `script-src 'wasm-unsafe-eval'`
+  compiles its WebAssembly (it does not permit JavaScript `eval`), and
+  `connect-src blob:` lets the engine fetch blob URLs it created itself.
+- **What is inside the bundle.** `piper-tts-web.js` embeds ONNX Runtime Web
+  v1.20.1 and Hugging Face transformers.js, whose defaults point at
+  `huggingface.co` and `cdn.jsdelivr.net`. `speech.js` overrides every base
+  path to `lib/piper/`, and the CSP's `connect-src 'self' blob:` blocks both
+  hosts regardless. The bundle's own piper-tts-web version is not recorded in
+  the file; it is byte-identical to the Davis build's copy. Slimming it to the
+  Piper, ONNX runtime and phonemizer code it actually uses is a follow-up.
+- **Licences:** piper-tts-web and ONNX Runtime Web are MIT; the Amy voice is
+  from rhasspy/piper-voices (see its model card for terms).
 
 ## Wayfinding
 
