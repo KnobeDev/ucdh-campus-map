@@ -4,12 +4,13 @@
 //
 // Outdoors, building footprints block walking. Walking into the Medical
 // Center at one of its entrances takes you inside; inside, the current floor's
-// outline is the walkable area and its walls block. Elevators and stairs
+// outline is the walkable area and its walls — perimeter and the inferred
+// partitions — block. Elevators and stairs
 // change floor through the picker (main.js) — this module only reports that
 // you are standing at one.
 import * as THREE from "./lib/three.module.js";
 import { footprintAt } from "./buildings.js?v=6";
-import { DOOR_RADIUS_OUT, DOOR_RADIUS_IN, CELL_RADIUS } from "./hospital.js?v=10";
+import { DOOR_RADIUS_OUT, DOOR_RADIUS_IN, CELL_RADIUS } from "./hospital.js?v=11";
 import { EYE } from "./world.js?v=6";
 
 const WALK_SPEED = 3.2;
@@ -69,8 +70,8 @@ export function createPlayer(world, index, hospital, spawn, zoneAt = () => null)
       }
       return { blocked: "wall" };
     }
-    if (hospital.contains(state.floor, x, z)) return true;
-    if (state.floor === "1") {
+    if (hospital.walkable(state.floor, x, z)) return true;
+    if (state.floor === "1" && !hospital.contains(state.floor, x, z)) {
       const door = hospital.entranceNear(x, z, DOOR_RADIUS_IN);
       if (door) return { door, inward: false };
     }
@@ -208,18 +209,15 @@ export function createPlayer(world, index, hospital, spawn, zoneAt = () => null)
       : hospital.elevatorOn(id, via, x, z);
     state.floor = id;
     hospital.setInside(id);
-    // Step out of the core so the walker isn't standing inside the box.
-    const f = hospital.floor(id);
-    const [cx, cz] = f.center;
-    const dx = cx - spot.x;
-    const dz = cz - spot.z;
+    // Step out of the core into the corridor (not into a room across a wall),
+    // facing away from the box.
+    const out = hospital.exitSpot(id, spot.x, spot.z);
+    const dx = out.x - spot.x;
+    const dz = out.z - spot.z;
     const l = Math.hypot(dx, dz) || 1;
-    const px = spot.x + (dx / l) * 3.2;
-    const pz = spot.z + (dz / l) * 3.2;
-    const clear = hospital.contains(id, px, pz);
-    yawObj.position.x = clear ? px : spot.x;
-    yawObj.position.z = clear ? pz : spot.z;
-    yawObj.rotation.y = Math.atan2(-(dx / l), -(dz / l));
+    yawObj.position.x = out.x;
+    yawObj.position.z = out.z;
+    if (l > 0.01) yawObj.rotation.y = Math.atan2(-(dx / l), -(dz / l));
   }
 
   // --- camera ownership ---------------------------------------------------------

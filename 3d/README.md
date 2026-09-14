@@ -60,7 +60,16 @@ Remove. A refresh resumes the session; the session survives a silent guide for
   overlaps its neighbours. The printed plan is an oblique drawing and explicitly
   *not to scale*, so it is used only to place **rooms**, which are fitted into
   the footprint and clamped inside it — their positions are approximate.
-- Corridors are not traced yet — every floor is open space.
+- Where a tier has several footprints (the three towers; the Pavilion on 2–3),
+  they are joined by **connector bands** so each floor is one walkable piece.
+  The plan only says that the towers join; the band's geometry comes from the
+  footprints' facing edges, never from the drawing.
+- **Corridors and partitions are inferred from room positions, not surveyed.**
+  On a building-aligned 3 m grid, a corridor spine runs from the main elevators
+  to every elevator, stairwell, entrance and connector, with a spur to each
+  room; rooms are the cells nearest their node, walled from each other and from
+  the corridor except at a door. The walker collides with these walls and the
+  guided route follows the corridors — but the real hospital's layout differs.
 - The plan shows no stairwells; one is placed beside the main elevators on each
   floor and labelled **"position estimated"** in the scene and the picker.
 - Almost every building height is a category estimate; OSM tags storeys on only
@@ -151,7 +160,8 @@ are straight lines until corridors are traced in the 2D editor.
 | `theme.js` | light/dark palettes (the 2D category colours, lifted to pastel) |
 | `buildings.js` | footprint extrusion, spatial hash, point-in-polygon |
 | `ground.js` | OSM paths as mitered ribbons, lots/parks as patches |
-| `hospital.js` | Medical Center massing + interiors + walkability helpers |
+| `hospital.js` | Medical Center massing (footprints + connectors), interiors, walls, walkability and indoor routing helpers |
+| `interior-core.js` | pure: the building-aligned interior grid — cells, walls, `walkable()`, `routeIndoor()` (shared with the generator; node-tested) |
 | `player.js` | first-person walker, doors, elevator/stairs proximity |
 | `elevator-ui.js` | floor picker (`<dialog>`) |
 | `layers.js` | construction fencing (solid to the walker), hazard cover and signs, shuttle/bus stops, POIs |

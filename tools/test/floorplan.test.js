@@ -34,15 +34,23 @@ test("floorplan: floor shapes ARE the real footprints — never a warped drawing
   const { floorsPx, footprints } = fixture();
   const h = registerHospital(floorsPx, footprints, 4.2);
   const real = new Map(footprints.map((f) => [JSON.stringify(f.ring.map((p) => [Math.round(p[0] * 100) / 100, Math.round(p[1] * 100) / 100])), f.osmName]));
+  const podium = footprints.find((f) => f.osmName === "UC Davis Medical Center");
   for (const f of h.floors) {
     for (const ring of f.rings) {
       assert.ok(real.has(JSON.stringify(ring)), `${f.id} has a ring that is not a real OSM footprint`);
+    }
+    // Connectors are the one non-OSM shape allowed: a band between two real
+    // rings, built from THEIR facing edges (never from the printed plan), and
+    // it must lie inside the podium footprint polygon — not just its bbox.
+    assert.strictEqual(f.links.length, Math.max(0, f.rings.length - 1), `${f.id}: one connector per gap`);
+    for (const l of f.links) {
+      assert.ok(Array.isArray(l.between) && l.between.length === 2);
+      for (const p of l.ring) assert.ok(contains(podium.ring, p), `${f.id}: connector vertex ${p} is outside the podium`);
     }
   }
   // The bug this guards: the oblique drawing stretched Level 1 to ~42,600 m²
   // against a real 32,640 m² podium, pushing a third of the Lower Level out
   // over Pathology, Parking 3 and North Addition.
-  const podium = footprints.find((f) => f.osmName === "UC Davis Medical Center");
   const one = h.floors.find((f) => f.id === "1");
   assert.strictEqual(one.rings.length, 1);
   assert.ok(Math.abs(area(one.rings[0]) - area(podium.ring)) < 1, "Level 1 is not exactly the podium footprint");
@@ -57,11 +65,30 @@ test("floorplan: no floor spills outside the building envelope", () => {
   const envelope = footprints.find((f) => f.osmName === "UC Davis Medical Center").ring;
   const env = bbox(envelope);
   for (const f of h.floors) {
-    for (const ring of f.rings) {
+    for (const ring of [...f.rings, ...f.links.map((l) => l.ring)]) {
       const b = bbox(ring);
       assert.ok(b.minX >= env.minX - 0.5 && b.maxX <= env.maxX + 0.5, `${f.id} spills out in x`);
       assert.ok(b.minZ >= env.minZ - 0.5 && b.maxZ <= env.maxZ + 0.5, `${f.id} spills out in z`);
     }
+  }
+});
+
+test("floorplan: the estimated stairwell is placed in the data, beside the main elevator, inside the floor", () => {
+  const { floorsPx, footprints } = fixture();
+  const h = registerHospital(floorsPx, footprints, 4.2);
+  for (const f of h.floors) {
+    assert.ok(f.stairs, `${f.id} has no stairwell`);
+    assert.ok(f.rings.some((r) => contains(r, [f.stairs.x, f.stairs.z])), `${f.id}: stairs are outside the floor`);
+    const main = f.nodes.find((n) => n.id === `T_${f.id}_elev_main`) || f.nodes.find((n) => n.kind === "elevator");
+    assert.ok(Math.hypot(main.x - f.stairs.x, main.z - f.stairs.z) < 10, `${f.id}: stairs are far from the main elevator`);
+  }
+});
+
+test("floorplan: entrances carry the point just inside the door, inside the podium", () => {
+  const { data } = fixture();
+  const floor1 = data.hospital.floors.find((f) => f.id === "1");
+  for (const e of data.hospital.entrances) {
+    assert.ok(e.inside && contains(floor1.rings[0], [e.inside.x, e.inside.z]), `${e.label}: no walkable point inside the door`);
   }
 });
 

@@ -25,6 +25,7 @@
 "use strict";
 
 const { bbox, centroid, area, contains } = require("./geom");
+const { linkRings, planFloor } = require("./interior");
 
 const FLOOR_ORDER = ["LL", "1", "2", "3", "4", "5", "6", "7", "8", "10", "11", "12", "14"];
 const OUTLINE = "UC Davis Medical Center";
@@ -91,22 +92,54 @@ function clampInto(rings, x, z) {
   return { x: px + (dx / l) * INSET, z: pz + (dz / l) * INSET, clamped: true, movedBy: best.distance };
 }
 
-/** Entrances belong in the wall the walker collides with: snap onto the podium. */
+const DOOR_STEP = 2.0; // metres inside the door the walker is placed (and the corridor starts)
+
+/**
+ * Entrances belong in the wall the walker collides with: snap onto the podium.
+ * Each also carries `inside`, the point DOOR_STEP metres in through the door —
+ * where the walker lands, and where the corridor begins.
+ */
 function placeEntrances(entrances, podiumRings) {
   return entrances.map((e) => {
     let best = null;
     for (const ring of podiumRings) {
       const s = snapToRing(ring, e.x, e.z);
-      if (!best || s.distance < best.distance) best = s;
+      if (!best || s.distance < best.distance) best = { ...s, ring };
     }
+    const [px, pz] = best.point;
+    const [cx, cz] = centroid(best.ring);
+    const dx = cx - px;
+    const dz = cz - pz;
+    const l = Math.hypot(dx, dz) || 1;
     return {
       ...e,
-      x: round(best.point[0]),
-      z: round(best.point[1]),
+      x: round(px),
+      z: round(pz),
+      inside: { x: round(px + (dx / l) * DOOR_STEP), z: round(pz + (dz / l) * DOOR_STEP) },
       curated: { x: e.x, z: e.z },
       snappedMetres: round(best.distance, 1),
     };
   });
+}
+
+const STAIR_OFFSET = 6.5; // metres beside the main elevator
+
+/**
+ * The printed plan shows no stairwells. One per floor is placed beside the
+ * main elevators, on the first side that is inside the floor — and labelled
+ * "estimated" everywhere it appears.
+ */
+function stairSpot(id, rings, nodes) {
+  const main = nodes.find((n) => n.id === `T_${id}_elev_main`) || nodes.find((n) => n.kind === "elevator");
+  if (!main) return null;
+  for (const dx of [STAIR_OFFSET, -STAIR_OFFSET, 0]) {
+    for (const dz of [0, STAIR_OFFSET, -STAIR_OFFSET]) {
+      const x = round(main.x + dx);
+      const z = round(main.z + dz);
+      if ((dx || dz) && rings.some((r) => contains(r, [x, z]))) return { x, z, estimated: true };
+    }
+  }
+  return null;
 }
 
 /**
@@ -171,27 +204,38 @@ function registerHospital(floorsPx, footprints, floorH, entrances = []) {
       y: round((index - 1) * floorH),
       tier: tier.name,
       rings,
+      // Several footprints on a tier are one building: connector bands between
+      // facing edges (geometry from the rings, topology from the plan's bands).
+      links: linkRings(rings, { within: byName.get(OUTLINE).ring }),
       center: centroid(main).map((v) => round(v)),
       nodes,
-      // Corridors are still untraced in the 2D editor; an empty list means the
-      // whole floor is open space to the walker. Honest, not a bug.
+      stairs: stairSpot(id, rings, nodes),
+      // The 2D editor traces no corridors; the interior below is inferred instead.
       edges: src.edges || [],
     });
     report.push({ id, tier: tier.name, rings: rings.length, nodes: nodes.length, clamped });
   });
 
   const podium = floors.find((f) => f.id === "1");
+  const placed = podium ? placeEntrances(entrances, podium.rings) : entrances;
+  for (const f of floors) {
+    f.interior = planFloor({ ...f, entrances: f.id === "1" ? placed.map((e) => e.inside) : [] });
+    const r = report.find((x) => x.id === f.id);
+    r.links = f.links.length;
+    r.corridorCells = f.interior.corridorCells;
+    r.unreachable = f.interior.unreachable;
+  }
   return {
     code: "T",
     floorH,
     floors,
     banks: deriveBanks(floors),
-    entrances: podium ? placeEntrances(entrances, podium.rings) : entrances,
-    registration: "floor shape from real OSM footprints per tier; the printed plan (oblique, not to scale) only places rooms, which are clamped inside the footprint",
+    entrances: placed,
+    registration: "floor shape from real OSM footprints per tier, joined by connector bands between facing edges; the printed plan (oblique, not to scale) only places rooms, which are clamped inside the footprint; corridors and partitions are inferred from those room positions, not surveyed",
     report,
   };
 }
 
 const round = (v, dp = 2) => Math.round(v * 10 ** dp) / 10 ** dp;
 
-module.exports = { registerHospital, deriveBanks, snapToRing, clampInto, tierFor, FLOOR_ORDER };
+module.exports = { registerHospital, deriveBanks, snapToRing, clampInto, stairSpot, tierFor, FLOOR_ORDER, DOOR_STEP };

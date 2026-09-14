@@ -187,7 +187,8 @@ export function createMinimap({ data, hospital, construction, player, overhead, 
   function floorPath(id) {
     if (!floorPaths.has(id)) {
       const p = new Path2D();
-      for (const r of hospital.floor(id)?.rings || []) addRing(p, r); // unknown id: an empty outline, not a dead render loop
+      const f = hospital.floor(id); // unknown id: an empty outline, not a dead render loop
+      for (const r of [...(f?.rings || []), ...(f?.links || []).map((l) => l.ring)]) addRing(p, r);
       floorPaths.set(id, p);
     }
     return floorPaths.get(id);
