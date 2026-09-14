@@ -46,8 +46,10 @@ export function sanitizeSpeech(text) {
  * @param {() => void} o.stopPlayback                 cut off whatever is playing now
  * @param {(text: string) => void} o.fallback         used only once the engine has permanently failed
  * @param {(err: Error) => void} [o.onError]
+ * @param {(text: string) => void} [o.onStart]      a line starts being heard (captions)
+ * @param {(text: string) => void} [o.onEnd]        that line finished or was cut off
  */
-export function createVoiceQueue({ load, synth, play, stopPlayback, fallback, onError = () => {} }) {
+export function createVoiceQueue({ load, synth, play, stopPlayback, fallback, onError = () => {}, onStart = () => {}, onEnd = () => {} }) {
   let status = "idle"; // idle | loading | ready | failed
   let loading = null;
   let generation = 0; // bumped to abandon whatever is being synthesised or played under the old value
@@ -91,7 +93,12 @@ export function createVoiceQueue({ load, synth, play, stopPlayback, fallback, on
         try {
           const audio = await synth(engine, item.text);
           if (gen !== generation) continue; // stopped mid-synthesis: never play a stale announcement
-          await play(audio);
+          onStart(item.text); // captions show exactly the line being heard, as it starts
+          try {
+            await play(audio);
+          } finally {
+            onEnd(item.text); // ...and end with it, whether it finished or was cut off
+          }
         } catch (err) {
           onError(err);
         } finally {
@@ -135,3 +142,7 @@ export function createVoiceQueue({ load, synth, play, stopPlayback, fallback, on
     },
   };
 }
+
+/** How long a caption shown without the voice stays up: roughly reading pace, within bounds. */
+export const readingMs = (text) =>
+  Math.min(12000, Math.max(2500, 1200 + String(text ?? "").trim().split(/\s+/).length * 280));

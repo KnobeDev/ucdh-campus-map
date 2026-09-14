@@ -265,3 +265,41 @@ body.sess-member #wf-go, body.sess-member #info-guide { display: none; }
 #code-chip .chip-col { display: flex; flex-direction: column; align-items: flex-start; }
 #code-chip .chip-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
 #code-chip #code-chip-text { font-weight: 800; font-size: 1.1rem; letter-spacing: 0.14em; }
+
+/* --- captions ---------------------------------------------------------------- */
+/* Theme-independent on purpose, like broadcast captions: white on near-black
+   reads over sky, lawn, buildings and night alike (about 14:1 even over white). */
+#captions {
+  position: fixed; left: 50%; bottom: 12px; z-index: 31;
+  transform: translateX(-50%);
+  box-sizing: border-box; width: max-content;
+  /* Between the lower-left map and the lower-right code chip. */
+  max-width: min(42rem, calc(100vw - 2 * (var(--mm-size) + 36px)));
+  margin: 0; padding: 0.55rem 1rem;
+  background: rgba(8, 12, 20, 0.9); color: #ffffff;
+  font-size: 1.15rem; font-weight: 600; line-height: 1.4; text-align: center;
+  border-radius: 0.6rem; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  pointer-events: none; /* never blocks a click or drag on the scene */
+  transition: opacity 200ms ease;
+}
+#captions.is-fading { opacity: 0; }
+/* Narrower windows: nearly full width, lifted above the map when it sits lower left. */
+@media (max-width: 999px) {
+  #captions { max-width: calc(100vw - 24px); bottom: calc(12px + var(--mm-reserve, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #captions { transition: none; }
+}
+/* Short windows (a phone held sideways, or 400% zoom): there is no room above the
+   map, so the caption sits beside it instead, and a long one scrolls rather than
+   running off the top of the screen (SC 1.4.10). Last, so it wins over the rules above. */
+@media (max-height: 560px) {
+  #captions {
+    left: calc(12px + var(--mm-reserve-w, 0px)); right: 12px; bottom: 12px;
+    transform: none; width: auto; max-width: none;
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+    font-size: 1rem;
+    pointer-events: auto; /* so an overflowing caption can actually be scrolled */
+  }
+}

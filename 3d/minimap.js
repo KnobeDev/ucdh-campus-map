@@ -168,10 +168,11 @@ export function createMinimap({ data, hospital, construction, player, overhead, 
     return floorPaths.get(id);
   }
 
-  /** Keep the side panel from running under the map when both are on the left. */
+  /** Room the map takes in the lower left: the side panel stops above it; captions sit above or beside it. */
   function reserve() {
-    const px = corner === "bottom-left" && !root.hidden ? root.offsetHeight + GAP : 0;
-    document.documentElement.style.setProperty("--mm-reserve", `${px}px`);
+    const lowerLeft = corner === "bottom-left" && !root.hidden;
+    document.documentElement.style.setProperty("--mm-reserve", `${lowerLeft ? root.offsetHeight + GAP : 0}px`);
+    document.documentElement.style.setProperty("--mm-reserve-w", `${lowerLeft ? root.offsetWidth + GAP : 0}px`);
   }
 
   function layout() {

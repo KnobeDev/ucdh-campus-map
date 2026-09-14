@@ -10,11 +10,13 @@ import { createFloorPicker } from "./elevator-ui.js?v=9";
 import { buildRouteGraph, snapToGraph } from "./route-core.js?v=2";
 import { createWayfinder } from "./wayfind.js?v=4";
 import { buildConstruction, buildPointLayers } from "./layers.js?v=3";
-import { createSpeech } from "./speech.js?v=6";
+import { createSpeech } from "./speech.js?v=7";
+import { readingMs } from "./speech-core.js?v=3";
+import { createCaptions } from "./captions.js?v=1";
 import { createSonar } from "./sonar.js?v=5";
 import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=2";
 import { createSession } from "./session.js?v=3";
-import { createMinimap } from "./minimap.js?v=2";
+import { createMinimap } from "./minimap.js?v=3";
 import { initialPanelOpen, prefs } from "./minimap-core.js?v=1";
 
 const $ = (id) => document.getElementById(id);
@@ -36,9 +38,12 @@ const floorName = (id) => FLOOR_NAMES[id] || `Level ${id}`;
 /** Spoken/live-region announcement. An unchanged value may not be re-announced
  *  by every AT, so identical text is cleared first and re-set a beat later. */
 let speech = null; // set in boot; say() mirrors to the voice when it's on
+let captions = null; // set in boot; with the voice on, captions follow the voice itself (speech.js hooks)
 function say(text, { interrupt = true, speak = true } = {}) {
   // speak: false writes the live region only, for a caller that voices the same content its own way (sonar).
   if (speak) speech?.speak(text, { interrupt });
+  // Voice off: nothing is heard, so caption the announcement itself, long enough to read.
+  if (speech && !speech.enabled) captions?.show(text, { holdMs: readingMs(text) });
   const el = $("status");
   if (el.textContent !== text) {
     el.textContent = text;
@@ -183,6 +188,7 @@ function wireSenses(speech, sonar, picking, player, canvas) {
   setVoice(speech.enabled, false);
   if (!speech.supported) { voiceBtn.disabled = true; voiceBtn.title = "Speech synthesis isn't available in this browser"; }
   voiceBtn.addEventListener("click", () => { setVoice(!speech.enabled, true); say(speech.enabled ? "Voice on." : "Voice off."); });
+  $("captions-btn").addEventListener("click", () => say(captions.enabled ? "Captions on." : "Captions off."));
   $("sonar-btn").addEventListener("click", () => { sonar.fire(); canvas.focus(); });
   $("identify-btn").addEventListener("click", () => { picking.identifyAhead(); canvas.focus(); });
   // E with nothing to use nearby identifies what's ahead (player.js routes it here).
@@ -416,7 +422,8 @@ async function boot() {
   const door = hospital.entrances[0];
   const player = createPlayer(world, index, hospital, { x: door.x, z: door.z + 28, yaw: 0 }, construction.zoneAt);
   setTheme(world, initialTheme());
-  speech = createSpeech();
+  captions = createCaptions($("captions"), $("captions-btn"));
+  speech = createSpeech({ onStart: (text) => captions.show(text), onEnd: () => captions.end() });
   const walker = wireWalker(world, player, overhead, hospital, canvas);
   const sonar = createSonar(world, { index, hospital, player, speech, say });
   const picking = createPicking(world, { index, player, onSelect: (d) => showInfo(d, data) });
@@ -462,7 +469,7 @@ async function boot() {
     (zones ? `${zones} active construction zone${zones === 1 ? "" : "s"} — listed under Layers; routes avoid them. ` : "") +
     (speech.enabled ? "The voice reads buildings aloud when you ask what's ahead or send a sonar pulse; the Voice button turns it off." : ""),
     { speak: false });
-  window.__ucd3d = { world, index, data, overhead, player, hospital, walker, wayfinder, wayfindingWiring, graph, sonar, picking, speech, session, minimap }; // boot-guard.js checks this; handy in devtools
+  window.__ucd3d = { world, index, data, overhead, player, hospital, walker, wayfinder, wayfindingWiring, graph, sonar, picking, speech, captions, session, minimap }; // boot-guard.js checks this; handy in devtools
 
   let last = performance.now();
   function frame(now) {

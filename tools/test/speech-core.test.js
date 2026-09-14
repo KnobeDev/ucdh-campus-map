@@ -190,6 +190,53 @@ test("speech: cancelling one source's announcements leaves everyone else's alone
   assert.deepStrictEqual(h.log.played, ["audio:Medical Center, 6 metres ahead", "audio:Pathology, 12 metres"]);
 });
 
+test("captions: the start and end hooks fire exactly around what is heard, never for dropped lines", async () => {
+  const { createVoiceQueue } = await import(CORE);
+  const events = [];
+  const gate = deferred();
+  const h = harness({ holdLoad: false, holdPlay: true });
+  let synthCount = 0;
+  const q = createVoiceQueue({
+    ...h.opts,
+    synth: async (e, t) => { synthCount++; if (t === "Abandoned") await gate.p; return `audio:${t}`; },
+    play: (audio) => { events.push(`play ${audio}`); return h.opts.play(audio); },
+    onStart: (text) => events.push(`start ${text}`),
+    onEnd: (text) => events.push(`end ${text}`),
+  });
+  q.speak("Medical Center — 6 metres ahead", { interrupt: false });
+  await settle();
+  assert.deepStrictEqual(events, ["start Medical Center, 6 metres ahead", "play audio:Medical Center, 6 metres ahead"],
+    "the caption shows the sanitised text the voice actually says, as it starts");
+  h.finishPlay();
+  await settle();
+  assert.deepStrictEqual(events.slice(2), ["end Medical Center, 6 metres ahead"]);
+
+  events.length = 0;
+  q.speak("Abandoned", { interrupt: false });
+  await settle();
+  q.stop();
+  gate.resolve();
+  await settle();
+  assert.ok(synthCount >= 2);
+  assert.deepStrictEqual(events, [], "a line stopped before it was heard never flashes a caption");
+
+  q.speak("Sherman Building", { interrupt: false, tag: "sonar" });
+  await settle();
+  q.cancel("sonar");
+  await settle();
+  assert.deepStrictEqual(events, ["start Sherman Building", "play audio:Sherman Building", "end Sherman Building"],
+    "a line cut off mid-speech ends its caption");
+});
+
+test("captions: lines shown without the voice stay up long enough to read", async () => {
+  const { readingMs } = await import(CORE);
+  const short = readingMs("Voice off.");
+  const long = readingMs("Sonar: Hotel Med Park, right here, behind right. Sherman Building, 19 metres, ahead. Davis I Building, 30 metres, behind.");
+  assert.ok(short >= 2500, `a short line still gets time to be noticed (${short} ms)`);
+  assert.ok(long > short, "longer lines stay longer");
+  assert.ok(readingMs("word ".repeat(500)) <= 12000, "but never park on screen indefinitely");
+});
+
 test("speech: cancelling the source that is speaking right now stops it, and the rest still plays", async () => {
   const { createVoiceQueue } = await import(CORE);
   const h = harness({ holdLoad: false, holdPlay: true });

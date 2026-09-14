@@ -72,6 +72,7 @@ Remove. A refresh resumes the session; the session survives a silent guide for
 | `E` / **What's ahead** | identify the building ahead (name, distance, direction, floors and how sure we are); at an elevator or stairs, use it instead |
 | `P` / **Sonar** | a pulse: each nearby building (or room, indoors) echoes from its position, then is named with distance and direction |
 | **Voice on/off** | Amy, the Piper neural voice, reads buildings and announcements aloud (on by default; a screen-reader user who already hears the live region turns it off once and it stays off) |
+| **Captions on/off** | show or hide the caption line at the bottom of the screen: what the voice is saying, or each announcement when the voice is off (on by default) |
 | `G` / **Guide me** button | start (or stop) guidance to the chosen destination |
 | `V` / **Overhead view** button | switch to the overhead orbit camera and back |
 | Overhead: arrows, `Q` `E`, `PgUp` `PgDn`, `+` `−` | pan, rotate, tilt, zoom |
@@ -93,6 +94,13 @@ second warm-up rather than falling back to another voice, and a new sonar pulse
 replaces only the previous pulse's echoes, never a building description still
 being read. Every spoken line is also written to the live region; the startup
 summary goes to the live region only, so no audio plays before you act.
+
+**Captions** show what Amy is saying at the bottom of the screen, line by line
+as she says it, lingering briefly after. With the voice off they show each
+announcement instead, held long enough to read, so nothing depends on hearing.
+**Captions on/off** in the panel hides them, and the choice is remembered.
+They are hidden from screen readers, which already get the same text from the
+live region.
 
 The voice files (~160 MB) are **not in git**. Vendor them once:
 

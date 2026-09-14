@@ -13,7 +13,7 @@
 // CSP (index.html): the model needs 'wasm-unsafe-eval' (compile WebAssembly; it
 // does not allow JavaScript eval) and connect-src blob: (the engine fetches
 // blob URLs it creates itself).
-import { createVoiceQueue } from "./speech-core.js?v=2";
+import { createVoiceQueue } from "./speech-core.js?v=3";
 
 const KEY = "ucdh3d-voice";
 const VOICE = "en_US-amy-low";
@@ -33,7 +33,8 @@ async function loadPiper() {
   return engine;
 }
 
-export function createSpeech() {
+/** onStart / onEnd(text): a line starts / stops being heard, from Piper or the fallback voice (captions). */
+export function createSpeech({ onStart = () => {}, onEnd = () => {} } = {}) {
   // On unless switched off: naming buildings aloud is the point of What's ahead
   // and sonar. A screen-reader user, who already hears the live region, turns it
   // off once and that choice persists.
@@ -65,6 +66,9 @@ export function createSpeech() {
     const voices = speechSynthesis.getVoices();
     u.voice = voices.find((v) => /^en/i.test(v.lang) && /female|samantha|karen|zira|google uk english female/i.test(v.name))
       || voices.find((v) => /^en/i.test(v.lang)) || null;
+    u.onstart = () => onStart(text);
+    u.onend = () => onEnd(text);
+    u.onerror = () => onEnd(text); // also fires when cancelled
     speechSynthesis.speak(u);
   }
 
@@ -99,6 +103,8 @@ export function createSpeech() {
       finish();
     },
     fallback: nativeSpeak,
+    onStart,
+    onEnd,
     onError: (err) => console.error("Voice:", err),
   });
   if (enabled) queue.preload();

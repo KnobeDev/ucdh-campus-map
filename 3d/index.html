@@ -15,7 +15,7 @@
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' blob:; base-uri 'self'; form-action 'self'; object-src 'none'">
 <title>UC Davis Health — 3D Walkable Campus</title>
-<link rel="stylesheet" href="styles.css?v=18">
+<link rel="stylesheet" href="styles.css?v=21">
 </head>
 <body>
 <main>
@@ -108,6 +108,10 @@
      ancestor removes it from the accessibility tree, and a mutation made
      while hidden is never announced, even after the ancestor is shown. -->
 <p id="status" role="status" class="sr-only"></p>
+<!-- Captions (captions.js): what the voice is saying, as it says it; with the voice
+     off, the announcement it would have made. aria-hidden because the same text
+     already reaches assistive technology through #status above. -->
+<p id="captions" aria-hidden="true" hidden></p>
 
 <header id="hud" hidden>
   <!-- The panel collapses to this row. Use elevator lives here, not in the body,
@@ -128,6 +132,7 @@
       <button id="join-btn" type="button" hidden><span class="btn-ico" aria-hidden="true">🎟️</span><span class="btn-txt">Join a tour</span></button>
       <button id="conn-btn" type="button" hidden aria-expanded="false" aria-controls="conn-panel"><span class="btn-ico" aria-hidden="true">👥</span><span class="btn-txt">Group</span></button>
       <button id="voice-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🔇</span><span class="btn-txt">Voice off</span></button>
+      <button id="captions-btn" type="button" aria-pressed="true"><span class="btn-ico" aria-hidden="true">💬</span><span class="btn-txt">Captions on</span></button>
       <button id="sonar-btn" type="button"><span class="btn-ico" aria-hidden="true">📡</span><span class="btn-txt">Sonar</span></button>
       <button id="identify-btn" type="button"><span class="btn-ico" aria-hidden="true">👁️</span><span class="btn-txt">What's ahead</span></button>
     </div>
@@ -219,6 +224,6 @@
 </dialog>
 
 <script src="boot-guard.js?v=6"></script>
-<script type="module" src="main.js?v=31"></script>
+<script type="module" src="main.js?v=32"></script>
 </body>
 </html>
