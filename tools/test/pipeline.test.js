@@ -144,7 +144,7 @@ test("output: every building has at least one footprint with a height", (t) => {
       // Flat footprints (surface lots, parks matched to OSM areas) legitimately have height 0.
       assert.ok(f.height > 0 || f.floors === 0, `${b.code} footprint has no height`);
       assert.ok(["osm", "traced"].includes(f.geomSource));
-      assert.ok(["OpenStreetMap", "floorplan", "estimated"].includes(f.heightSource));
+      assert.ok(["OpenStreetMap", "floorplan", "estimated", "curated"].includes(f.heightSource));
     }
   }
 });
@@ -198,4 +198,38 @@ test("output: geometry stays inside the declared world box", (t) => {
     );
     assert.ok(inside, `path ${p.osmId} lies wholly outside the world box`);
   }
+});
+
+test("heights: Vanderhoef Commons is an outdoor field — flat, not a 1-storey box", () => {
+  const { resolveHeight } = require("../lib/heights");
+  const h = resolveHeight({ code: "VC", cat: "amenity" });
+  assert.strictEqual(h.floors, 0);
+  assert.strictEqual(h.height, 0);
+  assert.strictEqual(h.heightSource, "curated");
+  // the category default still applies to other amenities
+  assert.ok(resolveHeight({ code: "ZZ", cat: "amenity" }).height > 0);
+});
+
+test("construction: a footprint mostly inside an active zone is marked under construction; the zone learns its height", () => {
+  const { markUnderConstruction } = require("../lib/construction-cover");
+  const sq = (x, z, s) => [[x, z], [x + s, z], [x + s, z + s], [x, z + s]];
+  const buildings = [
+    { code: "U", footprints: [{ ring: sq(10, 10, 20), height: 16.8 }] }, // fully inside
+    { code: "H", footprints: [{ ring: sq(35, 10, 20), height: 6.8 }] }, // straddles: 25% inside
+    { code: "F", footprints: [{ ring: sq(100, 100, 5), height: 3 }] }, // far away
+    { code: "T", renderedBy: "hospital", footprints: [{ ring: sq(12, 12, 4), height: 30 }] }, // never ghosted
+  ];
+  const zones = [
+    { id: "z1", name: "Site", endDate: "2030-01-01", ring: sq(0, 0, 40) },
+    { id: "old", name: "Done", endDate: "2020-01-01", ring: sq(100, 100, 40) }, // expired: ignored
+  ];
+  const out = markUnderConstruction(buildings, zones, "2026-09-14");
+  assert.deepStrictEqual(out.buildings[0].footprints[0].underConstruction, { zoneId: "z1", endDate: "2030-01-01" });
+  assert.strictEqual(out.buildings[1].footprints[0].underConstruction, undefined, "a quarter inside is not under construction");
+  assert.strictEqual(out.buildings[2].footprints[0].underConstruction, undefined, "an expired zone marks nothing");
+  assert.strictEqual(out.buildings[3].footprints[0].underConstruction, undefined, "the hospital is rendered elsewhere");
+  assert.strictEqual(out.zones[0].coversHeight, 16.8, "the sign must clear the tallest covered building");
+  assert.strictEqual(out.zones[1].coversHeight, 0);
+  assert.notStrictEqual(out.buildings, buildings, "inputs are not mutated");
+  assert.strictEqual(buildings[0].footprints[0].underConstruction, undefined);
 });

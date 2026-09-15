@@ -48,6 +48,7 @@ export function mergeBuckets(buckets, group, register, { pickable } = {}) {
     const mat = new THREE.MeshLambertMaterial({ color: 0xffffff });
     register(key, mat);
     const mesh = new THREE.Mesh(merged, mat);
+    mesh.userData.bucket = key;
     if (pickable) mesh.userData.pickable = pickable(key);
     group.add(mesh);
   }

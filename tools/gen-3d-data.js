@@ -23,6 +23,7 @@ const { loadOsm } = require("./lib/osm");
 const { matchBuildings } = require("./lib/match");
 const { resolveHeight, FLOOR_H } = require("./lib/heights");
 const { registerHospital } = require("./lib/floorplan");
+const { markUnderConstruction } = require("./lib/construction-cover");
 const { centroid, area, cleanRing, roundRing, round } = require("./lib/geom");
 
 const ROOT = path.join(__dirname, "..");
@@ -375,6 +376,8 @@ function main() {
     medCenter.renderedBy = "hospital";
   }
 
+  // Buildings inside an active site are drawn as ghosts, and the site's sign clears them.
+  const covered = markUnderConstruction(buildings, buildConstruction(curated));
   const data = {
     meta: {
       generated: new Date().toISOString(),
@@ -390,13 +393,13 @@ function main() {
     categories: curated.categories,
     parkingTypes: curated.parkingTypes,
     poiTypes: curated.poiTypes,
-    buildings,
+    buildings: covered.buildings,
     context: contextBuildings(unclaimed),
     paths: buildPaths(osm),
     areas: buildAreas(osm),
     points: buildPointFeatures(curated),
     graph: buildGraph(curated),
-    construction: buildConstruction(curated),
+    construction: covered.zones,
     hospital,
     osmBusStops: osm.points.filter((p) => touchesWorld([[p.x, p.z]])),
   };

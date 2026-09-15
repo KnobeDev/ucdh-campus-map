@@ -23,8 +23,8 @@
 //     beside the main elevators and labelled "estimated".
 import * as THREE from "./lib/three.module.js";
 import { mergeGeometries } from "./lib/BufferGeometryUtils.js";
-import { flatPatch, extrudedRing } from "./geometry.js?v=6";
-import { pointInPolygon } from "./buildings.js?v=6";
+import { flatPatch, extrudedRing } from "./geometry.js?v=7";
+import { pointInPolygon } from "./buildings.js?v=7";
 import { labelSprite } from "./labels.js?v=6";
 import { WALL_T, wallSegments, walkable, routeIndoor, cellOf, cellCenter, inGrid, idx, CORRIDOR } from "./interior-core.js?v=1";
 

@@ -10,10 +10,10 @@
 // equivalent of everything here, so nothing visual is the only source.
 import * as THREE from "./lib/three.module.js";
 import { mergeGeometries } from "./lib/BufferGeometryUtils.js";
-import { flatPatch } from "./geometry.js?v=6";
+import { flatPatch } from "./geometry.js?v=7";
 import { labelSprite } from "./labels.js?v=6";
 import { isZoneActive } from "./route-core.js?v=2";
-import { pointInPolygon } from "./buildings.js?v=6";
+import { pointInPolygon } from "./buildings.js?v=7";
 import { cautionText, labelHeightFor, labelAnchors, signHeightAt, signHeightCap } from "./caution-core.js?v=1";
 import { hazardMaterial, cautionSprite } from "./caution.js?v=1";
 
@@ -60,7 +60,7 @@ function postsAlong(ring) {
 /** Put a sign (and its name plate, if any) at height h; the plate rides on top. */
 function placeSign(s, h) {
   const f = h / s.base;
-  const signY = FENCE_H + SIGN_CLEAR + h / 2;
+  const signY = s.floor + SIGN_CLEAR + h / 2;
   s.sign.position.y = signY;
   s.sign.scale.set(h * s.aspect, h, 1);
   if (!s.name) return;
@@ -89,7 +89,9 @@ function addSigns(labels, z) {
       name.position.set(x, 0, zz);
       labels.add(name);
     }
-    const s = { sign, name, base, aspect, nameAspect: name ? name.scale.x / name.scale.y : 1, maxH: Math.max(base, signHeightCap(z.ring, aspect)) };
+    // The sign clears the fence, or the tallest building on the site (a ghosted mass).
+    const floor = Math.max(FENCE_H, z.coversHeight || 0);
+    const s = { sign, name, base, aspect, floor, nameAspect: name ? name.scale.x / name.scale.y : 1, maxH: Math.max(base, signHeightCap(z.ring, aspect)) };
     placeSign(s, base);
     return s;
   });

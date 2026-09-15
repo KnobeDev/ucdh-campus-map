@@ -37,6 +37,10 @@ Remove. A refresh resumes the session; the session survives a silent guide for
   departments on each floor.
 - **12.4 km of real pedestrian network**, streets, lots and parks from OSM.
 - **Live construction**: active zones from the 2D map's schedule are fenced,
+  covered in hazard stripes and signed with the admin's end date. A building
+  that lies mostly inside an active site (the California Tower) is drawn as a
+  translucent ghost of its planned mass, so the site reads as a site and the
+  cover stays visible; Vanderhoef Commons is an outdoor field and stays flat.
   covered in yellow/black hazard stripes, signed "Caution — construction site
   until <end date>" (the admin's date, or "until further notice"), solid to
   the walker, hatched on the inset map, and routed around. The "Construction

@@ -46,6 +46,7 @@ const BY_OSM_NAME = {
 // Storey counts by curated building code, when the OSM name doesn't carry one.
 const BY_CODE = {
   T: { floors: 8, source: "estimated" }, // podium + shared stack; towers are separate footprints
+  VC: { floors: 0, source: "curated" }, // Vanderhoef Commons is an outdoor fitness field: flat, never a box
 };
 
 // Fallback storeys by curated category.

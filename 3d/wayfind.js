@@ -5,7 +5,7 @@
 // through `say`, the single live channel, so a non-visual walker gets the same
 // guidance. The decisions live in wayfind-core.js; this file presents them.
 import * as THREE from "./lib/three.module.js";
-import { ribbonGeometry } from "./ground.js?v=7";
+import { ribbonGeometry } from "./ground.js?v=8";
 import { route, describeLegs } from "./route-core.js?v=2";
 import { labelSprite } from "./labels.js?v=6";
 import { legFor, arrived, milestoneDue, settleLeg, walkMinutes } from "./wayfind-core.js?v=1";

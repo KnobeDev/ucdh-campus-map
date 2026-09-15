@@ -12,7 +12,7 @@
 // carry position/normal/uv and are indexed, so they may share a bucket; never
 // add a BoxGeometry (uv layout differs) to either.
 import * as THREE from "./lib/three.module.js";
-import { flatPatch, extrudedRing, mergeBuckets } from "./geometry.js?v=6";
+import { flatPatch, extrudedRing, mergeBuckets } from "./geometry.js?v=7";
 
 const CELL = 60; // metres, spatial hash cell
 const FLAT_Y = 0.05; // ground patches: above lawn (0.03), below walkways (0.07)
@@ -76,7 +76,10 @@ export function buildBuildings(world, buildings, context) {
         registerInIndex(index, entry);
         continue;
       }
-      add(solid ? b.cat : `${b.cat}#flat`, f.ring, f.height, {
+      // A building site: its planned mass as a translucent ghost so the caution
+      // cover on the ground shows through. Still solid to the walker (it is fenced).
+      const bucket = f.underConstruction ? "construction" : solid ? b.cat : `${b.cat}#flat`;
+      add(bucket, f.ring, f.height, {
         building: b,
         footprint: f,
         ring: f.ring,
@@ -97,9 +100,26 @@ export function buildBuildings(world, buildings, context) {
 
   const group = new THREE.Group();
   // applyTheme resolves the palette entry from the key's prefix ("hospital#flat" -> hospital)
-  mergeBuckets(buckets, group, (key, mat) => { world.themeTargets.catMats[key] = mat; }, {
+  mergeBuckets(buckets, group, (key, mat) => {
+    if (key === "construction") {
+      mat.transparent = true;
+      mat.opacity = 0.3;
+      mat.depthWrite = false;
+      mat.color.setHex(0xff7a1a);
+      world.themeTargets.ghostMat = mat; // theme.js: emissive only, the tint is the hazard colour
+      return;
+    }
+    world.themeTargets.catMats[key] = mat;
+  }, {
     pickable: (key) => key !== "context",
   });
+  // Ghost outlines so a translucent mass still reads as a shape from every angle.
+  const ghost = group.children.find((m) => m.userData && m.userData.bucket === "construction");
+  if (ghost) {
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(ghost.geometry, 20), new THREE.LineBasicMaterial({ color: 0xff7a1a }));
+    edges.userData.pickable = false;
+    group.add(edges);
+  }
   world.scene.add(group);
   if (skipped) console.warn(`buildings: skipped ${skipped} degenerate footprint(s)`);
   return { group, index };
