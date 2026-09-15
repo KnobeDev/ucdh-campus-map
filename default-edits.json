@@ -2937,11 +2937,11 @@
         ]
       ],
       "startDate": "2026-05-09",
-      "endDate": "2026-08-02",
+      "endDate": "",
       "affects": [
         "X3"
       ],
-      "notes": ""
+      "notes": "Still active as of 2026-09-14; end date cleared (until further notice)."
     },
     "cz_b6alt": {
       "id": "cz_b6alt",
@@ -2985,11 +2985,11 @@
         ]
       ],
       "startDate": "2026-05-09",
-      "endDate": "2026-08-02",
+      "endDate": "",
       "affects": [
         "X2"
       ],
-      "notes": ""
+      "notes": "Still active as of 2026-09-14; end date cleared (until further notice)."
     },
     "cz_uqyde": {
       "id": "cz_uqyde",
@@ -3053,11 +3053,11 @@
         ]
       ],
       "startDate": "2026-05-09",
-      "endDate": "2026-08-02",
+      "endDate": "",
       "affects": [
         "X5"
       ],
-      "notes": ""
+      "notes": "Still active as of 2026-09-14; end date cleared (until further notice)."
     },
     "cz_vt2d8": {
       "id": "cz_vt2d8",
@@ -3105,11 +3105,11 @@
         ]
       ],
       "startDate": "2026-05-09",
-      "endDate": "2026-08-02",
+      "endDate": "",
       "affects": [
         "X6"
       ],
-      "notes": ""
+      "notes": "Still active as of 2026-09-14; end date cleared (until further notice)."
     }
   },
   "floorplan": {
