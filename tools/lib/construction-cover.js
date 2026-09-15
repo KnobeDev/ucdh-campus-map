@@ -41,4 +41,16 @@ function markUnderConstruction(buildings, zones, today = new Date().toISOString(
   return { buildings: outBuildings, zones: outZones };
 }
 
-module.exports = { markUnderConstruction, INSIDE_FRACTION };
+/**
+ * The 2D editor names a freshly drawn hotspot "New hotspot" until the admin
+ * renames it. Those are drawn to give a construction zone its ground (the zone
+ * lists them in `affects`); they have no identity and are never a building.
+ */
+const isPlaceholderHotspot = (b) => /^new hotspot$/i.test(String(b && b.name || "").trim());
+
+/** Placeholder hotspots become flat ground patches: 0 floors, never extruded. */
+const flattenPlaceholders = (buildings) => buildings.map((b) => (isPlaceholderHotspot(b)
+  ? { ...b, footprints: b.footprints.map((f) => ({ ...f, floors: 0, height: 0, heightSource: "curated" })) }
+  : b));
+
+module.exports = { markUnderConstruction, INSIDE_FRACTION, isPlaceholderHotspot, flattenPlaceholders };

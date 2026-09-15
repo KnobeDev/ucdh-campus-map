@@ -23,7 +23,7 @@ const { loadOsm } = require("./lib/osm");
 const { matchBuildings } = require("./lib/match");
 const { resolveHeight, FLOOR_H } = require("./lib/heights");
 const { registerHospital } = require("./lib/floorplan");
-const { markUnderConstruction } = require("./lib/construction-cover");
+const { markUnderConstruction, flattenPlaceholders } = require("./lib/construction-cover");
 const { centroid, area, cleanRing, roundRing, round } = require("./lib/geom");
 
 const ROOT = path.join(__dirname, "..");
@@ -377,7 +377,7 @@ function main() {
   }
 
   // Buildings inside an active site are drawn as ghosts, and the site's sign clears them.
-  const covered = markUnderConstruction(buildings, buildConstruction(curated));
+  const covered = markUnderConstruction(flattenPlaceholders(buildings), buildConstruction(curated));
   const data = {
     meta: {
       generated: new Date().toISOString(),

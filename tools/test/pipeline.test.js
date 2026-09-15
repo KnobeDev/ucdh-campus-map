@@ -233,3 +233,15 @@ test("construction: a footprint mostly inside an active zone is marked under con
   assert.notStrictEqual(out.buildings, buildings, "inputs are not mutated");
   assert.strictEqual(buildings[0].footprints[0].underConstruction, undefined);
 });
+
+test("construction: an unnamed admin hotspot is a zone's ground, never a building", () => {
+  const { isPlaceholderHotspot, flattenPlaceholders } = require("../lib/construction-cover");
+  assert.ok(isPlaceholderHotspot({ name: "New hotspot" }));
+  assert.ok(!isPlaceholderHotspot({ name: "Pathology Building" }));
+  const out = flattenPlaceholders([
+    { code: "X3", name: "New hotspot", footprints: [{ ring: [[0, 0], [1, 0], [1, 1]], height: 6.8, floors: 2, heightSource: "estimated" }] },
+    { code: "P", name: "Pathology Building", footprints: [{ ring: [[0, 0], [1, 0], [1, 1]], height: 7.2, floors: 2, heightSource: "estimated" }] },
+  ]);
+  assert.deepStrictEqual([out[0].footprints[0].height, out[0].footprints[0].floors, out[0].footprints[0].heightSource], [0, 0, "curated"]);
+  assert.strictEqual(out[1].footprints[0].height, 7.2);
+});
