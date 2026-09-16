@@ -22,7 +22,7 @@ const { centroid, contains } = require("./geom");
 
 const LINK_WIDTH = 9; // metres — the connector's width across the gap
 const LINK_OVERLAP = 2; // metres each connector reaches into the rings it joins
-const ENTRANCE_GAP = 2.0; // metres of perimeter wall cleared either side of a door
+const ENTRANCE_GAP = 2.5; // metres of perimeter wall cleared either side of a door: a 5 m opening, so a slightly off-centre approach still goes through
 const LOBBY_R = 8; // metres: open floor around each entrance, so a door never opens into a closet
 const PERIMETER_STEP = 0.5; // metres between perimeter samples
 const TURN_COST = 2; // corridors prefer straight runs and L-turns to staircases
