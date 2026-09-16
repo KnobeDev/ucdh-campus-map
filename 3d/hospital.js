@@ -74,14 +74,27 @@ const JAMB = 0.35;
  * to door → inside). `out` metres pushes it outward for the street side, and
  * a canopy over the pavement says "entrance" from a distance.
  */
-function doorway(e, mats, { out = 0, canopy = false } = {}) {
+function doorway(e, mats, rings, { out = 0, canopy = false } = {}) {
   const g = new THREE.Group();
   const ins = e.inside || { x: e.x, z: e.z };
-  let nx = ins.x - e.x;
-  let nz = ins.z - e.z;
-  const l = Math.hypot(nx, nz) || 1;
-  nx /= l; nz /= l; // inward normal
-  const tx = -nz; const tz = nx; // along the wall
+  // Along the wall the door is in: the nearest ring edge, not door→inside,
+  // which the planner may have set at an angle (the frame came out skewed).
+  let tx; let tz;
+  let best = Infinity;
+  for (const ring of rings) {
+    for (let i = 0; i < ring.length; i++) {
+      const [ax, az] = ring[i];
+      const [bx, bz] = ring[(i + 1) % ring.length];
+      const dx = bx - ax; const dz = bz - az;
+      const len2 = dx * dx + dz * dz || 1;
+      const t = Math.max(0, Math.min(1, ((e.x - ax) * dx + (e.z - az) * dz) / len2));
+      const d = Math.hypot(ax + t * dx - e.x, az + t * dz - e.z);
+      if (d < best) { best = d; tx = dx / Math.sqrt(len2); tz = dz / Math.sqrt(len2); }
+    }
+  }
+  // Inward normal: the side the inside point is on.
+  let nx = -tz; let nz = tx;
+  if ((ins.x - e.x) * nx + (ins.z - e.z) * nz < 0) { nx = -nx; nz = -nz; }
   const cx = e.x - nx * out;
   const cz = e.z - nz * out;
   const yaw = -Math.atan2(tz, tx);
@@ -153,7 +166,7 @@ function buildFloorInterior(floor, floorH, mats, entrances) {
 
   if (floor.id === "1") {
     for (const e of entrances) {
-      g.add(doorway(e, mats)); // the opening itself, not a slab across it
+      g.add(doorway(e, mats, floor.rings)); // the opening itself, not a slab across it
       const label = labelSprite(`${doorText(e)} · exit`, "entrance", 1.1);
       label.position.set(e.x, DOOR_H + 1.2, e.z);
       g.add(label);
@@ -225,21 +238,22 @@ export function buildHospital(world, hospital) {
   }
   world.scene.add(interior);
 
+
+  const byId = new Map(floors.map((f) => [f.id, f]));
+  const order = floors.map((f) => f.id);
+  const shapes = new Map(floors.map((f) => [f.id, shapesOf(f)]));
+
   // Outdoor entrance markers so the doors can be found from the street.
   const doorMarks = new THREE.Group();
   for (const e of entrances) {
     // A framed glass door with a canopy, proud of the wall: the massing behind it
     // is one solid extrusion, so this is what makes the entrance visible.
-    doorMarks.add(doorway(e, mats, { out: 0.3, canopy: true }));
+    doorMarks.add(doorway(e, mats, byId.get("1").rings, { out: 0.7, canopy: true }));
     const label = labelSprite(`${doorText(e)} ▸`, "entrance", 1.3);
     label.position.set(e.x, 5.2, e.z);
     doorMarks.add(label);
   }
   world.scene.add(doorMarks);
-
-  const byId = new Map(floors.map((f) => [f.id, f]));
-  const order = floors.map((f) => f.id);
-  const shapes = new Map(floors.map((f) => [f.id, shapesOf(f)]));
 
   return {
     floors,
