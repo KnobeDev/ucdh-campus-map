@@ -172,3 +172,26 @@ test("floorplan: a door snapped onto a corner slides along its wall until the fr
   const [mid] = placeEntrances([{ id: "m", label: "Mid", x: 20, z: -1 }], [sq]);
   assert.strictEqual(mid.x, 20);
 });
+
+test("floorplan: a canopy lobe is cut from the outline and kept as an awning", () => {
+  const { cutLobe } = require("../lib/floorplan");
+  // A 40 x 40 square with a 10 x 4 bump on its north side: the bump is an awning.
+  const ring = [[0, 0], [15, 0], [15, -4], [25, -4], [25, 0], [40, 0], [40, 40], [0, 40]];
+  const { ring: cut, lobe } = cutLobe(ring, [15, 0], [25, 0]);
+  assert.deepStrictEqual(cut, [[0, 0], [15, 0], [25, 0], [40, 40 - 40 + 40 - 40 + 0 + 0 + 0 + 0 + 0], [40, 40], [0, 40]].slice(0, 2).concat([[25, 0], [40, 0], [40, 40], [0, 40]]));
+  assert.deepStrictEqual(lobe, [[15, 0], [15, -4], [25, -4], [25, 0]]);
+  // The order of the two neck points must not matter.
+  assert.deepStrictEqual(cutLobe(ring, [25, 0], [15, 0]).lobe, lobe);
+});
+
+test("floorplan: the Medical Center's Main Entrance canopy is an awning, not floor", () => {
+  const data = JSON.parse(require("fs").readFileSync(require("path").join(__dirname, "..", "..", "3d", "campus-data.json"), "utf8"));
+  const h = data.hospital;
+  assert.ok(h.awnings && h.awnings.length >= 1, "no awnings");
+  const a = h.awnings[0];
+  const { contains } = require("../lib/geom");
+  const [cx, cz] = require("../lib/geom").centroid(a.ring);
+  for (const f of h.floors) for (const r of f.rings) assert.ok(!contains(r, [cx, cz]), `floor ${f.id} still treats the awning as floor`);
+  const T = data.buildings.find((b) => b.code === "T");
+  for (const f of T.footprints) assert.ok(!contains(f.ring, [cx, cz]), "the walker would still collide with the awning outdoors");
+});

@@ -26,9 +26,10 @@ import { mergeGeometries } from "./lib/BufferGeometryUtils.js";
 import { flatPatch, extrudedRing } from "./geometry.js?v=7";
 import { pointInPolygon } from "./buildings.js?v=7";
 import { labelSprite } from "./labels.js?v=6";
-import { WALL_T, wallSegments, walkable, routeIndoor, cellOf, cellCenter, inGrid, idx, CORRIDOR } from "./interior-core.js?v=1";
+import { WALL_T, wallSegments, walkable, routeIndoor, cellOf, cellCenter, inGrid, idx, CORRIDOR } from "./interior-core.js?v=2";
 
-const CORE = 3.2; // elevator core footprint, metres
+const CORE = 3.0; // elevator core footprint, metres: one grid cell (interior-core CELL)
+const AWNING_H = 4.6; // metres: an entrance canopy's underside
 const STAIR = [3.0, 4.4]; // stairwell footprint
 const ROOM_R = 3.2;
 const LINK_SINK = 0.03; // metres a connector's slab and roof sit below its towers', so coplanar overlaps don't flicker
@@ -186,6 +187,7 @@ export function buildHospital(world, hospital) {
     ceiling: new THREE.MeshLambertMaterial({ color: 0xf4f1ea, emissive: 0xf4f1ea, emissiveIntensity: 0.7, side: THREE.DoubleSide }),
     wall: lit(0xf3f0e8, 0.5),
     core: new THREE.MeshLambertMaterial({ color: 0x1f4e8c, emissive: 0x0b2a52, emissiveIntensity: 0.6 }), // elevator blue: it must be findable
+    awning: new THREE.MeshLambertMaterial({ color: 0x00a651 }),
     glass: new THREE.MeshLambertMaterial({ color: 0x9fd3ff, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide }),
     stairs: new THREE.MeshLambertMaterial({ color: 0xb9a878 }),
     room: new THREE.MeshLambertMaterial({ color: 0x00a6ce, transparent: true, opacity: 0.55 }),
@@ -254,6 +256,26 @@ export function buildHospital(world, hospital) {
     doorMarks.add(label);
   }
   world.scene.add(doorMarks);
+
+  // Awnings: parts of the OSM outline that are a roof over pavement, not floor.
+  // A slab on posts, always outdoors, walkable underneath.
+  const awningGroup = new THREE.Group();
+  for (const a of hospital.awnings || []) {
+    try {
+      const roof = extrudedRing(a.ring, 0.3);
+      roof.translate(0, AWNING_H, 0);
+      awningGroup.add(new THREE.Mesh(roof, mats.awning));
+      const posts = a.ring.map(([x, z]) => boxAt(0.35, AWNING_H, 0.35, x, 0, z));
+      awningGroup.add(new THREE.Mesh(mergeGeometries(posts, false), mats.core));
+      const label = labelSprite(a.label, "entrance", 1.1);
+      const [cx, cz] = a.ring.reduce((s, p) => [s[0] + p[0] / a.ring.length, s[1] + p[1] / a.ring.length], [0, 0]);
+      label.position.set(cx, AWNING_H + 1.6, cz);
+      awningGroup.add(label);
+    } catch (err) {
+      console.error(`hospital: awning "${a.label}" failed to build — skipped`, err);
+    }
+  }
+  world.scene.add(awningGroup);
 
   return {
     floors,

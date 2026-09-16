@@ -13,6 +13,7 @@
 
 export const CELL = 3; // metres per grid cell — one cell is one corridor width, one door width
 export const OUTSIDE = -1;
+export const SOLID = -2; // an elevator shaft or stairwell: never walkable, never a room, corridors pass beside it
 export const CORRIDOR = 0;
 export const OPEN = 1; // floor area no room claimed: open to the corridor
 export const ROOM0 = 2; // room k is stored as ROOM0 + k
@@ -202,6 +203,8 @@ function nearestGridWall(interior, x, z) {
  */
 export function walkable(interior, rings, x, z, margin = WALL_MARGIN) {
   if (!rings.some((r) => inRing(r, x, z))) return false;
+  const c = cellOf(interior.frame, x, z);
+  if (inGrid(interior.frame, c.i, c.j) && interior.cells[idx(interior.frame, c.i, c.j)] === SOLID) return false;
   if (nearestGridWall(interior, x, z) < margin) return false;
   for (const [x1, z1, x2, z2] of interior.perimeter) {
     if (distToSeg(x, z, x1, z1, x2, z2) < margin) return false;
@@ -222,7 +225,7 @@ export function insideCellNear(interior, x, z) {
         if (Math.max(Math.abs(di), Math.abs(dj)) !== r) continue;
         const ci = i + di;
         const cj = j + dj;
-        if (!inGrid(frame, ci, cj) || cells[idx(frame, ci, cj)] === OUTSIDE) continue;
+        if (!inGrid(frame, ci, cj) || cells[idx(frame, ci, cj)] === OUTSIDE || cells[idx(frame, ci, cj)] === SOLID) continue;
         const [cx, cz] = cellCenter(frame, ci, cj);
         const d = Math.hypot(cx - x, cz - z);
         if (!best || d < best.d) best = { i: ci, j: cj, d };
@@ -292,7 +295,7 @@ export function routeIndoor(interior, from, to) {
       const nj = j + dj;
       if (!inGrid(frame, ni, nj)) continue;
       const nid = idx(frame, ni, nj);
-      if (cells[nid] === OUTSIDE || wallBetween(interior, i, j, di, dj)) continue;
+      if (cells[nid] === OUTSIDE || cells[nid] === SOLID || wallBetween(interior, i, j, di, dj)) continue;
       const nd = d + 1;
       if (nd < dist[nid]) {
         dist[nid] = nd;

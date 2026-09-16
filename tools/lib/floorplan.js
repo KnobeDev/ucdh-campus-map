@@ -29,6 +29,12 @@ const { linkRings, planFloor } = require("./interior");
 
 const FLOOR_ORDER = ["LL", "1", "2", "3", "4", "5", "6", "7", "8", "10", "11", "12", "14"];
 const OUTLINE = "UC Davis Medical Center";
+// Parts of an OSM outline that are roofs over pavement, not enclosed floor:
+// cut from the floor shape and the outdoor collision shape, drawn as an awning.
+// Each is the lobe of the ring between the two vertices nearest `from` and `to`.
+const CANOPIES = {
+  [OUTLINE]: [{ from: [-206.06, -249.71], to: [-221.11, -248.67], label: "Main Entrance canopy" }],
+};
 const PAVILION = "Surgery and Emergency Services Pavilion";
 const TOWERS = ["UC Davis Davis Tower", "UC Davis University Tower", "UC Davis East Wing"];
 
@@ -40,6 +46,29 @@ function tierFor(levelId) {
 }
 
 const bboxOfAll = (rings) => bbox(rings.flat());
+
+/**
+ * Cut the lobe between the vertices nearest `from` and `to` (the shorter arc,
+ * by vertex count) out of a ring. Returns the trimmed ring and the lobe as its
+ * own ring, both sharing the two neck vertices.
+ */
+function cutLobe(ring, from, to) {
+  const nearest = (p) => ring.reduce((best, v, i) => { const d = Math.hypot(v[0] - p[0], v[1] - p[1]); return d < best.d ? { i, d } : best; }, { i: -1, d: Infinity }).i;
+  let i = nearest(from);
+  let j = nearest(to);
+  if (i === j) return { ring, lobe: null };
+  const n = ring.length;
+  const fwd = (j - i + n) % n; // vertices strictly between, going forward from i
+  if (fwd - 1 > n - fwd - 1) [i, j] = [j, i]; // take the shorter arc as the lobe
+  const lobe = [];
+  for (let k = i; ; k = (k + 1) % n) { lobe.push(ring[k]); if (k === j) break; }
+  const kept = [];
+  for (let k = j; ; k = (k + 1) % n) { kept.push(ring[k]); if (k === i) break; }
+  // kept runs j → … → i; rotate so it starts where the ring did, for stable output
+  const start = kept.findIndex((v) => v === ring[0]);
+  const out = start >= 0 ? [...kept.slice(start), ...kept.slice(0, start)] : kept;
+  return { ring: out, lobe };
+}
 
 /** Anisotropic bbox→bbox map: diagram pixels to the tier's real extent. */
 function bboxFit(from, to) {
@@ -185,9 +214,23 @@ function deriveBanks(floors) {
  * @param {Array}  entrances  curated doors, ENU
  */
 function registerHospital(floorsPx, footprints, floorH, entrances = []) {
-  const byName = new Map(footprints.map((f) => [f.osmName, f]));
+  const byName = new Map(footprints.map((f) => [f.osmName, { ...f }]));
   const missing = [OUTLINE, PAVILION, ...TOWERS].filter((n) => !byName.has(n));
   if (missing.length) throw new Error(`hospital registration: OSM footprints missing: ${missing.join(", ")}`);
+  // Canopies out of the outlines first: everything below sees the enclosed shape.
+  const awnings = [];
+  const footprintOverrides = {};
+  for (const [name, cuts] of Object.entries(CANOPIES)) {
+    const fp = byName.get(name);
+    if (!fp) continue;
+    for (const c of cuts) {
+      const { ring, lobe } = cutLobe(fp.ring, c.from, c.to);
+      if (!lobe) continue;
+      fp.ring = ring;
+      awnings.push({ label: c.label, over: name, ring: lobe.map(([x, z]) => [round(x), round(z)]) });
+    }
+    footprintOverrides[name] = fp.ring;
+  }
 
   const floors = [];
   const report = [];
@@ -238,6 +281,11 @@ function registerHospital(floorsPx, footprints, floorH, entrances = []) {
   const placed = podium ? placeEntrances(entrances, podium.rings) : entrances;
   for (const f of floors) {
     f.interior = planFloor({ ...f, entrances: f.id === "1" ? placed.map((e) => e.inside) : [] });
+    // Cores sit on grid cells now: move each elevator and the stairs to its cell centre.
+    const cores = f.interior.cores || [];
+    let k = 0;
+    for (const n of f.nodes) if (n.kind === "elevator" && cores[k]) { n.x = cores[k].x; n.z = cores[k].z; k++; }
+    if (f.stairs && cores[k]) { f.stairs.x = cores[k].x; f.stairs.z = cores[k].z; }
     const r = report.find((x) => x.id === f.id);
     r.links = f.links.length;
     r.corridorCells = f.interior.corridorCells;
@@ -249,6 +297,8 @@ function registerHospital(floorsPx, footprints, floorH, entrances = []) {
     floors,
     banks: deriveBanks(floors),
     entrances: placed,
+    awnings,
+    footprintOverrides,
     registration: "floor shape from real OSM footprints per tier, joined by connector bands between facing edges; the printed plan (oblique, not to scale) only places rooms, which are clamped inside the footprint; corridors and partitions are inferred from those room positions, not surveyed",
     report,
   };
@@ -256,4 +306,4 @@ function registerHospital(floorsPx, footprints, floorH, entrances = []) {
 
 const round = (v, dp = 2) => Math.round(v * 10 ** dp) / 10 ** dp;
 
-module.exports = { registerHospital, deriveBanks, snapToRing, clampInto, stairSpot, tierFor, FLOOR_ORDER, DOOR_STEP, placeEntrances, DOOR_CLEAR };
+module.exports = { registerHospital, deriveBanks, snapToRing, clampInto, stairSpot, tierFor, FLOOR_ORDER, DOOR_STEP, placeEntrances, DOOR_CLEAR, cutLobe, CANOPIES };

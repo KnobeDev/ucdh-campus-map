@@ -11,7 +11,7 @@
 // view's own panning (SC 2.1.1). It fires on click, i.e. on release (SC 2.5.2).
 import { PALETTES } from "./theme.js?v=6";
 import { AREA_KIND } from "./ground.js?v=8";
-import { wallSegments } from "./interior-core.js?v=1";
+import { wallSegments } from "./interior-core.js?v=2";
 import {
   viewTransform, headingAngle, ZOOM_LEVELS, DEFAULT_ZOOM, stepZoom,
   normalizeCorner, otherCorner, cssHex, prefs,

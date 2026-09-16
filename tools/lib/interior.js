@@ -385,7 +385,7 @@ function planFloor(floor) {
     }
   }
   const isLink = (id) => zone[id] < 0 && cells[id] !== core.OUTSIDE;
-  const canStep = (a, b) => cells[b] !== core.OUTSIDE && (zone[a] === zone[b] || isLink(a) || isLink(b));
+  const canStep = (a, b) => cells[b] !== core.OUTSIDE && cells[b] !== core.SOLID && (zone[a] === zone[b] || isLink(a) || isLink(b));
   const grid = { frame, zone, canStep };
   // A node's cell — or, for a node hugging the wall whose cell centre falls
   // outside the ring, the nearest inside cell (the browser looks up the same way).
@@ -405,17 +405,26 @@ function planFloor(floor) {
     ...floor.links.map((l) => { const [x, z] = centroid(l.ring); return { x, z, link: l }; }),
   ].sort((a, b) => dMain(a) - dMain(b));
   const reached = new Uint8Array(n);
+  // Shafts and stairwells are solid cells; a corridor reaches a NEIGHBOUR of
+  // one, never runs through it. (They used to sit in the middle of the hallway.)
+  const coreCells = [...elevators, ...(floor.stairs ? [floor.stairs] : [])].map(cellAt).filter((c) => c >= 0);
+  for (const c of coreCells) cells[c] = core.SOLID;
+  const sides = (c) => { const i = c % frame.cols; const j = (c - i) / frame.cols; return [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]].filter(([a, b]) => core.inGrid(frame, a, b)).map(([a, b]) => b * frame.cols + a).filter((id) => cells[id] !== core.OUTSIDE && cells[id] !== core.SOLID); };
   const rooms = floor.nodes.filter((nd) => nd.kind === "room");
   const roomCells = rooms.map(cellAt);
   const nodeCost = (id) => (roomCells.includes(id) ? NODE_CELL_COST : 1);
   const claim = (path, skipLast) => {
     for (const id of skipLast ? path.slice(0, -1) : path) { cells[id] = core.CORRIDOR; reached[id] = 1; }
   };
-  const seed = cellAt(main);
+  const seedCore = cellAt(main);
+  const seed = seedCore >= 0 && cells[seedCore] === core.SOLID ? (sides(seedCore)[0] ?? -1) : seedCore;
   if (seed >= 0) { cells[seed] = core.CORRIDOR; reached[seed] = 1; }
   const unreachable = [];
   for (const h of hubs) {
-    const c = cellAt(h);
+    const c0 = cellAt(h);
+    if (c0 < 0) { unreachable.push(h.id || "hub"); continue; }
+    // A solid hub (shaft, stairwell) is reached at whichever side is nearest the corridor so far.
+    const c = cells[c0] === core.SOLID ? (sides(c0).find((s) => reached[s]) ?? sides(c0)[0] ?? -1) : c0;
     if (c < 0) { unreachable.push(h.id || "hub"); continue; }
     if (!reached[c]) {
       const path = corridorPath(grid, c, (id) => reached[id] === 1, nodeCost);
@@ -439,7 +448,7 @@ function planFloor(floor) {
   // room, so no partition can box the entrance in (it happened: a 2 m slot).
   for (const e of floor.entrances || []) {
     for (let id = 0; id < n; id++) {
-      if (cells[id] === core.OUTSIDE) continue;
+      if (cells[id] === core.OUTSIDE || cells[id] === core.SOLID) continue;
       // A room whose node falls in the lobby (an information desk) is open-plan: labelled, not walled.
       const [x, z] = core.cellCenter(frame, id % frame.cols, Math.floor(id / frame.cols));
       if (Math.hypot(x - e.x, z - e.z) < LOBBY_R) { cells[id] = core.CORRIDOR; reached[id] = 1; }
@@ -487,6 +496,7 @@ function planFloor(floor) {
     if (cells[a] === core.OUTSIDE || cells[b] === core.OUTSIDE) return false;
     if (zone[a] !== zone[b] && !isLink(a) && !isLink(b)) return true; // two rings meeting outside a connector: the perimeter
     if (cells[a] === cells[b]) return false;
+    if (cells[a] === core.SOLID || cells[b] === core.SOLID) return cells[a] >= core.ROOM0 || cells[b] >= core.ROOM0; // a core shows its box, not a wall, except toward a room
     if (cells[a] <= core.OPEN && cells[b] <= core.OPEN) return false; // corridor and open space flow together
     return true;
   };
@@ -508,6 +518,7 @@ function planFloor(floor) {
     rooms: rooms.map((r) => r.id),
     doors,
     corridorCells: cells.reduce((s, c) => s + (c === core.CORRIDOR ? 1 : 0), 0),
+    cores: coreCells.map((c) => { const i = c % frame.cols; const j = (c - i) / frame.cols; const [x, z] = core.cellCenter(frame, i, j); return { x: round(x), z: round(z) }; }),
     unreachable,
     provenance: "corridors and partitions inferred from room positions on a building-aligned grid — not surveyed",
   };

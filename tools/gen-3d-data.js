@@ -374,6 +374,10 @@ function main() {
       .map((e) => ({ id: e.id, label: e.label || null, accessible: !!e.accessible, ...pxPt(e) }));
     hospital = registerHospital(floorsPx, medCenter.footprints, FLOOR_H.hospital, doors);
     medCenter.renderedBy = "hospital";
+    // An awning is not a wall: the outdoor collision shape loses it too.
+    for (const fp of medCenter.footprints) {
+      if (hospital.footprintOverrides[fp.osmName]) fp.ring = hospital.footprintOverrides[fp.osmName];
+    }
   }
 
   // Buildings inside an active site are drawn as ghosts, and the site's sign clears them.

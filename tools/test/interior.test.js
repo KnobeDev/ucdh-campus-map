@@ -114,7 +114,11 @@ test("interior: planFloor lays a corridor from the elevator to every room, with 
     if (!core.walkable(plan, floor.rings, mx, mz)) blocked++;
   }
   assert.strictEqual(blocked, walls.length, "a wall midpoint must not be walkable");
-  assert.ok(core.walkable(plan, floor.rings, e.x, e.z), "the elevator itself is walkable");
+  // The shaft is solid; the floor beside it is where you stand to use it.
+  assert.ok(!core.walkable(plan, floor.rings, e.x, e.z), "the shaft must not be walkable");
+  const beside = [];
+  for (let a = 0; a < 360; a += 45) for (const d of [3, 4.5]) beside.push([e.x + d * Math.cos(a * Math.PI / 180), e.z + d * Math.sin(a * Math.PI / 180)]);
+  assert.ok(beside.some(([x, z]) => core.walkable(plan, floor.rings, x, z)), "no walkable floor beside the elevator");
 });
 
 test("interior: perimeter walls follow the ring, are cut where a link joins, and leave a gap at each entrance", async () => {
@@ -207,7 +211,11 @@ test("interior: the browser's point-collision agrees — a 0.5 m flood fill from
     }
   }
   for (const n of f.nodes) {
-    const near = [[0, 0], [STEP, 0], [-STEP, 0], [0, STEP], [0, -STEP]].some(([dx, dz]) =>
+    // A room: its own spot. A core (solid cell): the floor beside it, one cell out.
+    const reach = n.kind === "elevator" ? 2.5 : STEP;
+    const offs = [];
+    for (let dx = -reach; dx <= reach; dx += STEP) for (let dz = -reach; dz <= reach; dz += STEP) offs.push([dx, dz]);
+    const near = offs.some(([dx, dz]) =>
       seen.has(key(Math.round(n.x / STEP) * STEP + dx, Math.round(n.z / STEP) * STEP + dz)));
     assert.ok(near, `Level 1: ${n.label || n.id} is walled off from the Main Entrance`);
   }
@@ -275,4 +283,26 @@ test("interior: two rings sharing an edge keep exactly one wall on it — never 
     cur = Math.max(cur, z2);
   }
   assert.ok(cur >= 30 - 1e-6, `shared wall stops at z=${cur.toFixed(1)}`);
+});
+
+test("interior: elevator and stair cores are solid cells beside the corridor, not in it", async () => {
+  const { core } = await load();
+  const floor = synthFloor();
+  const plan = planFloor(floor);
+  const e = floor.nodes[0];
+  const c = core.cellOf(plan.frame, e.x, e.z);
+  const id = c.j * plan.frame.cols + c.i;
+  assert.strictEqual(plan.cells[id], core.SOLID, "the elevator's cell is not solid");
+  const s = core.cellOf(plan.frame, floor.stairs.x, floor.stairs.z);
+  assert.strictEqual(plan.cells[s.j * plan.frame.cols + s.i], core.SOLID, "the stair cell is not solid");
+  // At least one side of the core opens onto the corridor…
+  const nb = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([di, dj]) => plan.cells[(c.j + dj) * plan.frame.cols + c.i + di]);
+  assert.ok(nb.includes(core.CORRIDOR), "no corridor beside the elevator");
+  // …you cannot stand inside the shaft…
+  assert.ok(!core.walkable(plan, floor.rings, e.x, e.z), "the shaft is walkable");
+  // …and a route to the elevator ends beside it, on walkable floor.
+  const r = core.routeIndoor(plan, floor.nodes[1], e);
+  assert.ok(r, "elevator unreachable");
+  const last = r.pts[r.pts.length - 2] || r.pts[0];
+  assert.ok(core.walkable(plan, floor.rings, last[0], last[1]), "the approach point is not walkable");
 });
