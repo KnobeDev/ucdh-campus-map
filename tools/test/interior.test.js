@@ -233,3 +233,26 @@ test("interior: an entrance opens onto a lobby — no partition wall within the 
     assert.ok(core.walkable(plan, floor.rings, x, z), `lobby point ${x},${z} is not walkable`);
   }
 });
+
+test("interior: perimeter walls run vertex to vertex — no slit at any corner, no short edge skipped", async () => {
+  const floor = synthFloor();
+  floor.rings = [[[0, 0], [60, 0], [60, 30], [58, 30], [58, 31.5], [0, 31.5]]]; // a 1.5 m jog: shorter than a sample step
+  const plan = planFloor(floor);
+  const ring = floor.rings[0];
+  for (let i = 0; i < ring.length; i++) {
+    const [ax, az] = ring[i];
+    const [bx, bz] = ring[(i + 1) % ring.length];
+    const L = Math.hypot(bx - ax, bz - az);
+    const on = plan.perimeter.filter(([x1, z1, x2, z2]) => {
+      const t = (x, z) => ((x - ax) * (bx - ax) + (z - az) * (bz - az)) / (L * L);
+      const off = (x, z) => Math.hypot(ax + t(x, z) * (bx - ax) - x, az + t(x, z) * (bz - az) - z);
+      return off(x1, z1) < 0.05 && off(x2, z2) < 0.05;
+    }).map(([x1, z1, x2, z2]) => {
+      const t = (x, z) => ((x - ax) * (bx - ax) + (z - az) * (bz - az)) / (L * L);
+      return [Math.min(t(x1, z1), t(x2, z2)), Math.max(t(x1, z1), t(x2, z2))];
+    }).sort((p, q) => p[0] - q[0]);
+    let cur = 0;
+    for (const [a, b] of on) { assert.ok(a <= cur + 1e-6, `edge ${i}: gap of ${((a - cur) * L).toFixed(2)} m`); cur = Math.max(cur, b); }
+    assert.ok(cur >= 1 - 1e-6, `edge ${i}: wall stops ${((1 - cur) * L).toFixed(2)} m short of the corner`);
+  }
+});

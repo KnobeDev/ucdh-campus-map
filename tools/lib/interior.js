@@ -329,18 +329,21 @@ function perimeterWalls(rings, links, entrances) {
   all.forEach((ring, k) => {
     for (const [a, b] of edgesOf(ring)) {
       const l = len(sub(b, a));
-      if (l < PERIMETER_STEP) continue;
-      const steps = Math.ceil(l / PERIMETER_STEP);
+      if (l < 0.05) continue;
+      // Every edge, however short, and every sample INCLUDING the far vertex: a
+      // run that stopped one sample short left a slit of daylight at each corner.
+      const steps = Math.max(1, Math.ceil(l / PERIMETER_STEP));
       let run = null;
+      const flush = () => { if (run && len(sub(run[1], run[0])) >= 0.1) out.push([...run[0], ...run[1]].map((v) => round(v))); run = null; };
       for (let s = 0; s <= steps; s++) {
         const p = lerp(a, b, Math.min(1, s / steps));
-        const keep = s < steps
-          && !all.some((o, m) => m !== k && (contains(o, p) || (m < k && nearEdge(p, o, 0.1))))
+        const keep = !all.some((o, m) => m !== k && (contains(o, p) || (m < k && nearEdge(p, o, 0.1))))
           && !entrances.some((e) => Math.hypot(e.x - p[0], e.z - p[1]) < ENTRANCE_GAP);
         if (keep && !run) run = [p, p];
         if (keep) run[1] = p;
-        if (!keep && run) { if (len(sub(run[1], run[0])) >= 0.3) out.push([...run[0], ...run[1]].map((v) => round(v))); run = null; }
+        if (!keep) flush();
       }
+      flush();
     }
   });
   return out;
