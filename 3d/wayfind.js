@@ -126,6 +126,7 @@ export function createWayfinder(world, { graph, hospital, player, say, ui }) {
 
   function indoorLeg(leg, changed) {
     const f = hospital.floor(player.state.floor);
+    if (!f) return; // the walker left the building between the leg decision and this draw
     const y = f.y + 0.1;
     const h = here();
     // Indoors the line follows the floor's corridors, so it never points through a wall.
