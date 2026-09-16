@@ -335,13 +335,27 @@ function perimeterWalls(rings, links, entrances) {
       const steps = Math.max(1, Math.ceil(l / PERIMETER_STEP));
       let run = null;
       const flush = () => { if (run && len(sub(run[1], run[0])) >= 0.1) out.push([...run[0], ...run[1]].map((v) => round(v))); run = null; };
+      // Dropped where another shape covers it. On a SHARED line the earlier
+      // ring keeps the wall and the later one yields it: contains() is
+      // undefined on a boundary, so testing it alone dropped both.
+      const keepAt = (p) => !all.some((o, m) => m !== k && (m < k ? nearEdge(p, o, 0.1) || contains(o, p) : contains(o, p) && !nearEdge(p, o, 0.1)))
+        && !entrances.some((e) => Math.hypot(e.x - p[0], e.z - p[1]) < ENTRANCE_GAP);
+      // Where keep flips between two samples, the wall must end (or start) at the
+      // crossing itself, not at the last sample: a run stopping half a step short
+      // of the ring it meets left a slit of daylight at every connector mouth.
+      const crossing = (inP, outP) => {
+        let lo = inP; let hi = outP;
+        for (let i = 0; i < 6; i++) { const mid = lerp(lo, hi, 0.5); if (keepAt(mid)) lo = mid; else hi = mid; }
+        return lo;
+      };
+      let prev = null; let prevKeep = false;
       for (let s = 0; s <= steps; s++) {
         const p = lerp(a, b, Math.min(1, s / steps));
-        const keep = !all.some((o, m) => m !== k && (contains(o, p) || (m < k && nearEdge(p, o, 0.1))))
-          && !entrances.some((e) => Math.hypot(e.x - p[0], e.z - p[1]) < ENTRANCE_GAP);
-        if (keep && !run) run = [p, p];
+        const keep = keepAt(p);
+        if (keep && !run) run = [prev && !prevKeep ? crossing(p, prev) : p, p];
         if (keep) run[1] = p;
-        if (!keep) flush();
+        if (!keep && run) { run[1] = crossing(prev, p); flush(); }
+        prev = p; prevKeep = keep;
       }
       flush();
     }

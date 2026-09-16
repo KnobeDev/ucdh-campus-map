@@ -256,3 +256,23 @@ test("interior: perimeter walls run vertex to vertex — no slit at any corner, 
     assert.ok(cur >= 1 - 1e-6, `edge ${i}: wall stops ${((1 - cur) * L).toFixed(2)} m short of the corner`);
   }
 });
+
+test("interior: two rings sharing an edge keep exactly one wall on it — never none", async () => {
+  const a = sq(0, 0, 30, 30);
+  const b = sq(30, 0, 30, 30); // shares the x = 30 line with a
+  const floor = {
+    id: "S", rings: [a, b], links: linkRings([a, b], { width: 9, overlap: 2 }), stairs: null,
+    nodes: [{ id: "e", kind: "elevator", label: "E", x: 10, z: 10 }, { id: "r", kind: "room", label: "R", x: 50, z: 20 }],
+    entrances: [],
+  };
+  const plan = planFloor(floor);
+  const onLine = plan.perimeter.filter(([x1, , x2]) => Math.abs(x1 - 30) < 1e-6 && Math.abs(x2 - 30) < 1e-6)
+    .map(([, z1, , z2]) => [Math.min(z1, z2), Math.max(z1, z2)]).sort((p, q) => p[0] - q[0]);
+  const [lz0, lz1] = [Math.min(...floor.links[0].ring.map((p) => p[1])), Math.max(...floor.links[0].ring.map((p) => p[1]))];
+  let cur = 0;
+  for (const [z1, z2] of onLine) {
+    if (z1 > cur + 1e-6) assert.ok(cur >= lz0 - 0.6 && z1 <= lz1 + 0.6, `hole on the shared wall z[${cur.toFixed(1)},${z1.toFixed(1)}] outside the link mouth`);
+    cur = Math.max(cur, z2);
+  }
+  assert.ok(cur >= 30 - 1e-6, `shared wall stops at z=${cur.toFixed(1)}`);
+});
