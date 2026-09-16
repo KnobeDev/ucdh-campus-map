@@ -23,6 +23,7 @@ const { centroid, contains } = require("./geom");
 const LINK_WIDTH = 9; // metres — the connector's width across the gap
 const LINK_OVERLAP = 2; // metres each connector reaches into the rings it joins
 const ENTRANCE_GAP = 2.0; // metres of perimeter wall cleared either side of a door
+const LOBBY_R = 8; // metres: open floor around each entrance, so a door never opens into a closet
 const PERIMETER_STEP = 0.5; // metres between perimeter samples
 const TURN_COST = 2; // corridors prefer straight runs and L-turns to staircases
 const NODE_CELL_COST = 8; // a corridor avoids running over another room's node
@@ -417,6 +418,17 @@ function planFloor(floor) {
     cells[c] = core.OPEN; // the doorstep is corridor; the node itself is the room
   });
 
+  // A lobby at each door: everything within LOBBY_R is open floor, never a
+  // room, so no partition can box the entrance in (it happened: a 2 m slot).
+  for (const e of floor.entrances || []) {
+    for (let id = 0; id < n; id++) {
+      if (cells[id] === core.OUTSIDE) continue;
+      // A room whose node falls in the lobby (an information desk) is open-plan: labelled, not walled.
+      const [x, z] = core.cellCenter(frame, id % frame.cols, Math.floor(id / frame.cols));
+      if (Math.hypot(x - e.x, z - e.z) < LOBBY_R) { cells[id] = core.CORRIDOR; reached[id] = 1; }
+    }
+  }
+
   assignRooms(grid, cells, roomCells);
 
   // Doors: for each connected piece of each room, the piece's boundary with
@@ -486,4 +498,4 @@ function planFloor(floor) {
 
 const round = (v, dp = 2) => Math.round(v * 10 ** dp) / 10 ** dp;
 
-module.exports = { linkRings, planFloor, facingEdges, LINK_WIDTH, LINK_OVERLAP };
+module.exports = { linkRings, planFloor, facingEdges, LINK_WIDTH, LINK_OVERLAP, LOBBY_R };

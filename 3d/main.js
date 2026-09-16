@@ -4,7 +4,7 @@ import { buildBuildings } from "./buildings.js?v=7";
 import { buildGroundSurfaces } from "./ground.js?v=8";
 import { createOverheadCamera } from "./overhead.js?v=6";
 import { initialTheme, saveTheme } from "./theme.js?v=6";
-import { buildHospital } from "./hospital.js?v=12";
+import { buildHospital } from "./hospital.js?v=13";
 import { createPlayer } from "./player.js?v=16";
 import { createFloorPicker } from "./elevator-ui.js?v=9";
 import { buildRouteGraph, snapToGraph } from "./route-core.js?v=2";
@@ -17,7 +17,7 @@ import { createCaptions } from "./captions.js?v=1";
 import { createSonar } from "./sonar.js?v=5";
 import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=3";
 import { createSession } from "./session.js?v=3";
-import { createMinimap } from "./minimap.js?v=5";
+import { createMinimap } from "./minimap.js?v=6";
 import { initialPanelOpen, prefs } from "./minimap-core.js?v=1";
 
 const $ = (id) => document.getElementById(id);
@@ -73,6 +73,7 @@ function wireWalker(world, player, overhead, hospital, canvas) {
 
   const setWhere = () => {
     const f = player.state.floor;
+    $("elev-btn").hidden = f === null; // only inside is there an elevator to find
     if (f !== null) {
       where.textContent = `Inside the Medical Center · ${floorName(f)}`;
       return;
@@ -302,7 +303,12 @@ function wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker
     gB.append(opt(`b:${b.code}`, b.name));
     gS.append(opt(`b:${b.code}`, b.name));
   }
-  const gE = group("Medical Center entrances");
+  const gE = group("Medical Center entrances & elevators");
+  const mainElev = hospital.floor("1")?.nodes.find((n) => n.id === "T_1_elev_main");
+  if (mainElev) {
+    targets.set("elev:1", { kind: "room", name: mainElev.label || "Main elevators", floor: "1", floorName: floorName("1"), node: mainElev, x: mainElev.x, z: mainElev.z });
+    gE.append(opt("elev:1", `Main elevators (Level 1)`));
+  }
   for (const e of hospital.entrances) {
     targets.set(`e:${e.id}`, { kind: "building", name: e.label || "Entrance", x: e.x, z: e.z, radius: 6 });
     gE.append(opt(`e:${e.id}`, `${e.label}${e.accessible ? " ♿" : ""}`));
@@ -364,6 +370,17 @@ function wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker
     canvas.focus();
   });
   $("wf-stop").addEventListener("click", () => { wayfinder.stop(); canvas.focus(); });
+  // Inside and lost: guide to the nearest elevator on this floor.
+  $("elev-btn").addEventListener("click", () => {
+    const f = player.state.floor;
+    if (f === null) return;
+    if (session.blockWayfinding()) { say(session.blockedWayfindingMsg()); return; }
+    const { x, z } = player.object.position;
+    const node = hospital.elevatorOn(f, null, x, z);
+    if (!node) { say("No elevator on this floor."); return; }
+    wayfinder.guideTo({ kind: "room", name: node.label || "Elevator", floor: f, floorName: floorName(f), node, x: node.x, z: node.z });
+    canvas.focus();
+  });
   $("info-guide").addEventListener("click", () => {
     if (session.blockWayfinding()) { say(session.blockedWayfindingMsg()); return; }
     if (infoDest) { wayfinder.guideTo(infoDest); canvas.focus(); }

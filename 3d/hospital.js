@@ -64,6 +64,39 @@ function boxAt(w, h, d, x, y, z) {
 /** Accessible entrances say so on their sign — that is what the ♿ flag is for. */
 const doorText = (e) => `${e.label || "Entrance"}${e.accessible ? " ♿" : ""}`;
 
+const DOOR_W = 3.6; // clear opening, metres
+const DOOR_H = 2.7;
+const JAMB = 0.35;
+
+/**
+ * A doorway you can see is a doorway: two jambs, a lintel and a pair of glass
+ * leaves in the opening, set along the wall (its direction is at right angles
+ * to door → inside). `out` metres pushes it outward for the street side, and
+ * a canopy over the pavement says "entrance" from a distance.
+ */
+function doorway(e, mats, { out = 0, canopy = false } = {}) {
+  const g = new THREE.Group();
+  const ins = e.inside || { x: e.x, z: e.z };
+  let nx = ins.x - e.x;
+  let nz = ins.z - e.z;
+  const l = Math.hypot(nx, nz) || 1;
+  nx /= l; nz /= l; // inward normal
+  const tx = -nz; const tz = nx; // along the wall
+  const cx = e.x - nx * out;
+  const cz = e.z - nz * out;
+  const yaw = -Math.atan2(tz, tx);
+  const place = (geo, ax, ay, az) => { geo.rotateY(yaw); geo.translate(ax, ay, az); return geo; };
+  const half = DOOR_W / 2 + JAMB / 2;
+  g.add(new THREE.Mesh(place(new THREE.BoxGeometry(JAMB, DOOR_H + JAMB, 0.5), cx + tx * half, (DOOR_H + JAMB) / 2, cz + tz * half), mats.door));
+  g.add(new THREE.Mesh(place(new THREE.BoxGeometry(JAMB, DOOR_H + JAMB, 0.5), cx - tx * half, (DOOR_H + JAMB) / 2, cz - tz * half), mats.door));
+  g.add(new THREE.Mesh(place(new THREE.BoxGeometry(DOOR_W + 2 * JAMB, JAMB, 0.5), cx, DOOR_H + JAMB / 2, cz), mats.door));
+  g.add(new THREE.Mesh(place(new THREE.BoxGeometry(DOOR_W, DOOR_H, 0.06), cx, DOOR_H / 2, cz), mats.glass));
+  if (canopy) {
+    g.add(new THREE.Mesh(place(new THREE.BoxGeometry(DOOR_W + 2.4, 0.25, 3.2), cx - nx * 1.6, DOOR_H + 0.9, cz - nz * 1.6), mats.door));
+  }
+  return g;
+}
+
 /** All of a floor's shapes: footprints, then connectors. */
 const shapesOf = (floor) => [...floor.rings, ...(floor.links || []).map((l) => l.ring)];
 
@@ -90,8 +123,8 @@ function buildFloorInterior(floor, floorH, mats, entrances) {
   for (const n of floor.nodes) {
     if (n.kind !== "elevator") continue;
     cores.push(boxAt(CORE, floorH, CORE, n.x, 0, n.z));
-    const label = labelSprite(n.label || "Elevator", "elevator", 0.9);
-    label.position.set(n.x, floorH - 0.9, n.z);
+    const label = labelSprite(`🛗 ${n.label || "Elevator"}`, "elevator", 1.4);
+    label.position.set(n.x, floorH - 0.8, n.z);
     g.add(label);
   }
   if (cores.length) g.add(new THREE.Mesh(mergeGeometries(cores, false), mats.core));
@@ -120,9 +153,9 @@ function buildFloorInterior(floor, floorH, mats, entrances) {
 
   if (floor.id === "1") {
     for (const e of entrances) {
-      g.add(new THREE.Mesh(boxAt(3.6, 2.6, 0.5, e.x, 0, e.z), mats.door));
-      const label = labelSprite(doorText(e), "entrance", 0.9);
-      label.position.set(e.x, 3.3, e.z);
+      g.add(doorway(e, mats)); // the opening itself, not a slab across it
+      const label = labelSprite(`${doorText(e)} · exit`, "entrance", 1.1);
+      label.position.set(e.x, DOOR_H + 1.2, e.z);
       g.add(label);
     }
   }
@@ -139,7 +172,8 @@ export function buildHospital(world, hospital) {
     floor: lit(0xe9e5dc, 0.35),
     ceiling: new THREE.MeshLambertMaterial({ color: 0xf4f1ea, emissive: 0xf4f1ea, emissiveIntensity: 0.7, side: THREE.DoubleSide }),
     wall: lit(0xf3f0e8, 0.5),
-    core: new THREE.MeshLambertMaterial({ color: 0x8a8f96 }),
+    core: new THREE.MeshLambertMaterial({ color: 0x1f4e8c, emissive: 0x0b2a52, emissiveIntensity: 0.6 }), // elevator blue: it must be findable
+    glass: new THREE.MeshLambertMaterial({ color: 0x9fd3ff, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide }),
     stairs: new THREE.MeshLambertMaterial({ color: 0xb9a878 }),
     room: new THREE.MeshLambertMaterial({ color: 0x00a6ce, transparent: true, opacity: 0.55 }),
     door: new THREE.MeshLambertMaterial({ color: 0x00a651, emissive: 0x004d22, emissiveIntensity: 0.6 }),
@@ -194,6 +228,9 @@ export function buildHospital(world, hospital) {
   // Outdoor entrance markers so the doors can be found from the street.
   const doorMarks = new THREE.Group();
   for (const e of entrances) {
+    // A framed glass door with a canopy, proud of the wall: the massing behind it
+    // is one solid extrusion, so this is what makes the entrance visible.
+    doorMarks.add(doorway(e, mats, { out: 0.3, canopy: true }));
     const label = labelSprite(`${doorText(e)} ▸`, "entrance", 1.3);
     label.position.set(e.x, 5.2, e.z);
     doorMarks.add(label);

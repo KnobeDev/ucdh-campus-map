@@ -11,6 +11,7 @@
 // view's own panning (SC 2.1.1). It fires on click, i.e. on release (SC 2.5.2).
 import { PALETTES } from "./theme.js?v=6";
 import { AREA_KIND } from "./ground.js?v=8";
+import { wallSegments } from "./interior-core.js?v=1";
 import {
   viewTransform, headingAngle, ZOOM_LEVELS, DEFAULT_ZOOM, stepZoom,
   normalizeCorner, otherCorner, cssHex, prefs,
@@ -184,6 +185,16 @@ export function createMinimap({ data, hospital, construction, player, overhead, 
     ? { x: overhead.focus.x, z: overhead.focus.z }
     : { x: player.object.position.x, z: player.object.position.z });
 
+  const wallPaths = new Map();
+  function wallPath(id, f) {
+    if (!wallPaths.has(id)) {
+      const p = new Path2D();
+      const it = f.interior;
+      for (const [ax, az, bx, bz] of it ? [...it.perimeter, ...wallSegments(it)] : []) { p.moveTo(ax, az); p.lineTo(bx, bz); }
+      wallPaths.set(id, p);
+    }
+    return wallPaths.get(id);
+  }
   function floorPath(id) {
     if (!floorPaths.has(id)) {
       const p = new Path2D();
@@ -269,11 +280,40 @@ export function createMinimap({ data, hospital, construction, player, overhead, 
     }
 
     if (player.state.floor !== null) {
-      const p = floorPath(player.state.floor);
+      const id = player.state.floor;
+      const p = floorPath(id);
       fill(p, mk.floorFill);
       ctx.strokeStyle = mk.floor;
       ctx.lineWidth = 2.5 * px;
       ctx.stroke(p);
+      // Inside: the walls, the elevators, the stairs and (on Level 1) the doors —
+      // so the way to an elevator or out can be seen at a glance.
+      const f = hospital.floor(id);
+      if (f) {
+        ctx.strokeStyle = mk.floor;
+        ctx.lineWidth = 1.2 * px;
+        ctx.stroke(wallPath(id, f));
+        for (const n of f.nodes) {
+          if (n.kind !== "elevator") continue;
+          ctx.fillStyle = mk.you;
+          ctx.fillRect(n.x - 2.2, n.z - 2.2, 4.4, 4.4);
+          ctx.strokeStyle = mk.youEdge;
+          ctx.lineWidth = 1.5 * px;
+          ctx.strokeRect(n.x - 2.2, n.z - 2.2, 4.4, 4.4);
+        }
+        if (f.stairs) { ctx.fillStyle = "#b9a878"; ctx.fillRect(f.stairs.x - 1.5, f.stairs.z - 2.2, 3, 4.4); }
+        if (id === "1") {
+          for (const e of hospital.entrances) {
+            ctx.beginPath();
+            ctx.arc(e.x, e.z, 2.6, 0, Math.PI * 2);
+            ctx.fillStyle = "#00a651";
+            ctx.fill();
+            ctx.lineWidth = 1.5 * px;
+            ctx.strokeStyle = "#ffffff";
+            ctx.stroke();
+          }
+        }
+      }
     }
 
     const route = wayfinder.routePoints();

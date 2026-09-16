@@ -212,3 +212,24 @@ test("interior: the browser's point-collision agrees — a 0.5 m flood fill from
     assert.ok(near, `Level 1: ${n.label || n.id} is walled off from the Main Entrance`);
   }
 });
+
+test("interior: an entrance opens onto a lobby — no partition wall within the lobby radius of the door", async () => {
+  const { core } = await load();
+  const { LOBBY_R } = require("../lib/interior");
+  assert.ok(LOBBY_R >= 6, "a lobby is wider than a corridor");
+  const floor = synthFloor();
+  floor.entrances = [{ x: 30, z: 1.5 }]; // a door in the north wall, its step just inside
+  // Rooms crowd the door so that, without a lobby, partitions would box it in.
+  floor.nodes.push({ id: "r4", kind: "room", label: "Four", x: 25, z: 4 }, { id: "r5", kind: "room", label: "Five", x: 35, z: 4 });
+  const plan = planFloor(floor);
+  const near = (x1, z1, x2, z2) => {
+    const t = Math.max(0, Math.min(1, ((30 - x1) * (x2 - x1) + (1.5 - z1) * (z2 - z1)) / (((x2 - x1) ** 2 + (z2 - z1) ** 2) || 1)));
+    return Math.hypot(x1 + t * (x2 - x1) - 30, z1 + t * (z2 - z1) - 1.5);
+  };
+  const boxing = core.wallSegments(plan).filter((s) => near(...s) < LOBBY_R - core.CELL);
+  assert.deepStrictEqual(boxing, [], "partitions inside the lobby");
+  // and the lobby is open floor the walker can cross in any direction
+  for (const [x, z] of [[26, 3], [34, 3], [30, 6]]) {
+    assert.ok(core.walkable(plan, floor.rings, x, z), `lobby point ${x},${z} is not walkable`);
+  }
+});
