@@ -339,7 +339,7 @@ function perimeterWalls(rings, links, entrances) {
       // ring keeps the wall and the later one yields it: contains() is
       // undefined on a boundary, so testing it alone dropped both.
       const keepAt = (p) => !all.some((o, m) => m !== k && (m < k ? nearEdge(p, o, 0.1) || contains(o, p) : contains(o, p) && !nearEdge(p, o, 0.1)))
-        && !entrances.some((e) => Math.hypot(e.x - p[0], e.z - p[1]) < ENTRANCE_GAP);
+        && !entrances.some((e) => { const d = e.door || e; return Math.hypot(d.x - p[0], d.z - p[1]) < ENTRANCE_GAP; });
       // Where keep flips between two samples, the wall must end (or start) at the
       // crossing itself, not at the last sample: a run stopping half a step short
       // of the ring it meets left a slit of daylight at every connector mouth.

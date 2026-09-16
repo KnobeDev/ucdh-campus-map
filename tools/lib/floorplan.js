@@ -280,7 +280,8 @@ function registerHospital(floorsPx, footprints, floorH, entrances = []) {
   const podium = floors.find((f) => f.id === "1");
   const placed = podium ? placeEntrances(entrances, podium.rings) : entrances;
   for (const f of floors) {
-    f.interior = planFloor({ ...f, entrances: f.id === "1" ? placed.map((e) => e.inside) : [] });
+    // The step inside is where corridors go; the door itself is where the wall opens.
+    f.interior = planFloor({ ...f, entrances: f.id === "1" ? placed.map((e) => ({ ...e.inside, door: { x: e.x, z: e.z } })) : [] });
     // Cores sit on grid cells now: move each elevator and the stairs to its cell centre.
     const cores = f.interior.cores || [];
     let k = 0;

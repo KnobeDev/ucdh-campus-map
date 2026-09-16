@@ -10,7 +10,7 @@
 // you are standing at one.
 import * as THREE from "./lib/three.module.js";
 import { footprintAt } from "./buildings.js?v=7";
-import { DOOR_RADIUS_OUT, DOOR_RADIUS_IN, CELL_RADIUS } from "./hospital.js?v=15";
+import { DOOR_RADIUS_OUT, DOOR_RADIUS_IN, DOOR_STEP, CELL_RADIUS } from "./hospital.js?v=15";
 import { EYE } from "./world.js?v=6";
 
 const WALK_SPEED = 3.2;
@@ -71,9 +71,11 @@ export function createPlayer(world, index, hospital, spawn, zoneAt = () => null)
       return { blocked: "wall" };
     }
     if (hospital.walkable(state.floor, x, z)) return true;
-    if (state.floor === "1" && !hospital.contains(state.floor, x, z)) {
+    if (state.floor === "1") {
+      // Through the opening and out; or, pressed right up against the door
+      // (its wall margin can stop you half a metre short), out anyway.
       const door = hospital.entranceNear(x, z, DOOR_RADIUS_IN);
-      if (door) return { door, inward: false };
+      if (door && (!hospital.contains(state.floor, x, z) || Math.hypot(door.x - x, door.z - z) <= DOOR_STEP)) return { door, inward: false };
     }
     return { blocked: "wall" };
   }

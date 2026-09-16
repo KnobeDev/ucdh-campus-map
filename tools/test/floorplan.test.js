@@ -195,3 +195,16 @@ test("floorplan: the Medical Center's Main Entrance canopy is an awning, not flo
   const T = data.buildings.find((b) => b.code === "T");
   for (const f of T.footprints) assert.ok(!contains(f.ring, [cx, cz]), "the walker would still collide with the awning outdoors");
 });
+
+test("floorplan: the Level 1 wall is open at each door itself, not two metres inside it", () => {
+  const data = JSON.parse(require("fs").readFileSync(require("path").join(__dirname, "..", "..", "3d", "campus-data.json"), "utf8"));
+  const f = data.hospital.floors.find((x) => x.id === "1");
+  for (const e of data.hospital.entrances) {
+    const blocking = f.interior.perimeter.filter(([x1, z1, x2, z2]) => {
+      const dx = x2 - x1; const dz = z2 - z1; const L2 = dx * dx + dz * dz || 1;
+      const t = Math.max(0, Math.min(1, ((e.x - x1) * dx + (e.z - z1) * dz) / L2));
+      return Math.hypot(x1 + t * dx - e.x, z1 + t * dz - e.z) < 1.5;
+    });
+    assert.deepStrictEqual(blocking, [], `${e.label}: a wall piece runs across the door`);
+  }
+});
