@@ -157,3 +157,18 @@ test("floorplan: elevator banks are derived from the nodes, and the main bank re
   assert.strictEqual(fake.X.name, "X");
   assert.strictEqual(fake.Y.name, "Y bank");
 });
+
+test("floorplan: a door snapped onto a corner slides along its wall until the frame is clear", () => {
+  const { placeEntrances, DOOR_CLEAR } = require("../lib/floorplan");
+  const sq = [[0, 0], [40, 0], [40, 40], [0, 40]];
+  // Curated just outside the corner: the nearest wall point IS the corner.
+  const [door] = placeEntrances([{ id: "d", label: "Door", x: -1, z: -1 }], [sq]);
+  const onWall = Math.abs(door.z) < 1e-6 || Math.abs(door.x) < 1e-6;
+  assert.ok(onWall, "still in the wall");
+  const toCorner = Math.min(...sq.map(([vx, vz]) => Math.hypot(vx - door.x, vz - door.z)));
+  assert.ok(toCorner >= DOOR_CLEAR - 1e-6, `only ${toCorner.toFixed(1)} m from a corner`);
+  assert.ok(door.inside.x > 0 && door.inside.z > 0, "the inside step is inside");
+  // A door already mid-wall does not move.
+  const [mid] = placeEntrances([{ id: "m", label: "Mid", x: 20, z: -1 }], [sq]);
+  assert.strictEqual(mid.x, 20);
+});

@@ -55,6 +55,7 @@ function bboxFit(from, to) {
 function snapToRing(ring, x, z) {
   let best = null;
   let bestD = Infinity;
+  let seg = null; // the edge the point landed on
   for (let i = 0; i < ring.length; i++) {
     const [ax, az] = ring[i];
     const [bx, bz] = ring[(i + 1) % ring.length];
@@ -65,9 +66,24 @@ function snapToRing(ring, x, z) {
     const px = ax + t * dx;
     const pz = az + t * dz;
     const d = Math.hypot(px - x, pz - z);
-    if (d < bestD) { bestD = d; best = [px, pz]; }
+    if (d < bestD) { bestD = d; best = [px, pz]; seg = [[ax, az], [bx, bz]]; }
   }
-  return { point: best, distance: bestD };
+  return { point: best, distance: bestD, seg };
+}
+
+/** A doorway needs this much wall either side of its centre, or the frame sits in a corner. */
+const DOOR_CLEAR = 4.5;
+
+/** Slide a point on edge a→b away from the ends so it is DOOR_CLEAR from both (or centred on a short edge). */
+function clearOfCorners([ax, az], [bx, bz], x, z) {
+  const dx = bx - ax;
+  const dz = bz - az;
+  const len = Math.hypot(dx, dz);
+  if (len < 1e-6) return [x, z];
+  const t0 = ((x - ax) * dx + (z - az) * dz) / (len * len);
+  const c = Math.min(DOOR_CLEAR / len, 0.5);
+  const t = Math.max(c, Math.min(1 - c, t0));
+  return [ax + t * dx, az + t * dz];
 }
 
 const INSET = 2.5; // metres a clamped point is pushed in from the wall
@@ -106,7 +122,9 @@ function placeEntrances(entrances, podiumRings) {
       const s = snapToRing(ring, e.x, e.z);
       if (!best || s.distance < best.distance) best = { ...s, ring };
     }
-    const [px, pz] = best.point;
+    // Nearest wall point, then slid along that wall clear of its ends: a door
+    // in an inside corner is half-buried and reads edge-on from the street.
+    const [px, pz] = clearOfCorners(best.seg[0], best.seg[1], ...best.point);
     const [cx, cz] = centroid(best.ring);
     const dx = cx - px;
     const dz = cz - pz;
@@ -238,4 +256,4 @@ function registerHospital(floorsPx, footprints, floorH, entrances = []) {
 
 const round = (v, dp = 2) => Math.round(v * 10 ** dp) / 10 ** dp;
 
-module.exports = { registerHospital, deriveBanks, snapToRing, clampInto, stairSpot, tierFor, FLOOR_ORDER, DOOR_STEP };
+module.exports = { registerHospital, deriveBanks, snapToRing, clampInto, stairSpot, tierFor, FLOOR_ORDER, DOOR_STEP, placeEntrances, DOOR_CLEAR };
