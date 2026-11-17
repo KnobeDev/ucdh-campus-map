@@ -22,6 +22,15 @@ function buildingPolygon(b) {
     { x: b.x + b.w, y: b.y + b.h }, { x: b.x, y: b.y + b.h },
   ];
 }
+/** Every outline of a building, as point lists: its parts when it has several, else its one shape. */
+function buildingRings(b) {
+  if (Array.isArray(b.parts) && b.parts.length) return b.parts.map(ring => ring.map(p => ({ x: p[0], y: p[1] })));
+  return [buildingPolygon(b)];
+}
+function ringAABB(poly, m = 0) {
+  const xs = poly.map(p => p.x), ys = poly.map(p => p.y);
+  return { x1: Math.min(...xs)-m, y1: Math.min(...ys)-m, x2: Math.max(...xs)+m, y2: Math.max(...ys)+m };
+}
 function inflatePoly(poly, m) {
   // Approximate inflation by pushing each vertex outward from centroid
   let cx = 0, cy = 0;
@@ -55,15 +64,39 @@ function segCrossesPolygon(p1, p2, poly) {
   return false;
 }
 
+/** The ids of the largest connected group of grid points (the others are sealed pockets). */
+function mainComponent(nodes) {
+  const seen = new Set();
+  let best = new Set();
+  for (const start of Object.keys(nodes)) {
+    if (seen.has(start)) continue;
+    const group = new Set([start]);
+    const queue = [start];
+    seen.add(start);
+    while (queue.length) {
+      for (const { id } of nodes[queue.pop()].neighbors) {
+        if (seen.has(id)) continue;
+        seen.add(id); group.add(id); queue.push(id);
+      }
+    }
+    if (group.size > best.size) best = group;
+  }
+  return best;
+}
+
 // ---- Build walking grid ----
 function buildGraph() {
   const buildings = window.BUILDINGS;
-  const obstacles = buildings.filter(b => !PASSABLE_CATS.has(b.cat));
-  const obstaclePolys = obstacles.map(b => ({
+  // A building shown as a marker (the site build, where OpenStreetMap has no outline for it)
+  // has no shape to walk around: it is a point to route to, never an obstacle.
+  const obstacles = buildings.filter(b => !PASSABLE_CATS.has(b.cat) && !b.marker);
+  // One obstacle per outline: a building of several parts (the site build's Medical Center
+  // is three OpenStreetMap buildings) blocks with every one of them.
+  const obstaclePolys = obstacles.flatMap(b => buildingRings(b).map(ring => ({
     code: b.code,
-    poly: inflatePoly(buildingPolygon(b), GRID_MARGIN),
-    aabb: buildingAABB(b, GRID_MARGIN + 4),
-  }));
+    poly: inflatePoly(ring, GRID_MARGIN),
+    aabb: ringAABB(ring, GRID_MARGIN + 4),
+  })));
 
   // Construction zones — treat as obstacles for the duration of the closure.
   // window.CONSTRUCTION_ZONES is pre-filtered to active-only by edit-store.
@@ -174,8 +207,12 @@ function buildGraph() {
     nodes[`BUS_${b.id}`] = { x: snapped.x, y: snapped.y, neighbors: [], bus: b };
   }
 
-  // 5) Connect special nodes (named, building, shuttle) to nearby grid
-  const gridList = Object.entries(nodes).filter(([id]) => id.startsWith("g_"));
+  // 5) Connect special nodes (named, building, shuttle) to nearby grid.
+  // Only to the grid's main body: real building outlines leave pockets (a courtyard, a gap
+  // between a building and a closure) whose grid points connect to nothing else, and a place
+  // tied only to a pocket could never be routed to.
+  const main = mainComponent(nodes);
+  const gridList = Object.entries(nodes).filter(([id]) => id.startsWith("g_") && main.has(id));
   function connectToGrid(id, k = 6) {
     const me = nodes[id];
     const candidates = gridList
@@ -190,10 +227,19 @@ function buildGraph() {
       nodes[gid].neighbors.push({ id, w: d });
       added++;
     }
-    if (added === 0 && candidates.length) {
-      const [gid, gn, d] = candidates[0];
-      me.neighbors.push({ id: gid, w: d * 3 });
-      nodes[gid].neighbors.push({ id, w: d * 3 });
+    // Nothing in clear sight: tie it to the nearest point of the main body, however far,
+    // at three times the distance, so the place is still reachable and a clear way is preferred.
+    if (added === 0) {
+      let gid = null, d = Infinity;
+      if (candidates.length) [gid, , d] = candidates[0];
+      else for (const [g, gn] of gridList) { // rare: nothing within 90
+        const dist = Math.hypot(me.x - gn.x, me.y - gn.y);
+        if (dist < d) { d = dist; gid = g; }
+      }
+      if (gid !== null) {
+        me.neighbors.push({ id: gid, w: d * 3 });
+        nodes[gid].neighbors.push({ id, w: d * 3 });
+      }
     }
   }
   for (const id of Object.keys(nodes)) {
@@ -300,7 +346,8 @@ function buildRoute(fromId, toId) {
     const dist = Math.round(Math.hypot(nx.x - cu.x, nx.y - cu.y));
     steps.push({ icon: cross > 0 ? "right" : "left", text: `Turn ${cross > 0 ? "right" : "left"}`, dist });
   }
-  const ftPerPx = 2.0;
+  // The site build knows the real scale from its georeference (site-data.js).
+  const ftPerPx = window.MAP_SCALE?.ftPerPx || 2.0;
   const totalFt = Math.round(totalDist * ftPerPx);
   const totalMin = Math.max(1, Math.round(totalFt / 270));
   steps.push({ icon: "end", text: `Arrive at ${eName}` });

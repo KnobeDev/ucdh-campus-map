@@ -338,7 +338,7 @@ function Sidebar({
               }}>
                 <span style={{ marginRight: 6 }}>↝</span> Directions to here
               </button>
-              {window.getFloorPlanForBuilding && window.getFloorPlanForBuilding(selected.code) && (
+              {window.MapMode.current.floorPlans && window.getFloorPlanForBuilding && window.getFloorPlanForBuilding(selected.code) && (
                 // Floor plan is only available for buildings whose interior layout
                 // has been captured in floorplan.jsx (currently the Medical Center
                 // "T"). The button is offered as an explicit alternative to
@@ -405,7 +405,7 @@ function Sidebar({
         </div>
       )}
 
-      {panelMode === "floorplan" && selected && window.FloorPlanPanel && (
+      {window.MapMode.current.floorPlans && panelMode === "floorplan" && selected && window.FloorPlanPanel && (
         <window.FloorPlanPanel
           buildingCode={selected.code}
           setPanelMode={setPanelMode}
@@ -467,7 +467,8 @@ function Sidebar({
                     </span>
                     <span className="sb-step-text">
                       {s.text}
-                      {s.dist && <span className="sb-step-dist"> · {Math.round(s.dist * 1.5)} ft</span>}
+                      {/* The site build knows the real scale (site-data.js), the same one the total uses. */}
+                      {s.dist && <span className="sb-step-dist"> · {Math.round(s.dist * (window.MAP_SCALE?.ftPerPx || 1.5))} ft</span>}
                     </span>
                   </li>
                 ))}

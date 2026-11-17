@@ -1,11 +1,13 @@
-// CampusMap — renders the original PNG as backdrop with interactive overlays on top.
+// CampusMap — the campus backdrop with interactive overlays on top. The backdrop is the
+// picture the owner edits against in the local build, and the campus drawn from data
+// (drawn-basemap.js) in the site build, which never loads the picture.
 
 const { useState, useEffect, useRef } = React;
 
 function CampusMap({
   selectedId, hoveredId, onHover, onSelect,
   filters, route, routeFromId, routeToId, recomputeRoute,
-  showShuttle, showPois, showLabels, showHotspots, theme,
+  showShuttle, showPois, showLabels, showHotspots, theme, drawn, basemap,
   showEntrances, showCrosswalks, showPaths,
   showEvents, showAccessibility, showParkingBikes, showValet, showConstruction,
   editMode, editSubMode, editTargetId, setEditTargetId,
@@ -105,7 +107,18 @@ function CampusMap({
           </pattern>
         </defs>
 
-        {/* Base map image */}
+        {/* Base map: drawn from data in the site build (one path per layer, decorative: the
+            buildings above it carry the names), the picture in the local build. */}
+        {drawn ? (basemap && (
+          <g className="basemap" aria-hidden="true" pointerEvents="none">
+            {basemap.map(l => (
+              <path key={l.id} d={l.d} fill={l.fill || "none"} stroke={l.stroke || "none"}
+                strokeWidth={l.stroke ? l.width : undefined} strokeDasharray={l.dash}
+                vectorEffect={l.fixed ? "non-scaling-stroke" : undefined}
+                strokeLinejoin="round" strokeLinecap="round" />
+            ))}
+          </g>
+        )) : (
         <image href={window.MAP_IMG.src} x="0" y="0" width={W} height={H}
                style={{ filter: ((() => {
                  const parts = [];
@@ -113,6 +126,7 @@ function CampusMap({
                  if (filters.size > 0) parts.push("saturate(0.35) brightness(1.05)");
                  return parts.length ? parts.join(" ") : "none";
                })()) }} />
+        )}
 
         {/* When filters are active, the PNG is desaturated above (CSS filter)
             so matched buildings stand out via their colored hotspot overlays. */}
@@ -136,6 +150,26 @@ function CampusMap({
           const catColor = b.cat === "parking"
             ? window.parkingColorOf(b)
             : (window.CATEGORIES[b.cat]?.color || "#5A6470");
+          // A building with no outline to draw (the site build, where OpenStreetMap lacks
+          // one) is a marker at its place: a dot in its category's colour inside a dark ring
+          // that shows on every ground, with a larger unseen target around it.
+          if (b.marker) {
+            const cx = bbox.x + bbox.w/2, cy = bbox.y + bbox.h/2;
+            return (
+              <g key={b.code} className="bldg-marker"
+                 onMouseEnter={() => onHover(b.code)} onMouseLeave={() => onHover(null)}
+                 onClick={() => { if (!dragRef.current?.moved) onSelect(b.code); }}
+                 style={{ cursor:"pointer" }}>
+                <title>{b.name}</title>
+                {/* the unseen target, then a white halo so the ring also shows on a route line */}
+                <circle cx={cx} cy={cy} r="14" fill="transparent" />
+                <circle cx={cx} cy={cy} r={(isSel ? 8 : (isHov ? 7 : 6)) + 2} fill="white" />
+                <circle cx={cx} cy={cy} r={isSel ? 8 : (isHov ? 7 : 6)}
+                  fill={catColor} stroke={window.DrawnBasemap.INK.markerEdge} strokeWidth={isSel ? 3 : 1.5} />
+                <circle cx={cx} cy={cy} r="2" fill="white" />
+              </g>
+            );
+          }
           return (
             <g key={b.code}
                onMouseEnter={() => onHover(b.code)} onMouseLeave={() => onHover(null)}

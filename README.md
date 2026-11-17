@@ -60,6 +60,40 @@ Or any static server (`python3 -m http.server`, `npx serve`, etc.) pointed at th
 | `campus-map-inline.js` | Base64-inlined PNG fallback (kept for revert) |
 | `styles.css` | All styling |
 
+## Two builds: local and site
+
+One file, `3d/app-config.json`, switches the map between two builds. Nothing a
+visitor controls (a URL parameter, the browser's storage) is consulted, and
+anything wrong with the file means the site build.
+
+| | Local (this repo's committed file) | Site (an unofficial public test build) |
+|---|---|---|
+| Base map | the picture the editor draws over (`campus-map.svg`) | drawn from `3d/campus-data.json`: OpenStreetMap streets, paths, lawns and building outlines (`drawn-basemap.js`) |
+| Buildings, stops, places, closures, walking graph | `data.jsx` plus `default-edits.json` and your own edits | the same data file the 3D map reads, placed by its georeference (`site-data.js`), so 2D and 3D agree |
+| A building OpenStreetMap has no outline for | its traced polygon | a named marker at its place; a tracing of the official map never ships |
+| Editor, Tweaks panel, messages to a host page | on | off |
+| Browser storage | edits, backups and route pins | nothing is read or written |
+| Distances in directions | the old estimate | the real scale from the georeference |
+
+`map-mode.js` decides the mode before any other script reads storage or data.
+The page carries two lines of plain HTML above the map in both builds: what
+the build is ("Unofficial test build — not affiliated with UC Davis Health")
+and the data credit ("Map data © OpenStreetMap contributors").
+
+Not in the site build: `campus-map.svg`, `campus-map.png`,
+`default-edits.json`, the floor-plan panel (`floorplan.jsx`, drawn over the
+official floor diagram), the editor toolbar, and anything under `uploads/`.
+The site compiles the JSX ahead of time and serves React itself, so its page
+loads nothing from another host.
+
+## Tests
+
+```bash
+node --test "tools/test/*.test.js"
+# with a browser (any Playwright install), the 2D page in both builds:
+PLAYWRIGHT_MODULE=/path/to/node_modules/playwright node --test tools/test/site-mode.browser.test.js
+```
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

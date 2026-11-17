@@ -1,7 +1,11 @@
 // Seeds the edit store with bundled default polygons / paths / entrances / crosswalks.
-// Runs synchronously before edit-store.jsx via blocking XHR so localStorage is populated
-// in time for the React render. User edits made later take precedence on subsequent loads.
+// LOCAL BUILD ONLY: app.jsx calls DefaultEdits.load(storage) once the mode is known (map-mode.js),
+// with the browser's storage, before the edit store re-reads it. The site build never calls it:
+// its map comes from 3d/campus-data.json instead (site-data.js), and default-edits.json, drawn
+// over the official map, is not part of a site release. Blocking XHR, as it always was, so the
+// storage is seeded before React draws. User edits made later take precedence on later loads.
 (function () {
+window.DefaultEdits = { load: function (storage) {
   var KEY = "ucd-campus-map-edits-v2";
   var DEFAULTS_KEY = "ucd-campus-map-defaults-version";
   var VERSION = "2026-05-08-construction"; // bump to force re-seed when default-edits.json changes
@@ -25,7 +29,7 @@
       // keeps serving the old response. A per-load timestamp guarantees fresh
       // reads — the embedded _version drives the actual reset logic below.
       var url = "default-edits.json?v=" + VERSION + "&t=" + Date.now();
-      xhr.open("GET", url, false); // sync so localStorage is ready before React mounts
+      xhr.open("GET", url, false); // sync so the storage is ready before React mounts
       // Defense in depth: ask any cache (CDN/SW) for a revalidated copy.
       try { xhr.setRequestHeader("Cache-Control", "no-cache"); } catch (e) {}
       xhr.send(null);
@@ -55,16 +59,16 @@
   if (!defaults) return;
 
   var existing = {};
-  try { existing = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+  try { existing = JSON.parse(storage.getItem(KEY) || "{}"); } catch (e) {}
 
   // Effective version is the embedded `_version` from the JSON if present, otherwise
   // the hardcoded VERSION constant. The Apply button stamps a fresh ISO timestamp into
   // every published default-edits.json, so any change to the file automatically forces
-  // a reset on visitors with stale localStorage — no need to remember to bump the
+  // a reset on visitors with stale stored edits — no need to remember to bump the
   // constant in this loader by hand.
   var effectiveVersion = (defaults && defaults._version) || VERSION;
   var seenVersion = null;
-  try { seenVersion = localStorage.getItem(DEFAULTS_KEY); } catch (e) {}
+  try { seenVersion = storage.getItem(DEFAULTS_KEY); } catch (e) {}
   // Force a full reset if either: this is one of the legacy hand-bumped FULL_RESET versions,
   // OR the published JSON's _version differs from the version this browser last saw.
   var isLegacyReset = FULL_RESET_VERSIONS[effectiveVersion] && seenVersion !== effectiveVersion;
@@ -110,7 +114,8 @@
   };
 
   try {
-    localStorage.setItem(KEY, JSON.stringify(merged));
-    localStorage.setItem(DEFAULTS_KEY, effectiveVersion);
+    storage.setItem(KEY, JSON.stringify(merged));
+    storage.setItem(DEFAULTS_KEY, effectiveVersion);
   } catch (e) {}
+} };
 })();

@@ -671,6 +671,10 @@ window.POIMarker = POIMarker;
 // ---- Building shape helpers ----
 // Returns SVG <path> d-string covering either polygon or rect form
 window.buildingPath = function(b) {
+  // Several outlines (the site build: one per OpenStreetMap building it is made of)
+  if (Array.isArray(b.parts) && b.parts.length) {
+    return b.parts.map(ring => "M " + ring.map(p => p.join(",")).join(" L ") + " Z").join(" ");
+  }
   if (b.points && b.points.length >= 3) {
     return "M " + b.points.map(p => p.join(",")).join(" L ") + " Z";
   }
@@ -687,6 +691,8 @@ window.buildingCentroid = function(b) {
 };
 // Bbox top
 window.buildingBBox = function(b) {
+  // With several outlines the record's own box covers them all (site-data.js)
+  if (Array.isArray(b.parts) && b.parts.length) return { x: b.x, y: b.y, w: b.w, h: b.h };
   if (b.points && b.points.length >= 3) {
     const xs = b.points.map(p => p[0]), ys = b.points.map(p => p[1]);
     const minX = Math.min(...xs), maxX = Math.max(...xs);

@@ -30,7 +30,9 @@ const THEMES = {
   "dimmed":     { name: "Dimmed (route focus)", imgFilter: "saturate(0.5) brightness(0.92)" },
 };
 
-function App() {
+function App({ basemap }) {
+  // Local or site (map-mode.js): decided once, before this first draws (boot, below).
+  const mode = window.MapMode.current;
   const [tweaks, setTweak] = window.useTweaks(TWEAK_DEFAULTS);
   const [selectedId, setSelectedId] = useS(null);
   const [hoveredId, setHoveredId] = useS(null);
@@ -57,7 +59,8 @@ function App() {
   const [editTargetId, setEditTargetId] = useS(null);
   const [edgePickFirst, setEdgePickFirst] = useS(null);
   const [pathTypeDefault, setPathTypeDefault] = useS("walk");
-  const editMode = !!tweaks.editMode;
+  // The site build has no editor, whatever a tweak says.
+  const editMode = mode.editor && !!tweaks.editMode;
 
   // Need to subscribe so non-edit map re-renders when entrances/crosswalks change
   window.useEdits();
@@ -113,7 +116,9 @@ function App() {
         floorPlanEditMode={floorPlanEditMode} setFloorPlanEditMode={setFloorPlanEditMode}
         theme={theme}
       />
-      {panelMode === "floorplan" && selectedId && window.getFloorPlanForBuilding(selectedId) && window.FloorPlanMap ? (
+      {/* The floor-plan panel is drawn over the official floor diagram: the local build only
+          (mode.floorPlans). The site build never opens it, whether or not floorplan.jsx is on the page. */}
+      {mode.floorPlans && panelMode === "floorplan" && selectedId && window.getFloorPlanForBuilding && window.getFloorPlanForBuilding(selectedId) && window.FloorPlanMap ? (
         <window.FloorPlanMap
           buildingCode={selectedId}
           activeLevelId={activeLevelId}
@@ -145,6 +150,7 @@ function App() {
         showCrosswalks={tweaks.showCrosswalks}
         showPaths={tweaks.showPaths}
         theme={theme}
+        drawn={mode.drawnBasemap} basemap={basemap}
         editMode={editMode} editSubMode={editSubMode}
         editTargetId={editTargetId} setEditTargetId={setEditTargetId}
         edgePickFirst={edgePickFirst} setEdgePickFirst={setEdgePickFirst}
@@ -162,7 +168,7 @@ function App() {
           onClose={() => setTweak("editMode", false)}
         />
       )}
-      <TweaksPanelInner tweaks={tweaks} setTweak={setTweak} />
+      {mode.editor && <TweaksPanelInner tweaks={tweaks} setTweak={setTweak} />}
     </div>
   );
 }
@@ -189,4 +195,56 @@ function TweaksPanelInner({ tweaks, setTweak }) {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+// Shown instead of the map when the site build's data cannot be read. Never a half map:
+// without the data file the only positions left would be the base records', which were
+// placed on the official printed map.
+function MapUnavailable() {
+  // Focus goes to the heading, so a screen reader reads what happened at once. (A role="alert"
+  // that is already there when the page first draws is not reliably announced.)
+  const heading = React.useRef(null);
+  useE(() => { heading.current?.focus(); }, []);
+  return (
+    <main className="map-unavailable">
+      <h1 ref={heading} tabIndex={-1}>The map could not load</h1>
+      <p>The map's data did not arrive. Check your connection, then try again.</p>
+      <button type="button" className="map-unavailable-retry" onClick={() => window.location.reload()}>Reload the map</button>
+    </main>
+  );
+}
+
+// Decide the mode, load that mode's data, then draw. Nothing is drawn and nothing is read
+// from storage before the mode is known.
+//   local  the bundled defaults are seeded into the browser's storage (default-edits-loader.js)
+//          and the edit store reads them, with the owner's own edits on top: as it always was.
+//   site   everything comes from 3d/campus-data.json: the map's records (site-data.js) and the
+//          campus drawn under them (drawn-basemap.js). Nothing is stored.
+async function boot() {
+  const root = ReactDOM.createRoot(document.getElementById("root"));
+  try {
+    const mode = await window.MapMode.ready;
+    if (!mode.site) {
+      if (window.DefaultEdits) window.DefaultEdits.load(window.MapMode.storage());
+      else console.warn("[map] default-edits-loader.js is not on the page: the bundled defaults were not seeded.");
+      window.editStore.reload();
+      root.render(<App basemap={null} />);
+      return;
+    }
+    const data = await window.SiteData.load();
+    const built = window.SiteData.siteEdits(data, {
+      buildings: window.BASE_BUILDINGS, nodes: window.BASE_NODES, edges: window.BASE_EDGES, shuttle: window.BASE_SHUTTLE,
+    });
+    if (built.skipped.length) console.warn("[map] the data file gave no place for:", built.skipped.join(", "));
+    const projector = window.SiteData.projector(data.meta.georef);
+    const basemap = window.DrawnBasemap.layers(data, projector.toPx, projector.metresPerPx);
+    window.editStore.loadSite(built.edits);
+    // The store swallows storage errors; never draw base records over the data-drawn campus.
+    if (!window.SiteData.applied(built, window.BUILDINGS)) throw new Error("the map's records did not take the site data");
+    window.BUS_STOPS = built.busStops;
+    window.MAP_SCALE = built.scale; // routing.jsx and sidebar.jsx: real feet to a frame unit
+    root.render(<App basemap={basemap} />);
+  } catch (err) {
+    console.warn("[map] the map didn't load:", (err && err.message) || err);
+    root.render(<MapUnavailable />);
+  }
+}
+boot();

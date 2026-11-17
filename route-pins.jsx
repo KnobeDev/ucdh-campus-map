@@ -1,18 +1,19 @@
-// Route pin store — persists user-customised route waypoints, keyed by from→to pair.
+// Route pin store — keeps user-customised route waypoints, keyed by from→to pair: in the
+// browser's storage in the local build, for the page alone in the site build (map-mode.js).
 // A "pin" is an arbitrary {x,y} that the routing engine threads Dijkstra through.
 
 const ROUTE_PINS_KEY = "ucd-campus-map-route-pins-v1";
 
 function readAll() {
   try {
-    const raw = localStorage.getItem(ROUTE_PINS_KEY);
+    const raw = window.MapMode.storage().getItem(ROUTE_PINS_KEY);
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
   }
 }
 function writeAll(data) {
-  try { localStorage.setItem(ROUTE_PINS_KEY, JSON.stringify(data)); } catch {}
+  try { window.MapMode.storage().setItem(ROUTE_PINS_KEY, JSON.stringify(data)); } catch {}
 }
 function pairKey(fromId, toId) { return `${fromId}__${toId}`; }
 

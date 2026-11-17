@@ -1,6 +1,11 @@
-// Edit store — wraps base data with user overrides, persisted to localStorage.
+// Edit store — wraps base data with user overrides, persisted to the browser's storage
+// in the local build, and held for the page alone in the site build (map-mode.js).
 // Lets the rest of the app keep reading window.BUILDINGS / window.GRAPH_NODES
 // while edit mode mutates them through setEdits().
+
+// Where the edits are kept. Never the browser's storage by name: the mode decides, and
+// until it is known (and on the site) this is a store that lives and dies with the page.
+const store = () => window.MapMode.storage();
 
 const EDIT_STORAGE_KEY = "ucd-campus-map-edits-v2";
 const LEGACY_KEYS = ["ucd-campus-map-edits-v1"];
@@ -38,15 +43,15 @@ window.EDGE_TYPES = EDGE_TYPES;
 // }
 function readEdits() {
   try {
-    let raw = localStorage.getItem(EDIT_STORAGE_KEY);
+    let raw = store().getItem(EDIT_STORAGE_KEY);
     // Migrate from legacy keys (e.g. v1) so prior building/waypoint edits don't disappear
     if (!raw) {
       for (const k of LEGACY_KEYS) {
-        const legacy = localStorage.getItem(k);
+        const legacy = store().getItem(k);
         if (legacy) {
           try {
             const merged = { ...defaultEdits(), ...JSON.parse(legacy) };
-            localStorage.setItem(EDIT_STORAGE_KEY, JSON.stringify(merged));
+            store().setItem(EDIT_STORAGE_KEY, JSON.stringify(merged));
             raw = JSON.stringify(merged);
             break;
           } catch {}
@@ -104,12 +109,12 @@ function pruneExpiredZones(edits) {
   }
   if (removed > 0) {
     edits.constructionZones = keep;
-    try { localStorage.setItem(EDIT_STORAGE_KEY, JSON.stringify(edits)); } catch {}
+    try { store().setItem(EDIT_STORAGE_KEY, JSON.stringify(edits)); } catch {}
   }
   return edits;
 }
 function writeEdits(e) {
-  try { localStorage.setItem(EDIT_STORAGE_KEY, JSON.stringify(e)); } catch {}
+  try { store().setItem(EDIT_STORAGE_KEY, JSON.stringify(e)); } catch {}
 }
 
 function applyEdits(edits) {
@@ -168,7 +173,7 @@ function notifyEdits() { editListeners.forEach(cb => cb()); }
 
 // ---- Backup + dirty-state tracking ----
 // Auto-snapshots every mutation into a separate localStorage key so a stray
-// localStorage.clear() or stale-cache reset can be recovered. Counts mutations
+// clear() or stale-cache reset can be recovered. Counts mutations
 // since the last Apply so the unsaved-edits banner can warn the user before
 // they navigate away with un-published work.
 const BACKUP_KEY  = "ucd-campus-map-edits-v2-backups";
@@ -176,10 +181,10 @@ const DIRTY_KEY   = "ucd-campus-map-edits-v2-dirty"; // count of mutations since
 const MAX_BACKUPS = 10;
 
 function readBackups() {
-  try { return JSON.parse(localStorage.getItem(BACKUP_KEY) || "[]"); } catch { return []; }
+  try { return JSON.parse(store().getItem(BACKUP_KEY) || "[]"); } catch { return []; }
 }
 function writeBackups(list) {
-  try { localStorage.setItem(BACKUP_KEY, JSON.stringify(list.slice(0, MAX_BACKUPS))); } catch {}
+  try { store().setItem(BACKUP_KEY, JSON.stringify(list.slice(0, MAX_BACKUPS))); } catch {}
 }
 function snapshot(state) {
   const list = readBackups();
@@ -191,10 +196,10 @@ function snapshot(state) {
   writeBackups(list);
 }
 function readDirty() {
-  try { return parseInt(localStorage.getItem(DIRTY_KEY) || "0", 10) || 0; } catch { return 0; }
+  try { return parseInt(store().getItem(DIRTY_KEY) || "0", 10) || 0; } catch { return 0; }
 }
 function writeDirty(n) {
-  try { localStorage.setItem(DIRTY_KEY, String(n)); } catch {}
+  try { store().setItem(DIRTY_KEY, String(n)); } catch {}
 }
 
 // Coalesces rapid mutations (drag handlers, keystroke-by-keystroke text input)
@@ -247,6 +252,20 @@ const editStore = {
     if (!sameAsBefore) scheduleCommit(next);
   },
   subscribe(cb) { editListeners.add(cb); return () => editListeners.delete(cb); },
+  // Read the storage again and redraw. The local build seeds its defaults only once the mode
+  // is known (app.jsx), after this file has already drawn the bare base records.
+  reload() { applyEdits(readEdits()); notifyEdits(); },
+  // The site build's whole map, from 3d/campus-data.json (site-data.js). It replaces every
+  // edit, counts as no edit, and is kept for this page only.
+  // Applied from the document itself, never from what storage hands back: every storage
+  // call here swallows its errors, and a read that failed would quietly draw the bare
+  // base records, which sit where the official map had them.
+  loadSite(edits) {
+    const all = { ...defaultEdits(), ...edits };
+    writeEdits(all); // so get() and the floor-plan readers see the same document
+    applyEdits(all);
+    notifyEdits();
+  },
   reset() { writeEdits(defaultEdits()); applyEdits(defaultEdits()); writeDirty(0); notifyEdits(); },
 
   // ---- Backup API ----
