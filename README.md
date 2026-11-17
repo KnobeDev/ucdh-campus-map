@@ -68,12 +68,12 @@ anything wrong with the file means the site build.
 
 | | Local (this repo's committed file) | Site (an unofficial public test build) |
 |---|---|---|
-| Base map | the picture the editor draws over (`campus-map.svg`) | drawn from `3d/campus-data.json`: OpenStreetMap streets, paths, lawns and building outlines (`drawn-basemap.js`) |
-| Buildings, stops, places, closures, walking graph | `data.jsx` plus `default-edits.json` and your own edits | the same data file the 3D map reads, placed by its georeference (`site-data.js`), so 2D and 3D agree |
+| Base map | the picture the editor draws over (`campus-map.svg`) | drawn from `3d/campus-data.site.json`: OpenStreetMap streets, paths, lawns and building outlines (`drawn-basemap.js`) |
+| Buildings, stops, places, closures, walking graph | `data.jsx` plus `default-edits.json` and your own edits | the same data file the 3D map reads on the site, placed by that file's own north-up frame (`site-data.js`), so 2D and 3D agree |
 | A building OpenStreetMap has no outline for | its traced polygon | a named marker at its place; a tracing of the official map never ships |
 | Editor, Tweaks panel, messages to a host page | on | off |
 | Browser storage | edits, backups and route pins | nothing is read or written |
-| Distances in directions | the old estimate | the real scale from the georeference |
+| Distances in directions | the old estimate | the real scale, from the data file's frame |
 
 The 3D map follows the same file:
 
