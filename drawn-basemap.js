@@ -1,4 +1,4 @@
-// The 2D map's campus backdrop in the site build, DRAWN from 3d/campus-data.json: lawns and
+// The 2D map's campus backdrop in the site build, DRAWN from 3d/campus-data.site.json: lawns and
 // lots, streets and paths, the neighbourhood's buildings and the campus's own, all
 // OpenStreetMap geometry. The site never shows the official printed map (owner, 2026-11-17:
 // open data), so app.jsx asks for this in site mode only; locally the owner keeps editing
@@ -6,8 +6,9 @@
 //
 // It is drawn as SVG path data, not a picture: one <path> per layer inside the map's own
 // <svg>, so it stays sharp at any zoom and needs no canvas. layers() is pure (data in, path
-// strings out) and tested in node. Buildings whose only outline is a tracing of the official
-// map (geomSource "traced") are not drawn: site-data.js shows them as markers.
+// strings out) and tested in node. Only OpenStreetMap footprints are drawn: the site's data
+// file holds no others, and the same test is kept here in case a full file is handed to it.
+// A building with no footprint is a marker (site-data.js).
 //
 // The inks are chosen so every outline and line holds 3:1 against every ground it crosses
 // (SC 1.4.11); tools/test/site-data.test.js measures each pair. The data credit is static
@@ -48,7 +49,7 @@
 
   /**
    * The campus as layers of SVG path data, in drawing order.
-   * @param data the parsed 3d/campus-data.json
+   * @param data the parsed 3d/campus-data.site.json
    * @param toPx (x, z) -> [px, py]: ENU metres to the 2D app's frame (SiteData.projector)
    * @param metresPerPx ground metres to one frame unit, for line widths
    * @returns {{id: string, d: string, fill?: string, stroke?: string, width?: number, dash?: string, fixed?: boolean}[]}

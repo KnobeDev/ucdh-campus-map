@@ -1,13 +1,14 @@
-// The site build's 2D map: every position from the data file the 3D map
-// reads (3d/campus-data.json: OpenStreetMap geometry joined to the curated
-// building list), and none from the official printed map.
+// The site build's 2D map: every position from the site's copy of the campus data
+// (3d/campus-data.site.json: OpenStreetMap geometry joined to the curated building list, with
+// nothing that depends on the official printed map), and none from the picture itself.
 //
-//   site-data.js      turns that file into the 2D app's own "edits" document,
-//                     in the app's 919x792 frame, by the georeference
+//   site-data.js      turns that file into the 2D app's own "edits" document, in the app's
+//                     919x792 drawing area, by the plain frame the file carries (meta.frame2d)
 //   drawn-basemap.js  draws the campus under it from the same file
 //
-// What must never reach the site map: an outline traced over the official
-// map (footprints with geomSource "traced"). Those buildings become markers.
+// What must never reach the site map: an outline traced over the official map. The site's
+// data file has none; these also hand site-data.js the FULL file's buildings (HYBRID), to
+// show that even then a traced outline becomes a marker and is never drawn.
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert");
@@ -18,9 +19,12 @@ const vm = require("vm");
 const ROOT = path.join(__dirname, "..", "..");
 const SiteData = require(path.join(ROOT, "site-data.js"));
 const DrawnBasemap = require(path.join(ROOT, "drawn-basemap.js"));
-const georef = require(path.join(ROOT, "tools", "lib", "georef.js"));
+const { siteCampusData, FRAME_PAD } = require(path.join(ROOT, "tools", "lib", "site-campus-data.js"));
 
-const DATA = JSON.parse(fs.readFileSync(path.join(ROOT, "3d", "campus-data.json"), "utf8"));
+const FULL = JSON.parse(fs.readFileSync(path.join(ROOT, "3d", "campus-data.json"), "utf8"));
+const DATA = siteCampusData(FULL);
+/** The site's frame with the full file's buildings: traced outlines and the placeholder included. */
+const HYBRID = { ...DATA, buildings: FULL.buildings };
 
 /** data.jsx is pure data assigned onto `window`: the app's base records. */
 function baseRecords() {
@@ -31,11 +35,12 @@ function baseRecords() {
   return { buildings: w.BUILDINGS, nodes: w.GRAPH_NODES, edges: w.GRAPH_EDGES, shuttle: w.SHUTTLE_STOPS, frame: w.MAP_IMG };
 }
 const BASE = baseRecords();
-const P = SiteData.projector(DATA.meta.georef);
+const P = SiteData.projector(DATA.meta.frame2d);
 const BUILT = SiteData.siteEdits(DATA, BASE);
+const BUILT_HYBRID = SiteData.siteEdits(HYBRID, BASE);
 const key = (a, b) => (a < b ? `${a}__${b}` : `${b}__${a}`);
 const hasOsm = (b) => b.footprints.some((f) => f.geomSource === "osm");
-/** The buildings the site map lists: all of the data file's but hotspots nobody named. */
+/** The buildings the site map lists: all of the data file's (it holds no unnamed hotspot). */
 const LISTED = DATA.buildings.filter((b) => !SiteData.isPlaceholder(b));
 const round1 = (n) => Math.round(n * 10) / 10;
 
@@ -58,32 +63,56 @@ function applied(edits) {
 }
 const MAP = applied(BUILT.edits);
 
-test("projector: the browser's ENU-to-frame maths is the tools' own", () => {
-  for (const [x, z] of [[0, 0], [-217.85, -320.19], [879, 760], [-879, -760], [123.4, -56.7]]) {
-    const want = georef.enuToPx(x, z);
-    const got = P.toPx(x, z);
-    assert.ok(Math.abs(got[0] - want[0]) < 1e-6 && Math.abs(got[1] - want[1]) < 1e-6, `${x},${z}: ${got} vs ${want}`);
-  }
-  // The frame is the 2D app's own: the Medical Center's centre lands where the app has it.
-  const t = DATA.buildings.find((b) => b.code === "T");
-  const [px, py] = P.toPx(t.center.x, t.center.z);
-  assert.ok(px > 0 && px < BASE.frame.w && py > 0 && py < BASE.frame.h);
+test("frame: plain north-up, one scale, and nothing of the official picture's calibration", () => {
+  const f = DATA.meta.frame2d;
+  assert.deepStrictEqual(Object.keys(f).sort(), ["h", "metresPerUnit", "w", "x0", "z0"]);
+  assert.deepStrictEqual([f.w, f.h], [BASE.frame.w, BASE.frame.h], "it is made for the app's own drawing area");
+  // east is right, south is down, the same scale both ways, no rotation or shear
+  const [ox, oy] = P.toPx(0, 0);
+  const [ex, ey] = P.toPx(100, 0);
+  const [sx, sy] = P.toPx(0, 100);
+  assert.ok(ex > ox && Math.abs(ey - oy) < 1e-9, "100 m east is straight right");
+  assert.ok(sy > oy && Math.abs(sx - ox) < 1e-9, "100 m south is straight down");
+  assert.ok(Math.abs((ex - ox) - (sy - oy)) < 1e-9);
+  assert.ok(Math.abs((ex - ox) - 100 / f.metresPerUnit) < 1e-9);
+  // the picture's pixels-to-world fit is not in the site's file at all
+  assert.deepStrictEqual(Object.keys(DATA.meta.georef), ["enuOrigin"]);
+  assert.ok(!JSON.stringify(DATA.meta).includes("rmsMeters"));
 });
 
-test("projector: distances come from the georeference, not a guess", () => {
-  // About 1.63 m to a frame unit, so about 5.4 ft.
-  assert.ok(P.metresPerPx > 1.55 && P.metresPerPx < 1.7, String(P.metresPerPx));
+test("frame: every campus place is inside the drawing area, clear of its edge", () => {
+  const inside = ([x, y], what) => assert.ok(x >= FRAME_PAD - 0.5 && x <= BASE.frame.w - FRAME_PAD + 0.5 && y >= FRAME_PAD - 0.5 && y <= BASE.frame.h - FRAME_PAD + 0.5, `${what} at ${x.toFixed(1)},${y.toFixed(1)}`);
+  for (const b of DATA.buildings) {
+    for (const fp of b.footprints) for (const [x, z] of fp.ring) inside(P.toPx(x, z), b.code);
+    inside(P.toPx(b.center.x, b.center.z), `${b.code} centre`);
+  }
+  for (const [id, n] of Object.entries(DATA.graph.nodes)) inside(P.toPx(n.x, n.z), id);
+  for (const s of [...DATA.points.shuttle, ...DATA.points.busStops, ...DATA.points.pois, ...DATA.points.entrances]) inside(P.toPx(s.x, s.z), s.id);
+  // and it uses the room: the campus spans most of at least one side
+  const xs = DATA.buildings.flatMap((b) => b.footprints.flatMap((fp) => fp.ring.map(([x, z]) => P.toPx(x, z)[0])));
+  const ys = DATA.buildings.flatMap((b) => b.footprints.flatMap((fp) => fp.ring.map(([x, z]) => P.toPx(x, z)[1])));
+  const spanX = (Math.max(...xs) - Math.min(...xs)) / BASE.frame.w;
+  const spanY = (Math.max(...ys) - Math.min(...ys)) / BASE.frame.h;
+  assert.ok(Math.max(spanX, spanY) > 0.75, `${spanX.toFixed(2)} x ${spanY.toFixed(2)}`);
+});
+
+test("frame: distances come from its scale, not a guess", () => {
+  assert.strictEqual(P.metresPerPx, DATA.meta.frame2d.metresPerUnit);
+  assert.ok(P.metresPerPx > 1.2 && P.metresPerPx < 2.2, String(P.metresPerPx));
   assert.ok(Math.abs(P.ftPerPx - P.metresPerPx * 3.28084) < 1e-9);
   assert.strictEqual(BUILT.scale.ftPerPx, P.ftPerPx);
 });
 
-test("a georeference the maths cannot use is refused, not guessed around", () => {
-  for (const bad of [null, {}, { cx: [1, 2], cy: [1, 2, 3], enuOrigin: { lon: 0, lat: 0 } },
-    { cx: [1, 0, 0], cy: [2, 0, 0], enuOrigin: { lon: 0, lat: 0 } },
-    { cx: [1, 0, 0], cy: [0, 1, 0], enuOrigin: { lon: "x", lat: 0 } }]) {
-    assert.throws(() => SiteData.projector(bad), /georeference/, JSON.stringify(bad));
+test("a frame the maths cannot use, or one made for another drawing area, is refused, not guessed around", () => {
+  const good = DATA.meta.frame2d;
+  for (const bad of [null, undefined, {}, { ...good, metresPerUnit: 0 }, { ...good, metresPerUnit: -1 }, { ...good, x0: "0" },
+    { ...good, w: NaN }, { ...good, h: 0 }, { w: 919, h: 792 }]) {
+    assert.throws(() => SiteData.projector(bad), /frame/, JSON.stringify(bad));
   }
-  assert.throws(() => SiteData.siteEdits({ ...DATA, meta: {} }, BASE), /georeference/);
+  assert.throws(() => SiteData.siteEdits({ ...DATA, meta: {} }, BASE), /frame/);
+  // the full data file has no such frame: handed to the site map by mistake, it is refused
+  assert.throws(() => SiteData.siteEdits(FULL, BASE), /frame/);
+  assert.throws(() => SiteData.siteEdits({ ...DATA, meta: { ...DATA.meta, frame2d: { ...good, w: 1000 } } }, BASE), /1000x792.*919x792/);
   assert.throws(() => SiteData.siteEdits({ ...DATA, buildings: null }, BASE), /buildings/);
 });
 
@@ -101,10 +130,12 @@ test("a hotspot nobody named is not a place: it is left off the site map", () =>
   assert.strictEqual(SiteData.isPlaceholder({ name: "New hotspot" }), true);
   assert.strictEqual(SiteData.isPlaceholder({ name: " new Hotspot " }), true);
   for (const name of ["New hotspot 2", "Medical Center", "", undefined]) assert.strictEqual(SiteData.isPlaceholder({ name }), false, String(name));
-  const placeholders = DATA.buildings.filter(SiteData.isPlaceholder);
-  assert.ok(placeholders.length >= 1, "the data file has one today (X1, the California Tower site)");
-  for (const p of placeholders) assert.ok(!MAP.buildings.some((b) => b.code === p.code), p.code);
   assert.ok(!MAP.buildings.some((b) => /new hotspot/i.test(b.name)));
+  // The site's data file has none. Handed the full file's buildings, which do, it still lists none.
+  const placeholders = FULL.buildings.filter(SiteData.isPlaceholder);
+  assert.ok(placeholders.length >= 1, "the full file has one today (X1, the California Tower site)");
+  const map = applied(BUILT_HYBRID.edits);
+  for (const p of placeholders) assert.ok(!map.buildings.some((b) => b.code === p.code), p.code);
 });
 
 test("a base building the data file dropped is gone, not left where the official map had it", () => {
@@ -115,7 +146,7 @@ test("a base building the data file dropped is gone, not left where the official
 
 test("a building with an OpenStreetMap outline is drawn by it, every part of it", () => {
   const osm = LISTED.filter(hasOsm);
-  assert.ok(osm.length >= 50, String(osm.length));
+  assert.ok(osm.length > LISTED.length / 2, String(osm.length));
   for (const d of osm) {
     const b = MAP.buildings.find((x) => x.code === d.code);
     assert.ok(!b.marker, d.code);
@@ -131,10 +162,10 @@ test("a building with an OpenStreetMap outline is drawn by it, every part of it"
   assert.ok(t.parts.length >= 3, "the Medical Center is several OpenStreetMap buildings");
 });
 
-test("a building OpenStreetMap lacks is a marker at its place: no traced outline ships", () => {
-  const traced = LISTED.filter((b) => !hasOsm(b));
-  assert.ok(traced.length > 0);
-  for (const d of traced) {
+test("a building OpenStreetMap lacks is a marker at its place", () => {
+  const markers = LISTED.filter((b) => !hasOsm(b));
+  assert.ok(markers.length > 0);
+  for (const d of markers) {
     const b = MAP.buildings.find((x) => x.code === d.code);
     assert.strictEqual(b.marker, true, d.code);
     assert.strictEqual(b.points, null, d.code);
@@ -142,15 +173,25 @@ test("a building OpenStreetMap lacks is a marker at its place: no traced outline
     const [cx, cy] = P.toPx(d.center.x, d.center.z);
     assert.ok(Math.abs(b.x + b.w / 2 - cx) < 0.11 && Math.abs(b.y + b.h / 2 - cy) < 0.11, d.code);
   }
-  // No vertex of any traced ring appears in any building the site map is given. (A closure
-  // zone is the map's own drawing of a fenced area, and may share a corner with a hotspot.)
-  const out = JSON.stringify([BUILT.edits.buildings, BUILT.edits.addedBuildings]);
-  for (const d of DATA.buildings) {
+});
+
+test("even handed the full file's buildings, no outline traced over the official map is used", () => {
+  const traced = FULL.buildings.filter((b) => !SiteData.isPlaceholder(b) && !hasOsm(b));
+  assert.ok(traced.length >= 10, "the full file has them");
+  const map = applied(BUILT_HYBRID.edits);
+  for (const d of traced) assert.strictEqual(map.buildings.find((x) => x.code === d.code).marker, true, d.code);
+  // No vertex of any traced ring appears in any building it produced. (A closure zone is the
+  // map's own drawing of a fenced area, and may share a corner with a hotspot.)
+  const out = JSON.stringify([BUILT_HYBRID.edits.buildings, BUILT_HYBRID.edits.addedBuildings]);
+  let checked = 0;
+  for (const d of FULL.buildings) {
     for (const f of d.footprints.filter((x) => x.geomSource !== "osm")) {
       const [x, y] = P.toPx(f.ring[1][0], f.ring[1][1]).map(round1);
       assert.ok(!out.includes(`[${x},${y}]`), `${d.code}: a traced vertex leaked`);
+      checked++;
     }
   }
+  assert.ok(checked >= 10);
 });
 
 test("the walking graph is the data file's: every node moved, exactly its edges", () => {
@@ -198,7 +239,7 @@ test("nothing in what the site map is given is NaN, missing or out of the campus
   };
   walk(BUILT, "built");
   for (const b of MAP.buildings) {
-    assert.ok(b.x > -200 && b.x < BASE.frame.w + 200 && b.y > -200 && b.y < BASE.frame.h + 200, `${b.code} at ${b.x},${b.y}`);
+    assert.ok(b.x >= 0 && b.x <= BASE.frame.w && b.y >= 0 && b.y <= BASE.frame.h, `${b.code} at ${b.x},${b.y}`);
   }
 });
 
@@ -239,19 +280,25 @@ test("basemap: every outline and path keeps a fixed width on screen of at least 
     "the casing shows either side of the road");
 });
 
-test("basemap: every OpenStreetMap building is there, and no traced one", () => {
-  const osm = DATA.buildings.flatMap((b) => b.footprints.filter((f) => f.geomSource === "osm"));
+test("basemap: every OpenStreetMap building is there, and no traced one even from the full file", () => {
+  const osm = DATA.buildings.flatMap((b) => b.footprints);
   const raised = osm.filter((f) => f.height > 0).length;
   assert.strictEqual(subpaths(byId("buildings").d), raised);
   assert.strictEqual(subpaths(byId("lots").d), osm.length - raised);
   assert.strictEqual(subpaths(byId("neighbours").d), DATA.context.length);
-  const all = LAYERS.map((l) => l.d).join(" ");
-  for (const b of DATA.buildings) {
+  // the full file's buildings draw exactly the same: its traced footprints are passed over
+  const hybrid = DrawnBasemap.layers(HYBRID, P.toPx, P.metresPerPx);
+  assert.strictEqual(hybrid.find((l) => l.id === "buildings").d, byId("buildings").d);
+  const all = hybrid.map((l) => l.d).join(" ");
+  let checked = 0;
+  for (const b of FULL.buildings) {
     for (const f of b.footprints.filter((x) => x.geomSource !== "osm")) {
       const [x, y] = P.toPx(f.ring[1][0], f.ring[1][1]).map(round1);
       assert.ok(!all.includes(`${x},${y}`), `${b.code}: a traced vertex is drawn`);
+      checked++;
     }
   }
+  assert.ok(checked >= 10);
 });
 
 test("basemap: every street and path in the data file is drawn in its kind's layer", () => {

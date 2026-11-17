@@ -206,3 +206,19 @@ export function buildPointLayers(world, points, osmBusStops, poiTypes) {
     setVisible(name, v) { if (layers[name]) layers[name].visible = v; },
   };
 }
+
+/**
+ * A named signpost for every building that has no outline to build (the site's data, where
+ * OpenStreetMap lacks one and a tracing of the official map never ships: `marker: true`).
+ * Always shown: it is the building. Wayfinding reaches it by name from the destination list.
+ */
+export function buildPlaceMarkers(world, buildings) {
+  const places = buildings.filter((b) => b.marker && b.center);
+  const group = new THREE.Group();
+  if (!places.length) return { group, count: 0 };
+  const postGeo = new THREE.CylinderGeometry(0.12, 0.12, POST_H, 6);
+  postGeo.translate(0, POST_H / 2, 0);
+  addMarkers(world, group, postGeo, 0x002855,
+    places.map((b) => ({ x: b.center.x, z: b.center.z, text: b.name, style: "entrance", height: 1.2 })));
+  return { group, count: places.length };
+}

@@ -173,3 +173,24 @@ test("map-mode: a config that never arrives is the site map, not a blank page fo
     console.warn = warn;
   }
 });
+
+test("app-config: a file that never arrives is the site-safe set, within the time allowed", async () => {
+  const { loadAppConfig, SITE_SAFE } = await import(CONFIG);
+  const warn = console.warn;
+  console.warn = () => {};
+  try {
+    let seen = null;
+    // a request that only ends when its signal aborts, as a stalled connection does
+    const stalled = (url, init) => new Promise((resolve, reject) => {
+      seen = init;
+      init.signal.addEventListener("abort", () => reject(init.signal.reason));
+    });
+    const started = Date.now();
+    const config = await loadAppConfig({ fetchImpl: stalled, url: "http://x.test/3d/app-config.json", timeoutMs: 30 });
+    assert.deepStrictEqual({ ...config }, { ...SITE_SAFE, voice: "device" });
+    assert.ok(Date.now() - started < 2000);
+    assert.strictEqual(seen.cache, "no-cache");
+  } finally {
+    console.warn = warn;
+  }
+});

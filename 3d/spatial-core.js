@@ -41,3 +41,38 @@ export function metresWord(m) {
   if (m < 20) return `${Math.round(m)} metres`;
   return `${Math.round(m / 5) * 5} metres`;
 }
+
+/**
+ * Places that are a point, not an outline (a building shown as a signpost), within `reach`
+ * metres of (px, pz), nearest first: what sonar names beside the outlined buildings.
+ * @param {{name: string, x: number, z: number}[]} places
+ * @returns {{name: string, d: number, x: number, z: number}[]}
+ */
+export function placesInReach(places, px, pz, reach) {
+  return places
+    .map((p) => ({ name: p.name, d: Math.hypot(p.x - px, p.z - pz), x: p.x, z: p.z }))
+    .filter((p) => p.d <= reach)
+    .sort((a, b) => a.d - b.d);
+}
+
+/**
+ * The nearest such place in front of the walker: within `reach` metres and within
+ * `halfAngle` radians of the way they face (forward = (-sin yaw, -cos yaw)). What
+ * "What's ahead" names when no outlined building is in view.
+ * @returns {{place: object, d: number} | null}
+ */
+export function placeAhead(places, px, pz, yaw, { reach = 30, halfAngle = Math.PI / 4 } = {}) {
+  const fx = -Math.sin(yaw);
+  const fz = -Math.cos(yaw);
+  let best = null;
+  for (const place of places) {
+    const dx = place.x - px;
+    const dz = place.z - pz;
+    const d = Math.hypot(dx, dz);
+    if (d > reach) continue;
+    // Standing on it counts as ahead; otherwise it must lie inside the cone.
+    if (d > 1 && (dx * fx + dz * fz) / d < Math.cos(halfAngle)) continue;
+    if (!best || d < best.d) best = { place, d };
+  }
+  return best;
+}

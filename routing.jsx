@@ -64,6 +64,36 @@ function segCrossesPolygon(p1, p2, poly) {
   return false;
 }
 
+const SIDE_SPACING = 30; // px between a building's side points, along its outline
+const SIDE_CLEAR = GRID_MARGIN + 5; // px outside the outline: clear of the wall and its margin
+
+/**
+ * Points just outside a building's outlines, about SIDE_SPACING apart, that can be stood on.
+ * Each is stepped straight out from the wall (along the edge's normal), on whichever side
+ * `isWalkable` accepts, so it works for any outline, whichever way round it was drawn.
+ */
+function sidePoints(rings, isWalkable) {
+  const out = [];
+  for (const ring of rings) {
+    for (let i = 0; i < ring.length; i++) {
+      const a = ring[i], b = ring[(i + 1) % ring.length];
+      const len = Math.hypot(b.x - a.x, b.y - a.y);
+      if (len < 1) continue;
+      const nx = -(b.y - a.y) / len, ny = (b.x - a.x) / len;
+      const count = Math.max(1, Math.round(len / SIDE_SPACING));
+      for (let k = 0; k < count; k++) {
+        const t = (k + 0.5) / count;
+        const mx = a.x + (b.x - a.x) * t, my = a.y + (b.y - a.y) * t;
+        for (const sign of [1, -1]) {
+          const x = mx + nx * SIDE_CLEAR * sign, y = my + ny * SIDE_CLEAR * sign;
+          if (isWalkable(x, y)) { out.push({ x, y }); break; }
+        }
+      }
+    }
+  }
+  return out;
+}
+
 /** The ids of the largest connected group of grid points (the others are sealed pockets). */
 function mainComponent(nodes) {
   const seen = new Set();
@@ -189,10 +219,29 @@ function buildGraph() {
     }
     return { x, y };
   }
+  // A building you cannot walk through on the map is left, and reached, by whichever side is
+  // nearest the other end: points just outside its outline, a few paces apart, each tied to the
+  // building itself. Without them a route began at one fixed spot beside the building, and a
+  // neighbour on its far side read as a walk right round it (a 170 ft hop as 2,000 ft).
+  const sidesOf = {}; // B_<code> -> ids of its side points
   for (const b of buildings) {
     const c = window.buildingCentroid ? window.buildingCentroid(b) : { cx: b.x + b.w/2, cy: b.y + b.h/2 };
-    const snapped = snapToWalkable(c.cx, c.cy);
-    nodes[`B_${b.code}`] = { x: snapped.x, y: snapped.y, neighbors: [], building: b };
+    const id = `B_${b.code}`;
+    const solid = !PASSABLE_CATS.has(b.cat) && !b.marker;
+    const sides = solid ? sidePoints(buildingRings(b), isWalkable) : [];
+    if (!sides.length) {
+      const snapped = snapToWalkable(c.cx, c.cy);
+      nodes[id] = { x: snapped.x, y: snapped.y, neighbors: [], building: b };
+      continue;
+    }
+    nodes[id] = { x: c.cx, y: c.cy, neighbors: [], building: b };
+    sidesOf[id] = sides.map((s, i) => {
+      const sid = `BS_${b.code}_${i}`;
+      const d = Math.hypot(s.x - c.cx, s.y - c.cy);
+      nodes[sid] = { x: s.x, y: s.y, neighbors: [{ id, w: d }] };
+      nodes[id].neighbors.push({ id: sid, w: d });
+      return sid;
+    });
   }
   for (const s of window.SHUTTLE_STOPS || []) {
     const snapped = snapToWalkable(s.x, s.y);
@@ -243,7 +292,9 @@ function buildGraph() {
     }
   }
   for (const id of Object.keys(nodes)) {
-    if (!id.startsWith("g_")) connectToGrid(id, id.startsWith("B_") ? 4 : 6);
+    if (id.startsWith("g_")) continue;
+    if (sidesOf[id]) continue; // a building with side points meets the grid through them
+    connectToGrid(id, id.startsWith("B_") ? 4 : 6);
   }
 
   return nodes;
@@ -334,6 +385,11 @@ function buildRoute(fromId, toId) {
     else stitched.push(...pts.slice(1));
   }
 
+  // The length of the walk is the length of the line drawn, measured before it is simplified.
+  // (Dijkstra's own total is a COST: it holds the threefold penalty on a place tied to the
+  // grid across a wall, which made a short walk read several times too long.)
+  totalDist = 0;
+  for (let i = 1; i < stitched.length; i++) totalDist += Math.hypot(stitched[i].x - stitched[i - 1].x, stitched[i].y - stitched[i - 1].y);
   const points = simplifyPath(stitched);
   const sn = g[fromId], en = g[toId];
   const sName = sn.building?.name || sn.shuttle?.name || "Start";
@@ -346,7 +402,7 @@ function buildRoute(fromId, toId) {
     const dist = Math.round(Math.hypot(nx.x - cu.x, nx.y - cu.y));
     steps.push({ icon: cross > 0 ? "right" : "left", text: `Turn ${cross > 0 ? "right" : "left"}`, dist });
   }
-  // The site build knows the real scale from its georeference (site-data.js).
+  // The site build knows the real scale from its data file's frame (site-data.js).
   const ftPerPx = window.MAP_SCALE?.ftPerPx || 2.0;
   const totalFt = Math.round(totalDist * ftPerPx);
   const totalMin = Math.max(1, Math.round(totalFt / 270));

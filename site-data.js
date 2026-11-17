@@ -1,4 +1,4 @@
-// The site build's map data: every position from 3d/campus-data.json, the file the 3D map
+// The site build's map data: every position from 3d/campus-data.site.json, the file the 3D map
 // reads (OpenStreetMap geometry joined to the curated building list by tools/gen-3d-data.js),
 // and none from the official printed map or from outlines traced over it.
 //
@@ -9,16 +9,18 @@
 //
 //   - a building with an OpenStreetMap outline is drawn by it: `points` is its largest ring
 //     (what the router and the label use) and `parts` every ring (what is drawn and clicked);
-//   - a building OpenStreetMap lacks is a `marker` at its place. Its outline exists only as a
-//     tracing of the official map (footprints with geomSource "traced"), which never ships;
+//   - a building OpenStreetMap lacks is a `marker` at its place. The site's data file has
+//     already had every outline traced over the official map taken out (tools/site-data.js);
+//     the same test is kept here, so a full data file handed to this by mistake draws none;
 //   - a base building the data file no longer has is removed, and so is a hotspot the
 //     editor never named ("New hotspot"): the 3D map treats those as bare ground, not places;
 //   - the walking graph, shuttle and bus stops, places, entrances and closures are the data
 //     file's, so the 2D and 3D maps agree to the metre.
 //
-// Positions are put in the 2D app's own 919x792 frame by the georeference the data file
-// carries (meta.georef: the frame to Web Mercator, plus the 3D scene's origin). The maths is
-// tools/lib/georef.js's, kept equal by tools/test/site-data.test.js. A classic script.
+// Positions are put in the 2D app's 919x792 drawing area by the frame the site's data file
+// carries (meta.frame2d, made by tools/lib/site-campus-data.js): plain north-up, one scale,
+// fitted to the campus. It owes nothing to the official picture or its calibration.
+// A classic script.
 (function (root, factory) {
   var api = factory();
   if (typeof module === "object" && module && module.exports) { module.exports = api; return; } // node tests
@@ -26,41 +28,30 @@
 })(typeof window !== "undefined" ? window : this, function () {
   "use strict";
 
-  var DATA_URL = "3d/campus-data.json";
-  var R = 6378137.0;            // WGS84 semi-major axis, the Web Mercator sphere's radius
-  var M_PER_DEG_LAT = 110574.0;
+  // The site's copy of the campus data: the 3D map's file with every outline traced over the
+  // official map already taken out (tools/site-data.js). The 3D map reads the same file.
+  var DATA_URL = "3d/campus-data.site.json";
   var FT_PER_M = 3.28084;
   var MARKER_BOX = 14;          // frame units: the hit box of a building shown as a marker
 
   var isNum = function (v) { return typeof v === "number" && isFinite(v); };
   var round1 = function (n) { return Math.round(n * 10) / 10; };
 
-  /** The data file's georeference as functions.
-   *  @returns {{toPx: (x: number, z: number) => [number, number], metresPerPx: number, ftPerPx: number}} */
-  function projector(georef) {
-    var cx = georef && georef.cx, cy = georef && georef.cy, origin = georef && georef.enuOrigin;
-    var triple = function (a) { return Array.isArray(a) && a.length === 3 && a.every(isNum); };
-    if (!triple(cx) || !triple(cy) || !origin || !isNum(origin.lon) || !isNum(origin.lat)) {
-      throw new Error("the data file's georeference is missing or malformed");
-    }
-    var det = cx[0] * cy[1] - cx[1] * cy[0];
-    if (!isNum(det) || Math.abs(det) < 1e-9) throw new Error("the data file's georeference cannot be inverted");
-    var mPerDegLon = 111320.0 * Math.cos((origin.lat * Math.PI) / 180);
-
-    function toPx(x, z) {
-      var lon = origin.lon + x / mPerDegLon;
-      var lat = origin.lat - z / M_PER_DEG_LAT;
-      var mx = R * lon * (Math.PI / 180);
-      var my = R * Math.log(Math.tan(Math.PI / 4 + (lat * (Math.PI / 180)) / 2));
-      var X = mx - cx[2], Y = my - cy[2];
-      return [(cy[1] * X - cx[1] * Y) / det, (-cy[0] * X + cx[0] * Y) / det];
-    }
-    // Ground metres to one frame unit, measured across the campus (the frame is north-up and
-    // square to well under 1%, so one number serves both axes).
-    var a = toPx(0, 0), b = toPx(1000, 0), c = toPx(0, 1000);
-    var perKm = (Math.hypot(b[0] - a[0], b[1] - a[1]) + Math.hypot(c[0] - a[0], c[1] - a[1])) / 2;
-    var metresPerPx = 1000 / perKm;
-    return { toPx: toPx, metresPerPx: metresPerPx, ftPerPx: metresPerPx * FT_PER_M };
+  /** The data file's 2D frame as functions.
+   *  @param frame {w, h, metresPerUnit, x0, z0}: px = (x - x0) / metresPerUnit, py = (z - z0) / metresPerUnit
+   *  @returns {{toPx: (x: number, z: number) => [number, number], metresPerPx: number, ftPerPx: number, w: number, h: number}} */
+  function projector(frame) {
+    var ok = frame && isNum(frame.w) && isNum(frame.h) && isNum(frame.metresPerUnit) && isNum(frame.x0) && isNum(frame.z0)
+      && frame.w > 0 && frame.h > 0 && frame.metresPerUnit > 0;
+    if (!ok) throw new Error("the data file's frame for the 2D map is missing or malformed");
+    var s = frame.metresPerUnit, x0 = frame.x0, z0 = frame.z0;
+    return {
+      toPx: function (x, z) { return [(x - x0) / s, (z - z0) / s]; }, // north-up: east is right, south is down
+      metresPerPx: s,
+      ftPerPx: s * FT_PER_M,
+      w: frame.w,
+      h: frame.h,
+    };
   }
 
   function ringArea(ring) {
@@ -131,13 +122,18 @@
 
   /**
    * The site map's edits document, from the data file.
-   * @param data the parsed 3d/campus-data.json
-   * @param base the app's base records: { buildings, nodes, edges, shuttle } as data.jsx defines them
+   * @param data the parsed 3d/campus-data.site.json
+   * @param base the app's base records: { buildings, nodes, edges, shuttle } as data.jsx defines them,
+   *             and optionally `frame` ({ w, h }: the map's drawing area, which the data's frame must match)
    * @returns {{ edits: object, busStops: object[], scale: { metresPerPx: number, ftPerPx: number }, skipped: string[] }}
    */
   function siteEdits(data, base) {
-    if (!data || !data.meta) throw new Error("the data file has no georeference");
-    var p = projector(data.meta.georef);
+    if (!data || !data.meta) throw new Error("the data file has no frame for the 2D map");
+    var p = projector(data.meta.frame2d);
+    // The frame is made for the app's own drawing area: anything else would draw off it.
+    if (base.frame && (base.frame.w !== p.w || base.frame.h !== p.h)) {
+      throw new Error("the data file's frame is " + p.w + "x" + p.h + ", the map draws " + base.frame.w + "x" + base.frame.h);
+    }
     if (!Array.isArray(data.buildings)) throw new Error("the data file has no buildings");
     var at = function (x, z) { var q = p.toPx(x, z); return [round1(q[0]), round1(q[1])]; };
     var point = function (rec) { var q = at(rec.x, rec.z); return { x: q[0], y: q[1] }; };
@@ -175,7 +171,7 @@
     if (missing.length) {
       // A base node cannot be removed by an edit, and left alone it would sit where the
       // official map had it. Stop rather than draw a graph that is half one map, half another.
-      throw new Error("the data file's graph lacks the base node " + missing.join(", ") + "; regenerate 3d/campus-data.json");
+      throw new Error("the data file's graph lacks the base node " + missing.join(", ") + "; regenerate the campus data (tools/gen-3d-data.js, then tools/site-data.js)");
     }
     // An edge naming a node the graph lacks could not be drawn or walked: left out.
     var edgesIn = graph.edges.filter(function (e) { return graph.nodes[e.a] && graph.nodes[e.b]; });

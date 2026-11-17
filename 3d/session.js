@@ -23,6 +23,8 @@ const CODE_RE = /^[A-Z2-9]{6}$/;
 const KIND_LABEL = { tour: "tour", event: "event" };
 const $ = (id) => document.getElementById(id);
 
+// Only ever reached with sessions on: every caller is behind a control the site build never
+// shows (createSession's `sessions` switch), and the lobby there asks nothing of a server.
 async function api(path, body) {
   const r = await fetch("/api/session/" + path, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
@@ -37,9 +39,20 @@ const storage = {
   kickmarks() { try { return JSON.parse(sessionStorage.getItem(KICK_KEY) || "{}") || {}; } catch { return {}; } },
   markKicked(code, id) { try { const m = storage.kickmarks(); m[code] = id; sessionStorage.setItem(KICK_KEY, JSON.stringify(m)); } catch { /* fine */ } },
 };
+/** What the session code is handed with sessions off: the same shape, touching nothing. */
+const NO_STORAGE = Object.freeze({
+  load: () => null, save() {}, name: () => "", saveName() {}, kickmarks: () => ({}), markKicked() {},
+});
 const spellOut = (code) => code.split("").join(" ");
 
-export function createSession() {
+/**
+ * @param {object} [o]
+ * @param {boolean} [o.sessions] false in the site build (app-config.js): there is no session
+ *   server there, and on hori.ble the /api paths are the site's own. With it off, nothing
+ *   here calls /api, reads or writes the browser's storage, or offers a tour, an event or a
+ *   code to join: the door has one choice, to explore alone.
+ */
+export function createSession({ sessions = true } = {}) {
   let active = false;
   let role = null;
   let kind = null;
@@ -57,6 +70,12 @@ export function createSession() {
   let lastTetherAt = 0;
 
   const lobby = $("lobby");
+  // With sessions off this is the only way to the server, and it is shut: a hidden control
+  // that still got clicked (by a script, by an assistive tool) reaches nothing.
+  const call = (path, body) => (sessions ? api(path, body) : Promise.reject(new Error("sessions are off in this build")));
+  // The same for what a session keeps in the browser: with sessions off nothing is read,
+  // written or removed, so whatever an earlier visit left is neither used nor disturbed.
+  const store = sessions ? storage : NO_STORAGE;
   const views = { choose: $("lobby-view-choose"), code: $("lobby-view-code"), join: $("lobby-view-join"), notice: $("lobby-view-notice") };
   const status = (msg) => { $("lobby-status").textContent = msg; };
   const isMember = () => active && role === "member";
@@ -79,7 +98,7 @@ export function createSession() {
     document.body.classList.toggle("sess-member", isMember());
     document.body.classList.toggle("sess-active", active);
     $("conn-btn").hidden = !active;
-    $("join-btn").hidden = active;
+    $("join-btn").hidden = active || !sessions;
     renderChip();
     if (active) renderConnBtn();
   }
@@ -179,7 +198,7 @@ export function createSession() {
   async function kick(peer) {
     confirmTarget = null;
     try {
-      const r = await api("kick", { code: creds.code, id: creds.id, token: creds.token, targetId: peer.id });
+      const r = await call("kick", { code: creds.code, id: creds.id, token: creds.token, targetId: peer.id });
       if (!active) return;
       say(r.ok ? `${peer.name} was removed from the group.` : "Couldn't remove them — they may have already left.");
     } catch { if (active) say("Couldn't reach the server to remove them — try again."); }
@@ -191,7 +210,7 @@ export function createSession() {
     if (guide && !confirm(`End the ${k} for everyone? The group returns to solo mode.`)) return;
     if (timer) { clearInterval(timer); timer = null; }
     const c = creds;
-    try { await api("leave", { code: c.code, id: c.id, token: c.token }); } catch { /* leaving anyway */ }
+    try { await call("leave", { code: c.code, id: c.id, token: c.token }); } catch { /* leaving anyway */ }
     teardown();
     $("scene")?.focus();
     say(guide ? `You ended the ${k}.` : `You left the ${k}. Exploring solo now.`);
@@ -202,7 +221,7 @@ export function createSession() {
     if (timer) { clearInterval(timer); timer = null; }
     active = false; role = null; kind = null; code = null; creds = null;
     lastRoster = ""; confirmTarget = null; guideAwayTold = false; latestPeers = [];
-    storage.save(null);
+    store.save(null);
     peersR?.clear();
     closePanel();
     applyRestrictions();
@@ -222,7 +241,7 @@ export function createSession() {
   function endedByServer(reason) {
     const k = KIND_LABEL[kind] || "session";
     const kicked = reason === "kicked";
-    if (kicked && creds) storage.markKicked(creds.code, creds.id);
+    if (kicked && creds) store.markKicked(creds.code, creds.id);
     teardown();
     speakOnly(kicked ? "You were removed from the group." : `The ${k} has ended.`);
     showNotice(kicked ? "Removed from the group" : "Session ended",
@@ -231,16 +250,17 @@ export function createSession() {
   }
 
   async function joinByCode(c, name) {
-    const marks = storage.kickmarks();
+    if (!sessions) return { ok: false, error: "unreachable" };
+    const marks = store.kickmarks();
     const body = { code: c, name };
     if (marks[c]) body.id = marks[c];
     let r;
-    try { r = await api("join", body); } catch { return { ok: false, error: "unreachable" }; }
+    try { r = await call("join", body); } catch { return { ok: false, error: "unreachable" }; }
     if (!r.ok) return r;
     creds = { code: r.code, id: r.id, token: r.token, kind: r.kind, role: r.role, name };
     active = true; role = r.role; kind = r.kind; code = r.code;
-    storage.save(creds);
-    storage.saveName(name);
+    store.save(creds);
+    store.saveName(name);
     return r;
   }
   const joinError = (e) => ({
@@ -252,7 +272,7 @@ export function createSession() {
   })[e] || "Couldn't join.";
 
   function beginSync() {
-    if (!active || !hooks || timer) return;
+    if (!sessions || !active || !hooks || timer) return;
     const k = KIND_LABEL[kind];
     say(role === "guide"
       ? `Your ${k} is live. The join code is ${spellOut(code)}. Open the Group panel to see everyone or to end the ${k}.`
@@ -261,19 +281,19 @@ export function createSession() {
     sync();
   }
   async function sync() {
-    if (!active || inFlight || !hooks) return;
+    if (!sessions || !active || inFlight || !hooks) return;
     inFlight = true;
     try {
       const p = hooks.player;
       const payload = { code: creds.code, id: creds.id, token: creds.token,
         state: { x: p.object.position.x, y: p.object.position.y, z: p.object.position.z, yaw: p.object.rotation.y, moving: p.state.moving, floor: p.state.floor } };
       if (role === "guide") payload.world = { theme: hooks.getTheme() };
-      const r = await api("sync", payload);
+      const r = await call("sync", payload);
       if (!active) return;
       if (r.error === "not-found") {
-        const rj = await api("join", { code: creds.code, name: creds.name, id: creds.id, token: creds.token });
+        const rj = await call("join", { code: creds.code, name: creds.name, id: creds.id, token: creds.token });
         if (!active) return;
-        if (rj.ok) { creds = { ...creds, id: rj.id, token: rj.token, role: rj.role }; role = rj.role; storage.save(creds); applyRestrictions(); }
+        if (rj.ok) { creds = { ...creds, id: rj.id, token: rj.token, role: rj.role }; role = rj.role; store.save(creds); applyRestrictions(); }
         else if (rj.error === "kicked" || rj.error === "not-found") endedByServer(rj.error === "kicked" ? "kicked" : "ended");
         else say(`Reconnecting to the group… (${joinError(rj.error)})`); // full / slow-down: keep trying
         return;
@@ -330,17 +350,30 @@ export function createSession() {
     return name;
   }
   function openLobby() {
+    if (!sessions) {
+      // The site build: one door. No stored session is looked for and no server is asked.
+      return new Promise((settle) => {
+        lobby.classList.add("lobby-solo");
+        $("lobby-tagline").textContent = "Walk the campus on your own: the whole map.";
+        const start = $("lobby-guest");
+        start.querySelector(".lobby-choice-name").textContent = "Start exploring";
+        start.querySelector(".lobby-choice-sub").textContent = "Opens the 3D map. Nothing plays until you ask for it.";
+        showView("choose");
+        openDialog(start);
+        start.addEventListener("click", () => { closeDialog(); settle(); }, { once: true });
+      });
+    }
     return new Promise((settle) => {
       const nameInput = $("lobby-name");
-      nameInput.value = storage.name();
-      $("late-name").value = storage.name();
-      const stored = storage.load();
+      nameInput.value = store.name();
+      $("late-name").value = store.name();
+      const stored = store.load();
       const resume = stored
-        ? api("join", { code: stored.code, name: stored.name, id: stored.id, token: stored.token }).then((r) => {
-          if (!r.ok) { storage.save(null); return false; }
+        ? call("join", { code: stored.code, name: stored.name, id: stored.id, token: stored.token }).then((r) => {
+          if (!r.ok) { store.save(null); return false; }
           creds = { ...stored, id: r.id, token: r.token, role: r.role, kind: r.kind };
           active = true; role = r.role; kind = r.kind; code = r.code;
-          storage.save(creds);
+          store.save(creds);
           return true;
         }).catch(() => false)
         : Promise.resolve(false);
@@ -353,18 +386,18 @@ export function createSession() {
           for (const id of ["lobby-tour", "lobby-event", "lobby-join"]) $(id).disabled = true;
           status("Tours and events need the campus session server — start the map with ./serve.sh. Guest mode still works.");
         });
-        $("lobby-guest").addEventListener("click", () => { storage.save(null); closeDialog(); settle(); });
+        $("lobby-guest").addEventListener("click", () => { store.save(null); closeDialog(); settle(); });
         async function create(k) {
           const name = needName(nameInput);
           if (!name) return;
           status(`Creating your ${KIND_LABEL[k]}…`);
           let r;
-          try { r = await api("create", { kind: k, name }); } catch { status("Can't reach the session server — is ./serve.sh running?"); return; }
+          try { r = await call("create", { kind: k, name }); } catch { status("Can't reach the session server — is ./serve.sh running?"); return; }
           if (!r.ok) { status(r.error === "server-full" ? "The server is full right now — try again soon." : r.error === "slow-down" ? "Too many attempts from this device — wait a minute and try again." : "Couldn't create the session."); return; }
           creds = { code: r.code, id: r.id, token: r.token, kind: k, role: "guide", name };
           active = true; role = "guide"; kind = k; code = r.code;
-          storage.save(creds);
-          storage.saveName(name);
+          store.save(creds);
+          store.saveName(name);
           status(`Your ${KIND_LABEL[k]} code is ${spellOut(r.code)}. Share it with your group.`);
           $("lobby-code-kind").textContent = k === "tour" ? "Your tour is live" : "Your event is live";
           $("lobby-code-value").textContent = r.code;
@@ -380,9 +413,9 @@ export function createSession() {
           const c = creds;
           const was = KIND_LABEL[kind] || "session";
           active = false; role = null; kind = null; code = null; creds = null;
-          storage.save(null);
+          store.save(null);
           applyRestrictions();
-          try { if (c) await api("leave", { code: c.code, id: c.id, token: c.token }); } catch { /* ages out */ }
+          try { if (c) await call("leave", { code: c.code, id: c.id, token: c.token }); } catch { /* ages out */ }
           showView("choose");
           status(`The ${was} was cancelled — its code no longer works. Pick how you want to explore.`);
           $("lobby-tour").focus();
@@ -410,9 +443,10 @@ export function createSession() {
   }
 
   // ---------- mid-walk join ----------
-  $("join-btn").addEventListener("click", () => { if (active) return; status(""); showView("join"); openDialog($("late-name").value ? $("late-code") : $("late-name")); });
+  $("join-btn").addEventListener("click", () => { if (active || !sessions) return; status(""); showView("join"); openDialog($("late-name").value ? $("late-code") : $("late-name")); });
   $("late-cancel").addEventListener("click", () => { status(""); closeDialog(); $("join-btn").focus(); });
   async function lateJoin() {
+    if (!sessions) return;
     const name = needName($("late-name"));
     if (!name) return;
     const c = $("late-code").value.trim().toUpperCase();
@@ -429,7 +463,7 @@ export function createSession() {
   $("late-code").addEventListener("keydown", (e) => { if (e.key === "Enter") guarded($("late-join"), lateJoin); });
 
   addEventListener("pagehide", () => {
-    if (!active || !creds || role === "guide") return;
+    if (!sessions || !active || !creds || role === "guide") return;
     navigator.sendBeacon?.("/api/session/leave", new Blob([JSON.stringify({ code: creds.code, id: creds.id, token: creds.token })], { type: "application/json" }));
   });
 

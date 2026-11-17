@@ -240,7 +240,7 @@ function MapUnavailable() {
 // from storage before the mode is known.
 //   local  the bundled defaults are seeded into the browser's storage (default-edits-loader.js)
 //          and the edit store reads them, with the owner's own edits on top: as it always was.
-//   site   everything comes from 3d/campus-data.json: the map's records (site-data.js) and the
+//   site   everything comes from 3d/campus-data.site.json: the map's records (site-data.js) and the
 //          campus drawn under them (drawn-basemap.js). Nothing is stored.
 async function boot() {
   const root = ReactDOM.createRoot(document.getElementById("root"));
@@ -256,9 +256,10 @@ async function boot() {
     const data = await window.SiteData.load();
     const built = window.SiteData.siteEdits(data, {
       buildings: window.BASE_BUILDINGS, nodes: window.BASE_NODES, edges: window.BASE_EDGES, shuttle: window.BASE_SHUTTLE,
+      frame: window.MAP_IMG,
     });
     if (built.skipped.length) console.warn("[map] the data file gave no place for:", built.skipped.join(", "));
-    const projector = window.SiteData.projector(data.meta.georef);
+    const projector = window.SiteData.projector(data.meta.frame2d);
     const basemap = window.DrawnBasemap.layers(data, projector.toPx, projector.metresPerPx);
     window.editStore.loadSite(built.edits);
     // The store swallows storage errors; never draw base records over the data-drawn campus.

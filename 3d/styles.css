@@ -77,6 +77,11 @@ main { position: fixed; inset: 0; }
 
 .hud-hint { margin: 0.7rem 0 0; font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
 .hud-attrib { margin: 0.5rem 0 0; font-size: 0.72rem; color: var(--muted); }
+/* What this build is (index.html, at the door and in the menu). Never hidden:
+   tools/test/site-3d.test.js fails on a rule here that would hide it. */
+.build-notice { margin: 0 0 0.6rem; font-size: 0.85rem; font-weight: 700; color: var(--text); }
+/* The site build has no tours or events: what belongs to them is taken out of the door. */
+.lobby-solo #lobby-name-field, .lobby-solo #lobby-tour, .lobby-solo #lobby-event, .lobby-solo #lobby-join-set { display: none; }
 
 .sr-only {
   position: absolute; width: 1px; height: 1px; margin: -1px;
@@ -128,7 +133,7 @@ main { position: fixed; inset: 0; }
 .hud-top { align-items: center; }
 #hud:not(.collapsed) .hud-top { margin-bottom: 0.4rem; }
 #hud.collapsed { padding: 0.45rem; }
-#hud.collapsed h1 { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+#hud.collapsed h1, #hud.collapsed .build-notice { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
   clip: rect(0 0 0 0); white-space: nowrap; border: 0; } /* still announced, just not drawn */
 #hud-toggle { background: var(--panel); color: var(--text); }
 #hud-toggle .btn-ico { font-size: 1.1rem; line-height: 1; }

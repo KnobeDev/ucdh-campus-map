@@ -27,11 +27,13 @@ const STROKE_KINDS = ["street", "service", "cycle", "foot", "steps"]; // drawn i
 const MARKS = {
   light: {
     you: "#002855", youEdge: "#ffffff", route: "#ffbf00", routeEdge: "#16232f",
+    place: "#5b2a86", placeEdge: "#ffffff", // a building shown as a signpost: its own ink and shape, never mistaken for "you"
     floor: "#002855", floorFill: "rgba(0, 40, 85, 0.18)", fence: "#8a3600", fenceEdge: "rgba(255, 255, 255, 0.9)",
     view: "#16232f", outline: "rgba(22, 35, 47, 0.45)", northBg: "rgba(255, 255, 255, 0.9)", north: "#16232f",
   },
   dark: {
     you: "#9cc4ff", youEdge: "#0c1220", route: "#ffbf00", routeEdge: "#000000",
+    place: "#e9b3ff", placeEdge: "#0c1220",
     floor: "#ffd75e", floorFill: "rgba(255, 215, 94, 0.2)", fence: "#ff8c1a", fenceEdge: "rgba(12, 18, 32, 0.9)",
     view: "#edf1f5", outline: "rgba(0, 0, 0, 0.6)", northBg: "rgba(16, 22, 32, 0.9)", north: "#edf1f5",
   },
@@ -68,6 +70,8 @@ function buildLayers(data, construction) {
   const cats = {};
   const lots = new Path2D(); // flat footprints: surface lots matched to a campus building
   const outline = new Path2D();
+  // Buildings with no outline to draw (the site's data): a dot at their place.
+  const markers = data.buildings.filter((b) => b.marker && b.center).map((b) => b.center);
   for (const b of data.buildings) {
     for (const f of b.footprints) {
       if (!(f.height > 0)) { addRing(lots, f.ring); continue; }
@@ -87,7 +91,7 @@ function buildLayers(data, construction) {
   const width = Object.fromEntries(Object.keys(strokes).map((k) => [k, widthSum[k] / count[k]]));
   const fences = new Path2D();
   for (const z of construction.active) addRing(fences, z.ring);
-  return { areas, neighbours, cats, lots, outline, strokes, width, fences, hasFences: construction.active.length > 0 };
+  return { areas, neighbours, cats, lots, outline, markers, strokes, width, fences, hasFences: construction.active.length > 0 };
 }
 
 /**
@@ -266,6 +270,22 @@ export function createMinimap({ data, hospital, construction, player, overhead, 
     ctx.strokeStyle = mk.outline;
     ctx.lineWidth = px;
     ctx.stroke(layers.outline);
+    // Buildings shown as signposts: a small diamond, a constant 5 px from centre to point, in
+    // its own ink with a contrasting edge (the arrow is "you"; a diamond is a place).
+    for (const m of layers.markers) {
+      const r = 5 * px;
+      ctx.beginPath();
+      ctx.moveTo(m.x, m.z - r);
+      ctx.lineTo(m.x + r, m.z);
+      ctx.lineTo(m.x, m.z + r);
+      ctx.lineTo(m.x - r, m.z);
+      ctx.closePath();
+      ctx.fillStyle = mk.place;
+      ctx.fill();
+      ctx.strokeStyle = mk.placeEdge;
+      ctx.lineWidth = 1.5 * px;
+      ctx.stroke();
+    }
 
     if (layers.hasFences) {
       drawHazardHatch(ctx, layers.fences, dpr, cw, ch);

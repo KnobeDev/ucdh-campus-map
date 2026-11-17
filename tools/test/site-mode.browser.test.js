@@ -17,7 +17,7 @@ const path = require("path");
 
 const { ROOT, serve } = require("./browser-harness.js");
 const PLAYWRIGHT = process.env.PLAYWRIGHT_MODULE;
-const DATA = JSON.parse(fs.readFileSync(path.join(ROOT, "3d", "campus-data.json"), "utf8"));
+const DATA = JSON.parse(fs.readFileSync(path.join(ROOT, "3d", "campus-data.site.json"), "utf8"));
 const NOTICE = "Unofficial test build — not affiliated with UC Davis Health";
 
 const state = () => ({
@@ -74,12 +74,13 @@ test("the 2D page in a browser", { skip: !PLAYWRIGHT && "set PLAYWRIGHT_MODULE t
     assert.strictEqual(s.basemapPaths, 12);
     assert.strictEqual(s.picture, null, "no picture element");
     for (const p of asked) assert.doesNotMatch(p, /campus-map\.|default-edits\.json|uploads\/|floor-diagram|\/api\//, `the site build asked for ${p}`);
-    assert.ok(asked.includes("/3d/campus-data.json"));
+    assert.ok(asked.includes("/3d/campus-data.site.json"), "the site's copy of the data is read");
+    assert.ok(!asked.includes("/3d/campus-data.json"), "and the full file, which holds traced outlines, is not");
 
     // The map's records are the data file's, not the base ones: this is what a storage
     // wiring mistake breaks without a sound.
-    const osm = (b) => b.footprints.some((f) => f.geomSource === "osm");
-    const listed = DATA.buildings.filter((b) => !/^new hotspot$/i.test(b.name.trim()));
+    const osm = (b) => b.footprints.length > 0; // the site file holds OpenStreetMap footprints only
+    const listed = DATA.buildings;
     assert.deepStrictEqual(s.buildings.map((b) => b.code).sort(), listed.map((b) => b.code).sort());
     assert.deepStrictEqual(s.buildings.filter((b) => b.marker).map((b) => b.code).sort(), listed.filter((b) => !osm(b)).map((b) => b.code).sort());
     assert.strictEqual(s.markers, listed.filter((b) => !osm(b)).length, "each is drawn as a marker");
@@ -104,6 +105,28 @@ test("the 2D page in a browser", { skip: !PLAYWRIGHT && "set PLAYWRIGHT_MODULE t
       return { code: b.code, ft: r ? r.totalFt : null };
     }));
     for (const r of routes) assert.ok(r.ft !== null && r.ft > 0 && r.ft < 12000, `T to ${r.code}: ${r.ft} ft`);
+
+    // And the walk is the length of a walk: close to the straight line for most places. (A
+    // building is left by its nearest side, and the total is the drawn line's own length, not
+    // the router's cost. Before both, a 170 ft hop to the North Addition read as 2,000 ft.)
+    const quality = await page.evaluate(() => {
+      const ft = window.MAP_SCALE.ftPerPx;
+      const centre = (code) => { const k = window.buildingCentroid(window.BUILDINGS.find((b) => b.code === code)); return [k.cx, k.cy]; };
+      const started = performance.now();
+      const ratios = window.BUILDINGS.filter((b) => b.code !== "T").map((b) => {
+        const r = window.buildRoute("B_T", `B_${b.code}`);
+        const [ax, ay] = centre("T"), [bx, by] = centre(b.code);
+        const drawn = r.points.reduce((n, p, i) => (i ? n + Math.hypot(p.x - r.points[i - 1].x, p.y - r.points[i - 1].y) : 0), 0) * ft;
+        return { code: b.code, ratio: r.totalFt / (Math.hypot(ax - bx, ay - by) * ft), ft: r.totalFt, drawn };
+      });
+      return { ratios, msEach: (performance.now() - started) / ratios.length };
+    });
+    const sorted = quality.ratios.map((r) => r.ratio).sort((a, b) => a - b);
+    assert.ok(sorted[Math.floor(sorted.length / 2)] < 1.4, `the typical walk is near the straight line (median ${sorted[Math.floor(sorted.length / 2)].toFixed(2)})`);
+    const long = quality.ratios.filter((r) => r.ratio > 2);
+    assert.ok(long.length <= 3, `at most a few go far round: ${long.map((r) => `${r.code} x${r.ratio.toFixed(1)}`).join(", ")}`);
+    for (const r of quality.ratios) assert.ok(Math.abs(r.ft - r.drawn) <= Math.max(25, r.drawn * 0.03), `${r.code}: says ${r.ft} ft, the line drawn is ${Math.round(r.drawn)} ft`);
+    assert.ok(quality.msEach < 1500, `a route takes ${Math.round(quality.msEach)} ms`);
     await page.close();
   });
 

@@ -4,11 +4,12 @@
 // spatial index. Click fires on pointer-UP and a drag is not a click (SC 2.5.2).
 import * as THREE from "./lib/three.module.js";
 import { footprintAt } from "./buildings.js?v=7";
-import { nearestOnRing, directionLabel, metresWord } from "./spatial-core.js?v=1";
+import { nearestOnRing, directionLabel, metresWord, placeAhead } from "./spatial-core.js?v=2";
 
 const DRAG_TOLERANCE = 6; // px
 
-export function createPicking(world, { index, player, onSelect }) {
+/** places: buildings that are a signpost, not an outline ({ name, x, z, building }). */
+export function createPicking(world, { index, player, onSelect, places = [] }) {
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   const canvas = world.renderer.domElement;
@@ -59,7 +60,16 @@ export function createPicking(world, { index, player, onSelect }) {
     /** Identify whatever the crosshair is on. */
     identifyAhead() {
       const hit = entryAt(innerWidth / 2, innerHeight / 2);
-      onSelect(hit ? describe(hit) : null);
+      if (hit) { onSelect(describe(hit)); return; }
+      // No outlined building in view: a signposted one close ahead is named instead.
+      const p = player.object.position;
+      const near = placeAhead(places, p.x, p.z, player.object.rotation.y);
+      if (!near) { onSelect(null); return; }
+      const dir = directionLabel(player.object.rotation.y, p.x, p.z, near.place.x, near.place.z);
+      onSelect({
+        name: near.place.name, building: near.place.building, footprint: null, distance: near.d, dir, floors: null,
+        text: `${near.place.name}, ${metresWord(near.d)} ${dir}. Shown as a signpost: its outline is not mapped.`,
+      });
     },
     dispose() {
       canvas.removeEventListener("pointerdown", onPointerDown);

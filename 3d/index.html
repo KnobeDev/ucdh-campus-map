@@ -15,7 +15,7 @@
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' blob:; base-uri 'self'; form-action 'self'; object-src 'none'">
 <title>UC Davis Health — 3D Walkable Campus</title>
-<link rel="stylesheet" href="styles.css?v=21">
+<link rel="stylesheet" href="styles.css?v=23">
 </head>
 <body>
 <main>
@@ -30,12 +30,15 @@
      join code; the code field joins an existing one. A native dialog: focus
      trapping, the dialog role and Escape handling come from the platform
      (session.js keeps Escape from dismissing the boot gate). -->
-<dialog id="lobby" aria-labelledby="lobby-title" hidden>
+<dialog id="lobby" aria-labelledby="lobby-title" aria-describedby="lobby-build-notice" hidden>
   <div class="lobby-card">
     <h2 id="lobby-title">UC Davis Health <span>3D Campus</span></h2>
+    <!-- What this build is: plain HTML that no script writes or removes
+         (tools/test/site-3d.test.js). Read with the dialog's title when it opens. -->
+    <p id="lobby-build-notice" class="build-notice">Unofficial test build — not affiliated with UC Davis Health</p>
     <div id="lobby-view-choose">
-      <p class="lobby-tagline">How do you want to walk the campus?</p>
-      <div class="lobby-field">
+      <p id="lobby-tagline" class="lobby-tagline">How do you want to walk the campus?</p>
+      <div id="lobby-name-field" class="lobby-field">
         <label for="lobby-name">Your name <span class="lobby-req">(shown to the group for tours, events and joining — guests can skip it)</span></label>
         <input id="lobby-name" type="text" maxlength="24" autocomplete="nickname" spellcheck="false">
       </div>
@@ -44,7 +47,7 @@
         <button id="lobby-tour" type="button" class="lobby-choice"><span class="lobby-ico" aria-hidden="true">🚩</span><span class="lobby-choice-name">Lead a Tour</span><span class="lobby-choice-sub">Walk a group through campus — orientation, a pre-surgery walkthrough. You get a code others use to join you live.</span></button>
         <button id="lobby-event" type="button" class="lobby-choice"><span class="lobby-ico" aria-hidden="true">🎪</span><span class="lobby-choice-name">Host an Event</span><span class="lobby-choice-sub">A bigger gathering on the live map — attendees join with your code.</span></button>
       </div>
-      <fieldset class="lobby-join">
+      <fieldset id="lobby-join-set" class="lobby-join">
         <legend>Join a tour or event</legend>
         <div class="lobby-join-row">
           <div class="lobby-field">
@@ -124,6 +127,9 @@
   <!-- The page's only h1: outside the collapsible body so it is never removed
        from the accessibility tree; collapsed, it is only visually hidden. -->
   <h1>UC Davis Health <span>3D Campus</span></h1>
+  <!-- What this build is. Beside the h1, outside the collapsible body, for the same reason:
+       with the menu collapsed it is only visually hidden, never out of the accessibility tree. -->
+  <p id="hud-build-notice" class="build-notice">Unofficial test build — not affiliated with UC Davis Health</p>
   <div id="hud-body">
     <a class="hud-link" href="../index.html"><span aria-hidden="true">←</span> 2D map</a>
     <p id="where" class="hud-where">Outside · near the Main Entrance</p>
@@ -211,7 +217,7 @@
       <button id="minimap-hide" type="button">Hide<span class="sr-only"> map</span></button>
     </div>
     <canvas id="minimap-canvas" role="img" aria-describedby="minimap-scale"
-            aria-label="Top-down map, north up, centred on you. The arrow is you and the way you face; the gold line is your route; yellow and black hatching is a construction site. Click a spot to see it from overhead."></canvas>
+            aria-label="Top-down map, north up, centred on you. The arrow is you and the way you face; the gold line is your route; yellow and black hatching is a construction site; a small diamond is a building shown as a signpost. Click a spot to see it from overhead."></canvas>
   </div>
   <button id="minimap-show" type="button" hidden><span aria-hidden="true">🗺️</span>Show map</button>
 </aside>
@@ -227,6 +233,6 @@
 </dialog>
 
 <script src="boot-guard.js?v=6"></script>
-<script type="module" src="main.js?v=42"></script>
+<script type="module" src="main.js?v=44"></script>
 </body>
 </html>

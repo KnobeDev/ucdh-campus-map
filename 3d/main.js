@@ -9,15 +9,17 @@ import { createPlayer } from "./player.js?v=18";
 import { createFloorPicker } from "./elevator-ui.js?v=9";
 import { buildRouteGraph, snapToGraph } from "./route-core.js?v=2";
 import { createWayfinder } from "./wayfind.js?v=6";
-import { buildConstruction, buildPointLayers } from "./layers.js?v=6";
+import { buildConstruction, buildPointLayers, buildPlaceMarkers } from "./layers.js?v=7";
 import { zoneListText } from "./caution-core.js?v=1";
-import { createSpeech } from "./speech.js?v=7";
+import { createSpeech } from "./speech.js?v=8";
 import { readingMs } from "./speech-core.js?v=3";
 import { createCaptions } from "./captions.js?v=1";
-import { createSonar } from "./sonar.js?v=5";
-import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=3";
-import { createSession } from "./session.js?v=3";
-import { createMinimap } from "./minimap.js?v=6";
+import { createSonar } from "./sonar.js?v=6";
+import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=4";
+import { createSession } from "./session.js?v=4";
+import { createMinimap } from "./minimap.js?v=8";
+import { loadAppConfig } from "./app-config.js?v=1";
+import { checkFun } from "./entitlement.js?v=1";
 import { initialPanelOpen, prefs } from "./minimap-core.js?v=1";
 
 const $ = (id) => document.getElementById(id);
@@ -292,7 +294,7 @@ function wireWayfinding(data, hospital, player, wayfinder, graph, canvas, walker
     radius: b.footprints.length ? Math.max(...b.footprints.map((f) => {
       const xs = f.ring.map((p) => p[0]); const zs = f.ring.map((p) => p[1]);
       return Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs)) / 2 + 6;
-    })) : 0,
+    })) : 8, // a building shown as a signpost (no outline): reached within a few steps of it
   });
 
   const gB = group("Buildings");
@@ -416,13 +418,22 @@ function wirePanel() {
 
 async function boot() {
   document.documentElement.dataset.theme = initialTheme();
-  // The lobby (Guest / Tour / Event / Join) opens first; the data downloads
-  // concurrently with the user's think-time.
-  const session = createSession();
+  // Local or site (app-config.js): decided once, from the one file, before anything else.
+  // Anything wrong with the file is the site build: no tours, no server asked, the device's voice.
+  const config = await loadAppConfig();
+  // Members' extras: asked now, loaded (below) only on a yes. Never awaited by the map itself.
+  const funCheck = checkFun(config);
+  // The lobby (Guest / Tour / Event / Join; on the site, one door) opens first; the data
+  // downloads concurrently with the user's think-time.
+  const session = createSession({ sessions: config.sessions });
   const lobbyDone = session.openLobby();
-  // t= defeats heuristic caching — this file changes on every data regeneration.
-  const res = await fetch("campus-data.json?t=" + Date.now());
-  if (!res.ok) throw new Error(`campus-data.json: HTTP ${res.status}`);
+  // The site ships its own copy of the data, with no outline traced over the official map
+  // (tools/site-data.js); the browser revalidates it. Locally, t= defeats heuristic caching:
+  // the file changes on every data regeneration.
+  const dataFile = config.mode === "site" ? "campus-data.site.json" : "campus-data.json";
+  const dataRequest = config.mode === "site" ? [dataFile, { cache: "no-cache" }] : [`${dataFile}?t=${Date.now()}`];
+  const res = await fetch(...dataRequest);
+  if (!res.ok) throw new Error(`${dataFile}: HTTP ${res.status}`);
   const data = await res.json();
   await lobbyDone;
 
@@ -437,15 +448,19 @@ async function boot() {
   // Spawn on the street outside the Main Entrance, facing it.
   const construction = buildConstruction(world, data.construction);
   const pointLayers = buildPointLayers(world, data.points, data.osmBusStops, data.poiTypes);
+  const placeMarkers = buildPlaceMarkers(world, data.buildings); // the site's data: buildings with no outline
   wireLayers(construction, pointLayers);
   const door = hospital.entrances[0];
   const player = createPlayer(world, index, hospital, { x: door.x, z: door.z + 28, yaw: 0 }, construction.zoneAt);
   setTheme(world, initialTheme());
   captions = createCaptions($("captions"), $("captions-btn"));
-  speech = createSpeech({ onStart: (text) => captions.show(text), onEnd: () => captions.end() });
+  speech = createSpeech({ onStart: (text) => captions.show(text), onEnd: () => captions.end(), engine: config.voice });
   const walker = wireWalker(world, player, overhead, hospital, canvas);
-  const sonar = createSonar(world, { index, hospital, player, speech, say });
-  const picking = createPicking(world, { index, player, onSelect: (d) => showInfo(d, data) });
+  // Buildings that are a signpost, not an outline: sonar and What's ahead name them too, so
+  // the sign is never something only a sighted visitor can read.
+  const places = data.buildings.filter((b) => b.marker && b.center).map((b) => ({ name: b.name, x: b.center.x, z: b.center.z, building: b }));
+  const sonar = createSonar(world, { index, hospital, player, speech, say, places });
+  const picking = createPicking(world, { index, player, places, onSelect: (d) => showInfo(d, data) });
   wireSenses(speech, sonar, picking, player, canvas);
   const graph = buildRouteGraph(data.paths, { construction: data.construction });
   const wayfinder = createWayfinder(world, { graph, hospital, player, say, ui: wayfindUi() });
@@ -483,12 +498,24 @@ async function boot() {
   const zones = construction.active.length;
   // Live region only: nothing starts talking before the user has done anything (SC 1.4.2).
   // With the voice on, a screen-reader user learns here that it exists and how to silence it.
-  say(`Loaded ${data.buildings.length} campus buildings (${shells} footprints, ${named} from OpenStreetMap), ` +
-    `${data.context.length} neighbourhood buildings and ${data.paths.length} paths. ` +
+  const loaded = placeMarkers.count
+    ? `Loaded ${data.buildings.length} campus buildings: ${named} drawn from OpenStreetMap and ${placeMarkers.count} shown as named signposts, ` +
+      `plus ${data.context.length} neighbourhood buildings and ${data.paths.length} paths. `
+    : `Loaded ${data.buildings.length} campus buildings (${shells} footprints, ${named} from OpenStreetMap), ` +
+      `${data.context.length} neighbourhood buildings and ${data.paths.length} paths. `;
+  say(loaded +
     (zones ? `Caution: ${zones} active construction site${zones === 1 ? "" : "s"}, each with its end date under Layers; routes avoid them. ` : "") +
-    (speech.enabled ? "The voice reads buildings aloud when you ask what's ahead or send a sonar pulse; the Voice button turns it off." : ""),
+    (speech.enabled && speech.supported ? "The voice reads buildings aloud when you ask what's ahead or send a sonar pulse; the Voice button turns it off." : ""),
     { speak: false });
-  window.__ucd3d = { world, index, data, overhead, player, hospital, walker, wayfinder, wayfindingWiring, graph, sonar, picking, speech, captions, session, minimap, construction }; // boot-guard.js checks this; handy in devtools
+  // A handle for devtools and the owner's own tests: the local build only.
+  if (config.mode === "local") {
+    window.__ucd3d = { world, index, data, overhead, player, hospital, walker, wayfinder, wayfindingWiring, graph, sonar, picking, speech, captions, session, minimap, construction, config };
+  }
+  // Members' extras (3d/fun/): loaded only after the server said yes, and never needed to
+  // find your way. A file the server will not send, or a module that fails, changes nothing.
+  funCheck.then((yes) => (yes ? import("./fun/fun.js?v=1") : null))
+    .then((fun) => fun?.initFun({ world, player, say }))
+    .catch((err) => console.warn("Members' extras did not load:", err?.message || err));
 
   let last = performance.now();
   function frame(now) {

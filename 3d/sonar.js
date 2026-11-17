@@ -6,14 +6,15 @@
 // prefers-reduced-motion). Sonar is only ever a supplement to the live region:
 // the whole list is also written there at once.
 import * as THREE from "./lib/three.module.js";
-import { nearestOnRing, directionLabel, metresWord } from "./spatial-core.js?v=1";
+import { nearestOnRing, directionLabel, metresWord, placesInReach } from "./spatial-core.js?v=2";
 
 export const RING_M = 10;
 export const RINGS = 4; // 40 m reach
 export const RING_SEC = 0.4;
 const MAX_ECHOES = 6;
 
-export function createSonar(world, { index, hospital, player, speech, say }) {
+/** places: buildings that are a signpost, not an outline ({ name, x, z }); named like the rest. */
+export function createSonar(world, { index, hospital, player, speech, say, places = [] }) {
   const seg = 72;
   const circle = new Float32Array((seg + 1) * 3);
   for (let i = 0; i <= seg; i++) {
@@ -43,6 +44,7 @@ export function createSonar(world, { index, hospital, player, speech, say }) {
         seen.add(e.building.code);
         out.push({ name: e.building.name, d: near.d, x: near.x, z: near.z });
       }
+      out.push(...placesInReach(places, p.x, p.z, RING_M * RINGS));
     } else {
       const f = hospital.floor(player.state.floor);
       for (const n of f.nodes) {

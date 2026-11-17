@@ -33,8 +33,15 @@ async function loadPiper() {
   return engine;
 }
 
-/** onStart / onEnd(text): a line starts / stops being heard, from Piper or the fallback voice (captions). */
-export function createSpeech({ onStart = () => {}, onEnd = () => {} } = {}) {
+/** Why the device's own voice is speaking instead of Piper, when that is by choice. */
+const DEVICE_VOICE = "the site build speaks with the device's own voice";
+
+/**
+ * onStart / onEnd(text): a line starts / stops being heard, from Piper or the fallback voice (captions).
+ * engine: "piper" (the local build), or "device" for the site build, which ships without
+ *   lib/piper/ (about 160 MB): Piper is never asked for there, and the browser's own voice speaks.
+ */
+export function createSpeech({ onStart = () => {}, onEnd = () => {}, engine = "piper" } = {}) {
   // On unless switched off: naming buildings aloud is the point of What's ahead
   // and sonar. A screen-reader user, who already hears the live region, turns it
   // off once and that choice persists.
@@ -74,7 +81,7 @@ export function createSpeech({ onStart = () => {}, onEnd = () => {} } = {}) {
 
   let current = null; // { source, finish } for the clip playing now
   const queue = createVoiceQueue({
-    load: loadPiper,
+    load: engine === "piper" ? loadPiper : () => Promise.reject(new Error(DEVICE_VOICE)),
     synth: async (engine, text) => {
       const res = await engine.generate(text, VOICE);
       return ensureContext().decodeAudioData(await res.file.arrayBuffer());
@@ -105,13 +112,14 @@ export function createSpeech({ onStart = () => {}, onEnd = () => {} } = {}) {
     fallback: nativeSpeak,
     onStart,
     onEnd,
-    onError: (err) => console.error("Voice:", err),
+    onError: (err) => { if (err?.message !== DEVICE_VOICE) console.error("Voice:", err); },
   });
   if (enabled) queue.preload();
 
   return {
     get enabled() { return enabled; },
-    get supported() { return typeof WebAssembly === "object" || nativeVoice; },
+    /** Whether anything can speak here. Without Piper (the site build) that is the browser's own voice or nothing. */
+    get supported() { return engine === "piper" ? (typeof WebAssembly === "object" || nativeVoice) : nativeVoice; },
     /** idle | loading | ready | failed (failed = the browser's own voice is speaking instead). */
     get status() { return queue.status; },
     setEnabled(v, persist = true) {

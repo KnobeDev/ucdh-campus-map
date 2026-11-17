@@ -34,7 +34,7 @@ test("the page says what it is and whose data it draws, in plain HTML before the
 test("no stylesheet rule hides those two lines", () => {
   for (const rule of CSS.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     if (!/\.build-bar|\.build-notice|\.map-credit/.test(rule[1])) continue;
-    assert.doesNotMatch(rule[2], /display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0|clip\s*:|clip-path|left\s*:\s*-\d{3}/, rule[1].trim());
+    assert.doesNotMatch(rule[2], /display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|font-size\s*:\s*0(?![.\d])|clip\s*:|clip-path|left\s*:\s*-\d{3}/, rule[1].trim());
   }
   assert.match(CSS, /\.build-bar\s*\{/);
 });

@@ -75,6 +75,27 @@ anything wrong with the file means the site build.
 | Browser storage | edits, backups and route pins | nothing is read or written |
 | Distances in directions | the old estimate | the real scale from the georeference |
 
+The 3D map follows the same file:
+
+| | Local | Site |
+|---|---|---|
+| Campus data | `3d/campus-data.json` | `3d/campus-data.site.json`, the same campus with no outline traced over the official map (both maps read it) |
+| Tours, events, joining with a code | offered (needs `./serve.sh`) | not offered; nothing is asked of a server under `/api` |
+| Voice | Piper ("Amy"), from `3d/lib/piper/` | the browser's own voice; Piper is never requested |
+| A building OpenStreetMap has no outline for | its traced shape | a named signpost, and a dot on the inset map |
+| Members' extras (`3d/fun/`) | on | loaded only after the site's server says this visit includes them |
+
+`3d/campus-data.site.json` is generated. After every `node tools/gen-3d-data.js`, run:
+
+```bash
+node tools/site-data.js          # writes 3d/campus-data.site.json
+node tools/site-data.js --check  # exit 1 if it is stale (the tests check this too)
+```
+
+There are no members' extras yet: `3d/fun/fun.js` is an empty place for them, so
+that anything added there later is members-only from its first day. Nothing a
+visitor needs to find their way belongs in it.
+
 `map-mode.js` decides the mode before any other script reads storage or data.
 The page carries two lines of plain HTML above the map in both builds: what
 the build is ("Unofficial test build — not affiliated with UC Davis Health")
@@ -119,7 +140,9 @@ editor, the Tweaks panel and the floor-plan panel, which are local only.
 node --test "tools/test/*.test.js"
 # with a browser (any Playwright install), the 2D page in both builds:
 PLAYWRIGHT_MODULE=/path/to/node_modules/playwright node --test tools/test/site-mode.browser.test.js
-# and its accessibility, with axe:
+# the 3D page in both builds (software rendering is enough):
+PLAYWRIGHT_MODULE=/path/to/node_modules/playwright node --test tools/test/site-3d.browser.test.js
+# and the 2D page's accessibility, with axe:
 PLAYWRIGHT_MODULE=/path/to/node_modules/playwright AXE_MODULE=/path/to/node_modules/axe-core \
   node --test tools/test/a11y.browser.test.js
 ```

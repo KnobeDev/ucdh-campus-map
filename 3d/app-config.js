@@ -59,13 +59,18 @@ export function parseAppConfig(value) {
   return { config: resolved({ mode, sessions, admin, entitlementUrl }), problem: null };
 }
 
-/** Fetch and validate app-config.json. Never rejects: every failure — a missing file included
- *  — resolves to the site-safe set. */
-export async function loadAppConfig({ fetchImpl = globalThis.fetch, url = new URL("./app-config.json", import.meta.url) } = {}) {
+const LOAD_WITHIN_MS = 5000;
+
+/** Fetch and validate app-config.json. Never rejects, and never waits for ever: every failure
+ *  — a missing file, or one that has not arrived in five seconds — resolves to the site-safe
+ *  set. (The 3D map opens its door only after this, so a stalled request must not hold it.) */
+export async function loadAppConfig({ fetchImpl = globalThis.fetch, url = new URL("./app-config.json", import.meta.url), timeoutMs = LOAD_WITHIN_MS } = {}) {
   let response;
   try {
     // no-cache: revalidate every boot, so a switched file is never shadowed by a stale copy
-    response = await fetchImpl(url, { cache: "no-cache" });
+    const init = { cache: "no-cache" };
+    if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") init.signal = AbortSignal.timeout(timeoutMs);
+    response = await fetchImpl(url, init);
   } catch (err) {
     console.warn("[config] app-config.json unreachable — running as the site build:", err?.message || err);
     return resolved(SITE_SAFE);
