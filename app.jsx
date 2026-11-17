@@ -30,9 +30,25 @@ const THEMES = {
   "dimmed":     { name: "Dimmed (route focus)", imgFilter: "saturate(0.5) brightness(0.92)" },
 };
 
+/** Whether the window is narrow enough that the map is drawn above the list (styles.css, 800px). */
+function useNarrow() {
+  const query = "(max-width: 800px)";
+  const [narrow, setNarrow] = useS(() => window.matchMedia(query).matches);
+  useE(() => {
+    const mq = window.matchMedia(query);
+    const on = () => setNarrow(mq.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return narrow;
+}
+
 function App({ basemap }) {
   // Local or site (map-mode.js): decided once, before this first draws (boot, below).
   const mode = window.MapMode.current;
+  // On a narrow window the map sits above the list, so it comes first in the page too:
+  // the order a keyboard and a screen reader go through matches what is on screen.
+  const narrow = useNarrow();
   const [tweaks, setTweak] = window.useTweaks(TWEAK_DEFAULTS);
   const [selectedId, setSelectedId] = useS(null);
   const [hoveredId, setHoveredId] = useS(null);
@@ -90,9 +106,8 @@ function App({ basemap }) {
     document.documentElement.setAttribute("data-reduce-motion", on ? "1" : "0");
   }, [tweaks.reduceMotion]);
 
-  return (
-    <div className="app">
-      <window.Sidebar
+  const sidebar = (
+      <window.Sidebar key="sidebar"
         selectedId={selectedId} setSelectedId={setSelectedId}
         hoveredId={hoveredId} setHoveredId={setHoveredId}
         filters={filters} setFilters={setFilters}
@@ -116,6 +131,9 @@ function App({ basemap }) {
         floorPlanEditMode={floorPlanEditMode} setFloorPlanEditMode={setFloorPlanEditMode}
         theme={theme}
       />
+  );
+  const map = (
+    <React.Fragment key="map">
       {/* The floor-plan panel is drawn over the official floor diagram: the local build only
           (mode.floorPlans). The site build never opens it, whether or not floorplan.jsx is on the page. */}
       {mode.floorPlans && panelMode === "floorplan" && selectedId && window.getFloorPlanForBuilding && window.getFloorPlanForBuilding(selectedId) && window.FloorPlanMap ? (
@@ -157,6 +175,12 @@ function App({ basemap }) {
         pathTypeDefault={pathTypeDefault}
       />
       )}
+    </React.Fragment>
+  );
+
+  return (
+    <main className="app">
+      {narrow ? [map, sidebar] : [sidebar, map]}
       {editMode && window.EditToolbar && (
         <window.EditToolbar
           mode={editSubMode}
@@ -169,7 +193,7 @@ function App({ basemap }) {
         />
       )}
       {mode.editor && <TweaksPanelInner tweaks={tweaks} setTweak={setTweak} />}
-    </div>
+    </main>
   );
 }
 

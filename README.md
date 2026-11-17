@@ -86,12 +86,42 @@ official floor diagram), the editor toolbar, and anything under `uploads/`.
 The site compiles the JSX ahead of time and serves React itself, so its page
 loads nothing from another host.
 
+## Accessibility of the 2D map
+
+The target is WCAG 2.1 Level A and AA. What the page does:
+
+- **Everything works from the keyboard.** The map's shapes are a mouse and touch
+  convenience; every building is in the Buildings A–Z list, and the map is
+  named to a screen reader as a picture that says so. The map moves with four
+  "Move map" buttons and zooms with three more, and a finger drags it.
+- **It has a structure.** One `main`, one `h1`, a heading on every section,
+  real tabs (arrow keys switch them), and a named map region.
+- **Nothing happens silently.** Search results, "no places match", a route's
+  time and length, and "no walking route was found" are shown and announced.
+- **Focus follows you.** Opening a place puts focus on its name; Back returns
+  to the search; a list you close gives focus back to its button.
+- **Colours hold their contrast.** Text on a coloured badge is white or dark,
+  whichever reads better (`ink.js`); every focus ring and field edge is 3:1.
+- **Nothing is only on the picture.** Construction closures and building
+  entrances, once drawn only on the map, are also lists in the sidebar.
+- **It reflows.** At 400% zoom the page becomes one scrolling column. On a
+  narrow window the map is above the places, and first in the page's order too.
+
+Checked by `tools/test/a11y.browser.test.js` (keyboard paths, names, focus,
+contrast, reflow, and an axe scan of five states at two widths). **Not yet
+checked by a person** with a screen reader, voice control or browser zoom;
+automated checks find a minority of problems. Not covered by this pass: the
+editor, the Tweaks panel and the floor-plan panel, which are local only.
+
 ## Tests
 
 ```bash
 node --test "tools/test/*.test.js"
 # with a browser (any Playwright install), the 2D page in both builds:
 PLAYWRIGHT_MODULE=/path/to/node_modules/playwright node --test tools/test/site-mode.browser.test.js
+# and its accessibility, with axe:
+PLAYWRIGHT_MODULE=/path/to/node_modules/playwright AXE_MODULE=/path/to/node_modules/axe-core \
+  node --test tools/test/a11y.browser.test.js
 ```
 
 ## License

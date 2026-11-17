@@ -17,6 +17,9 @@ function CampusMap({
   const W = window.MAP_IMG.w, H = window.MAP_IMG.h;
   const [vb, setVb] = useState({ x: 0, y: 0, w: W, h: H });
   const dragRef = useRef(null);
+  // Whether the pointer that just came up had dragged the map: read by the click that follows
+  // (the drag itself is over by then), so a pan that ends on a building does not open it.
+  const draggedRef = useRef(false);
 
   const onWheel = (e) => {
     e.preventDefault();
@@ -33,22 +36,28 @@ function CampusMap({
       w: newW, h: newH,
     });
   };
-  const onMouseDown = (e) => {
+  // Dragging the map: pointer events, so a finger or a pen pans it as a mouse does. One
+  // pointer at a time (the first that went down); a second finger is ignored.
+  const onPointerDown = (e) => {
     if (editMode) return; // disable pan in edit mode
-    if (e.button !== 0) return;
+    if (!e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
     const r = svgRef.current.getBoundingClientRect();
-    dragRef.current = { sx: e.clientX, sy: e.clientY, vx: vb.x, vy: vb.y,
+    draggedRef.current = false;
+    dragRef.current = { id: e.pointerId, sx: e.clientX, sy: e.clientY, vx: vb.x, vy: vb.y,
       kx: vb.w/r.width, ky: vb.h/r.height, moved: false };
   };
-  const onMouseMove = (e) => {
-    if (!dragRef.current) return;
+  const onPointerMove = (e) => {
+    if (!dragRef.current || dragRef.current.id !== e.pointerId) return;
     const d = dragRef.current;
     const dx = (e.clientX - d.sx) * d.kx;
     const dy = (e.clientY - d.sy) * d.ky;
-    if (Math.abs(dx)+Math.abs(dy) > 4) d.moved = true;
+    if (Math.abs(dx)+Math.abs(dy) > 4) { d.moved = true; draggedRef.current = true; }
     setVb(v => ({...v, x: d.vx - dx, y: d.vy - dy }));
   };
-  const onMouseUp = () => { dragRef.current = null; };
+  const onPointerUp = () => { dragRef.current = null; };
+
+  // The same move without dragging: a quarter of the view per press (the buttons below).
+  const pan = (dx, dy) => setVb(v => ({ ...v, x: v.x + dx * v.w / 4, y: v.y + dy * v.h / 4 }));
 
   const reset = () => setVb({ x:0, y:0, w:W, h:H });
   const zoom = (f) => {
@@ -83,17 +92,29 @@ function CampusMap({
 
   const isFiltered = (cat) => filters.size === 0 || filters.has(cat);
 
+  // The map is a picture to a screen reader: its shapes are mouse and touch conveniences, and
+  // everything they do is in the sidebar's lists. So it is named as an image that says where
+  // those are. (Not while editing, in the local build: the editor's handles are real controls.)
+  const selectedName = selectedId ? window.BUILDINGS.find(b => b.code === selectedId)?.name : null;
+  const mapLabel = "Map of the UC Davis Health Sacramento campus. Every place on it is in the Buildings A–Z and Parking lists, "
+    + "where it can be opened with the keyboard; construction and entrances are listed there too."
+    + (selectedName ? ` ${selectedName} is highlighted.` : "")
+    + (route ? " A walking route is drawn on it; its steps are listed under Directions." : "");
+
   return (
-    <div className="map-wrap">
+    <section className="map-wrap" id="campus-map" aria-label="Map" tabIndex={-1}>
       <svg
         ref={svgRef}
+        role={editMode ? undefined : "img"}
+        aria-label={editMode ? undefined : mapLabel}
         viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
         preserveAspectRatio="xMidYMid meet"
         onWheel={onWheel}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        onPointerLeave={onPointerUp}
         style={{ cursor: editMode ? "default" : (dragRef.current?.moved ? "grabbing" : "grab"), userSelect: "none" }}
       >
         <defs>
@@ -142,7 +163,7 @@ function CampusMap({
           const bbox = window.buildingBBox(b);
           if (dim && !isSel && !isHov) return (
             <g key={b.code} onMouseEnter={() => onHover(b.code)} onMouseLeave={() => onHover(null)}
-               onClick={() => { if (!dragRef.current?.moved) onSelect(b.code); }}
+               onClick={() => { if (!draggedRef.current) onSelect(b.code); }}
                style={{ cursor:"pointer", opacity: 0 }}>
               <path d={path} fill="transparent" />
             </g>
@@ -158,7 +179,7 @@ function CampusMap({
             return (
               <g key={b.code} className="bldg-marker"
                  onMouseEnter={() => onHover(b.code)} onMouseLeave={() => onHover(null)}
-                 onClick={() => { if (!dragRef.current?.moved) onSelect(b.code); }}
+                 onClick={() => { if (!draggedRef.current) onSelect(b.code); }}
                  style={{ cursor:"pointer" }}>
                 <title>{b.name}</title>
                 {/* the unseen target, then a white halo so the ring also shows on a route line */}
@@ -173,7 +194,7 @@ function CampusMap({
           return (
             <g key={b.code}
                onMouseEnter={() => onHover(b.code)} onMouseLeave={() => onHover(null)}
-               onClick={() => { if (!dragRef.current?.moved) onSelect(b.code); }}
+               onClick={() => { if (!draggedRef.current) onSelect(b.code); }}
                style={{ cursor:"pointer" }}>
               {/* Shape */}
               <path d={path}
@@ -189,7 +210,7 @@ function CampusMap({
                     stroke={isSel ? "white" : catColor}
                     strokeWidth="2" />
                   <text x={bbox.x + bbox.w/2} y={bbox.y - 11} textAnchor="middle" dominantBaseline="middle"
-                    fill={isSel ? "white" : catColor}
+                    fill={isSel ? "white" : "#022851"}
                     fontSize="11" fontWeight="800">
                     {b.code.length > 2 ? b.code.slice(0,2) : b.code}
                   </text>
@@ -321,12 +342,19 @@ function CampusMap({
         )}
       </svg>
 
-      <div className="map-controls">
-        <button onClick={() => zoom(1/1.3)} aria-label="Zoom in">+</button>
-        <button onClick={() => zoom(1.3)} aria-label="Zoom out">−</button>
-        <button onClick={reset} aria-label="Reset view" title="Reset view">⌂</button>
+      <div className="map-controls" role="group" aria-label="Zoom the map">
+        <button type="button" onClick={() => zoom(1/1.3)} aria-label="Zoom in"><span aria-hidden="true">+</span></button>
+        <button type="button" onClick={() => zoom(1.3)} aria-label="Zoom out"><span aria-hidden="true">−</span></button>
+        <button type="button" onClick={reset} aria-label="Reset view"><span aria-hidden="true">⌂</span></button>
       </div>
-    </div>
+      {/* Moving the map without dragging it: for a keyboard, a switch, or voice ("click Move map left"). */}
+      <div className="map-pan" role="group" aria-label="Move the map">
+        <button type="button" className="map-pan-up" onClick={() => pan(0, -1)} aria-label="Move map up"><span aria-hidden="true">↑</span></button>
+        <button type="button" className="map-pan-left" onClick={() => pan(-1, 0)} aria-label="Move map left"><span aria-hidden="true">←</span></button>
+        <button type="button" className="map-pan-right" onClick={() => pan(1, 0)} aria-label="Move map right"><span aria-hidden="true">→</span></button>
+        <button type="button" className="map-pan-down" onClick={() => pan(0, 1)} aria-label="Move map down"><span aria-hidden="true">↓</span></button>
+      </div>
+    </section>
   );
 }
 

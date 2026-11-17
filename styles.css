@@ -10,7 +10,9 @@
   --panel-border: #E5E0D5;
   --text: #1B2330;
   --text-muted: #5A6470;
-  --text-subtle: #8A8F99;
+  --text-subtle: #666B74;   /* 4.5:1 or better on every surface it is used on (tools/test/a11y-ink.test.js) */
+  --control-border: #7A766C; /* the edge of a field or a switch: 3:1 on white and on the page (SC 1.4.11) */
+  --focus-ring: #022851;     /* the keyboard focus ring: 3:1 or better on every light surface */
 
   --accent: #C8102E;       /* Hospital red — used for "to" pin and primary */
   --accent-hover: #A00C24;
@@ -77,6 +79,7 @@ body { display: flex; flex-direction: column; }
 
 /* ---------- Layout ---------- */
 .app {
+  position: relative; /* the editor's toolbar is placed against it, whatever the layout */
   display: grid;
   grid-template-columns: 380px 1fr;
   height: 100%;
@@ -115,8 +118,9 @@ body { display: flex; flex-direction: column; }
   display: grid; place-items: center;
   box-shadow: var(--shadow-sm);
 }
-.sb-logo-title { font-weight: 800; font-size: 15px; letter-spacing: -0.01em; color: var(--uc-blue); }
-.sb-logo-sub  { font-size: 12px; color: var(--text-muted); letter-spacing: 0.02em; }
+.sb-logo-text { margin: 0; font: inherit; } /* the page's h1: two lines, styled as before */
+.sb-logo-title { display: block; font-weight: 800; font-size: 15px; letter-spacing: -0.01em; color: var(--uc-blue); }
+.sb-logo-sub  { display: block; font-size: 12px; font-weight: 400; color: var(--text-muted); letter-spacing: 0.02em; }
 
 .sb-tabs {
   display: flex;
@@ -163,6 +167,8 @@ body { display: flex; flex-direction: column; }
   border-bottom: 1px solid var(--panel-border);
 }
 .sb-section:first-child { margin-top: 4px; }
+h2.sb-section, h3.sb-section { font-family: inherit; }
+.sb-collapsible-head { margin: 0; font: inherit; } /* an h2 around the section's button */
 
 /* Skip link — visible on focus only */
 .sb-skip-link {
@@ -202,8 +208,8 @@ body { display: flex; flex-direction: column; }
 }
 .sb-section-toggle:hover { color: var(--uc-blue); }
 .sb-section-toggle:focus-visible {
-  outline: 2px solid var(--uc-gold);
-  outline-offset: 2px;
+  outline: 3px solid var(--focus-ring); /* gold on white was 1.6:1 */
+  outline-offset: -3px;
   border-radius: 2px;
 }
 .sb-section-caret {
@@ -237,13 +243,16 @@ body { display: flex; flex-direction: column; }
   position: relative;
   display: flex; align-items: center;
   background: #F4F1EA;
-  border: 1px solid var(--panel-border);
+  border: 1px solid var(--control-border);
   border-radius: var(--radius);
   padding: 0 10px;
   transition: border-color 0.15s, background 0.15s;
 }
-.sb-search:focus-within { border-color: var(--uc-blue); background: white; box-shadow: 0 0 0 3px rgba(2,40,81,0.08); }
+/* The field's own outline is off (below); its box carries the focus ring instead. */
+.sb-search:focus-within { border-color: var(--uc-blue); background: white; outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 .sb-search-icon { color: var(--text-subtle); font-size: 16px; margin-right: 6px; }
+.sb-search input::placeholder { color: var(--text-muted); opacity: 1; }
+.sb-no-results { margin: 10px 2px 0; font-size: 13px; color: var(--text); }
 .sb-search input {
   flex: 1;
   border: none; background: transparent; outline: none;
@@ -255,6 +264,7 @@ body { display: flex; flex-direction: column; }
 .sb-search-clear {
   appearance: none; border: none; background: transparent;
   font-size: 18px; color: var(--text-muted); cursor: pointer;
+  min-width: 28px; min-height: 28px;
   padding: 0 4px; line-height: 1;
 }
 
@@ -297,7 +307,7 @@ body { display: flex; flex-direction: column; }
 .sb-filter {
   appearance: none;
   background: white;
-  border: 1px solid var(--panel-border);
+  border: 1px solid var(--control-border);
   border-radius: 999px;
   padding: 6px 12px 6px 8px;
   font-size: 12px;
@@ -308,11 +318,15 @@ body { display: flex; flex-direction: column; }
   transition: all 0.12s;
 }
 .sb-filter:hover { border-color: var(--filter-color); }
+/* On: a tick and a heavier edge, not only the colour (SC 1.4.1); the text stays dark (some
+   category colours are under 3:1 as text). */
 .sb-filter.active {
   background: color-mix(in srgb, var(--filter-color) 12%, white);
-  border-color: var(--filter-color);
-  color: var(--filter-color);
+  border-color: var(--uc-blue);
+  box-shadow: inset 0 0 0 1px var(--uc-blue);
+  color: var(--text);
 }
+.sb-filter-tick { font-weight: 800; color: var(--uc-blue); }
 .sb-filter-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
 /* ---------- Toggles ---------- */
@@ -323,10 +337,20 @@ body { display: flex; flex-direction: column; }
   padding: 4px 0;
   user-select: none;
 }
-.sb-toggle input { display: none; }
+.sb-toggle { position: relative; }
+/* The real checkbox sits unseen over the track: focusable and worked by keyboard. (It was
+   display:none, so no switch could be reached without a mouse.) */
+.sb-toggle input {
+  position: absolute; left: 0; top: 50%;
+  width: 34px; height: 20px; margin: -10px 0 0;
+  opacity: 0; cursor: pointer;
+}
+.sb-toggle input:focus-visible + .sb-toggle-track { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 .sb-toggle-track {
   width: 34px; height: 20px;
+  box-sizing: border-box;
   background: #D4CFC2;
+  border: 1.5px solid var(--control-border); /* the switch's edge, 3:1 on the panel; a real border, so it shows in forced colours */
   border-radius: 999px;
   position: relative;
   transition: background 0.18s;
@@ -334,14 +358,14 @@ body { display: flex; flex-direction: column; }
 }
 .sb-toggle-thumb {
   position: absolute;
-  top: 2px; left: 2px;
+  top: 0.5px; left: 0.5px;
   width: 16px; height: 16px;
   background: white;
   border-radius: 50%;
   box-shadow: var(--shadow-sm);
   transition: transform 0.18s;
 }
-.sb-toggle input:checked + .sb-toggle-track { background: var(--uc-blue); }
+.sb-toggle input:checked + .sb-toggle-track { background: var(--uc-blue); border-color: var(--uc-blue); }
 .sb-toggle input:checked + .sb-toggle-track .sb-toggle-thumb { transform: translateX(14px); }
 .sb-toggle-label { font-size: 13px; color: var(--text); }
 
@@ -399,8 +423,8 @@ body { display: flex; flex-direction: column; }
 .sb-detail-code {
   display: inline-grid; place-items: center;
   width: 36px; height: 36px;
-  background: rgba(255,255,255,0.2);
-  border: 2px solid rgba(255,255,255,0.5);
+  background: transparent;
+  border: 2px solid currentColor;
   border-radius: 8px;
   font-weight: 800; font-size: 16px;
   margin-bottom: 10px;
@@ -409,10 +433,11 @@ body { display: flex; flex-direction: column; }
   font-size: 18px; font-weight: 700; line-height: 1.2;
   letter-spacing: -0.01em;
 }
+h2.sb-detail-name { margin: 0; } /* the card's heading; focus lands here when a place is opened */
 .sb-detail-cat {
   font-size: 11px; font-weight: 600;
   letter-spacing: 0.08em; text-transform: uppercase;
-  opacity: 0.85; margin-top: 4px;
+  opacity: 1; margin-top: 4px;
 }
 
 .sb-detail-actions {
@@ -512,7 +537,7 @@ body { display: flex; flex-direction: column; }
   width: 100%;
   appearance: none;
   background: white;
-  border: 1px solid var(--panel-border);
+  border: 1px solid var(--control-border);
   border-radius: var(--radius);
   padding: 9px 10px;
   text-align: left;
@@ -657,6 +682,8 @@ body { display: flex; flex-direction: column; }
 .map-wrap svg {
   width: 100%; height: 100%;
   display: block;
+  /* One finger drags the map (map.jsx); two fingers still zoom the page. */
+  touch-action: pinch-zoom;
 }
 
 .map-controls {
@@ -1847,3 +1874,91 @@ button.fp-room:focus-visible {
 }
 .sb-3d-link:hover { background: #022851; color: #fff; }
 .sb-3d-link:focus-visible { outline: 3px solid #b8860b; outline-offset: 2px; }
+
+
+/* ============ ACCESSIBILITY PASS (WCAG 2.1 A and AA) ============ */
+
+/* On the page for a screen reader, not on screen. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+/* One keyboard focus ring everywhere: 3px of UC blue, clear of the control. It comes last in
+   the file so it replaces the browser's thin default and the old `outline: none` rules. */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
+textarea:focus-visible, summary:focus-visible, :where([tabindex]):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+/* Rows that run edge to edge inside a scrolling panel keep the ring inside themselves. */
+.sb-tab:focus-visible, .sb-list-item:focus-visible, .sb-result:focus-visible,
+.sb-route-option:focus-visible, .sb-link:focus-visible, .map-controls button:focus-visible,
+.map-pan button:focus-visible { outline-offset: -3px; }
+/* On a dark button the ring sits on the light panel beside it, with a white gap between. */
+.sb-btn.primary:focus-visible { box-shadow: 0 0 0 2px #FFFFFF; outline-offset: 2px; }
+/* The search field shows focus on its box (.sb-search:focus-within). */
+.sb-search input:focus-visible { outline: none; }
+/* The skip links are white on blue: their ring is the gold one. */
+.sb-skip-link:focus-visible { outline: 3px solid var(--uc-gold); outline-offset: 2px; }
+/* A heading or the map given focus by the page (so it is read out) shows the same ring. */
+.sb-section[tabindex="-1"]:focus-visible, h2.sb-detail-name:focus-visible { outline-offset: 2px; border-radius: 2px; }
+h2.sb-detail-name:focus-visible { outline-color: currentColor; }
+.map-wrap:focus-visible { outline-offset: -3px; }
+
+a.sb-btn { text-decoration: none; }
+.sb-plain-list { list-style: none; margin: 0; padding: 0; }
+.sb-results-note { margin: 8px 2px 0; font-size: 12px; color: var(--text-muted); }
+.sb-route-hint { margin: 8px 0 0; font-size: 13px; color: var(--text); }
+/* Not `disabled`: it stays in the tab order and says why when pressed. Dimmed, still 4.5:1. */
+.sb-btn.primary[aria-disabled="true"] { background: #5A6470; border-color: #5A6470; color: #FFFFFF; cursor: not-allowed; }
+.sb-notice-list { display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: var(--text); }
+.sb-notice-list li { padding: 8px 10px; border: 1px solid var(--panel-border); border-radius: var(--radius); background: white; }
+.sb-route-problem {
+  margin: 14px 0 0; padding: 10px 12px;
+  border-left: 4px solid var(--accent); border-radius: 4px;
+  background: #FCEEF0; color: var(--text); font-size: 13px; line-height: 1.45;
+}
+
+/* Moving the map without dragging: four buttons in a plus, bottom left, clear of the zoom
+   buttons top right. Each is 34px, above the 24px a pointer target needs. */
+.map-pan {
+  position: absolute; left: 16px; bottom: 16px;
+  display: grid; grid-template-columns: repeat(3, 34px); grid-template-rows: repeat(3, 34px);
+  z-index: 4;
+}
+.map-pan button {
+  appearance: none; border: 1px solid var(--control-border); background: white;
+  color: var(--uc-blue); font-size: 16px; font-weight: 700; line-height: 1;
+  cursor: pointer; box-shadow: var(--shadow-sm);
+}
+.map-pan button:hover { background: #FAFAF7; }
+.map-pan-up { grid-column: 2; grid-row: 1; border-radius: 6px 6px 0 0; }
+.map-pan-left { grid-column: 1; grid-row: 2; border-radius: 6px 0 0 6px; }
+.map-pan-right { grid-column: 3; grid-row: 2; border-radius: 0 6px 6px 0; }
+.map-pan-down { grid-column: 2; grid-row: 3; border-radius: 0 0 6px 6px; }
+
+/* ---------- Short windows (SC 1.4.10 Reflow) ----------
+   A desktop at 400% zoom is 320 by 256 CSS pixels; a phone on its side is short too. The
+   two fixed panes left the list a strip two lines tall. Here the page itself scrolls. */
+@media (max-height: 480px) {
+  html, body { height: auto; min-height: 100%; }
+  #root { flex: none; }
+  .app { height: auto; width: 100%; overflow: visible; }
+  .sb-body { overflow: visible; }
+}
+/* Wide and short: the list scrolls with the page, the map stays in view beside it. */
+@media (max-height: 480px) and (min-width: 801px) {
+  .app { align-items: start; }
+  .sidebar { min-height: 100vh; }
+  .map-wrap { position: sticky; top: 0; height: 100vh; }
+}
+/* Narrow and short: one column in the page's own order, which on a narrow window is the map
+   first (app.jsx) at a height that leaves the places showing below it. A finger on the map
+   scrolls the page up and down here; the map moves with its buttons, or sideways. */
+@media (max-height: 480px) and (max-width: 800px) {
+  .app { display: block; }
+  .sidebar { box-shadow: none; border-top: none; }
+  .map-wrap { height: 60vh; min-height: 160px; }
+  .map-wrap svg { touch-action: pan-y pinch-zoom; }
+}
