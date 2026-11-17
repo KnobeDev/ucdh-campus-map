@@ -255,7 +255,7 @@ const editStore = {
   // Read the storage again and redraw. The local build seeds its defaults only once the mode
   // is known (app.jsx), after this file has already drawn the bare base records.
   reload() { applyEdits(readEdits()); notifyEdits(); },
-  // The site build's whole map, from 3d/campus-data.json (site-data.js). It replaces every
+  // The site build's whole map, from 3d/campus-data.site.json (site-data.js). It replaces every
   // edit, counts as no edit, and is kept for this page only.
   // Applied from the document itself, never from what storage hands back: every storage
   // call here swallows its errors, and a read that failed would quietly draw the bare

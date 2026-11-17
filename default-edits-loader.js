@@ -1,7 +1,7 @@
 // Seeds the edit store with bundled default polygons / paths / entrances / crosswalks.
 // LOCAL BUILD ONLY: app.jsx calls DefaultEdits.load(storage) once the mode is known (map-mode.js),
 // with the browser's storage, before the edit store re-reads it. The site build never calls it:
-// its map comes from 3d/campus-data.json instead (site-data.js), and default-edits.json, drawn
+// its map comes from 3d/campus-data.site.json instead (site-data.js), and default-edits.json, drawn
 // over the official map, is not part of a site release. Blocking XHR, as it always was, so the
 // storage is seeded before React draws. User edits made later take precedence on later loads.
 (function () {
