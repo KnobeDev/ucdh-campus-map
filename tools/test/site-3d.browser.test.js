@@ -116,6 +116,31 @@ test("the 3D page in a browser", { skip: !PLAYWRIGHT && "set PLAYWRIGHT_MODULE t
     await page.close();
   });
 
+  // Cloudflare Web Analytics adds a cross-origin module script to every page on the preview,
+  // and the campus's CSP blocks it. It fails while the map loads; the loading line must not
+  // call that a failure to start (it wrote "The 3D campus failed to start: Failed to load
+  // https://static.cloudflareinsights…", 2026-11-17), and the map opens as usual.
+  await t.test("site build: another origin's module script failing while the map loads is not a failure to start", async () => {
+    const BEACON = "https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015";
+    const failed = [];
+    const { page, errors } = await open({ site: true }, async (p) => {
+      await p.route("**/3d/index.html", async (route) => {
+        const response = await route.fetch();
+        const html = await response.text();
+        assert.ok(html.includes("</body>"));
+        const tag = `<script defer type="module" src="${BEACON}" data-cf-beacon='{"token": "0123"}'></script>`;
+        await route.fulfill({ response, body: html.replace("</body>", `${tag}</body>`) });
+      });
+      await p.route("https://static.cloudflareinsights.com/**", (route) => route.abort("blockedbyclient"));
+      p.on("requestfailed", (request) => failed.push(request.url()));
+    });
+    assert.ok(failed.includes(BEACON), `the beacon was asked for and failed: ${JSON.stringify(failed)}`);
+    assert.strictEqual(await page.locator("#loading").textContent(), "Loading the 3D campus…");
+    await enter(page);
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
+
   await t.test("site build: members' extras load only when the server says yes", async () => {
     const no = await open({ site: true, entitlement: { fun: false } });
     await enter(no.page);
