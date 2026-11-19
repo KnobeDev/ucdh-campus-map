@@ -200,4 +200,43 @@ test("the 3D page in a browser", { skip: !PLAYWRIGHT && "set PLAYWRIGHT_MODULE t
     assert.ok(await page.locator("#join-btn").isVisible());
     await page.close();
   });
+
+  await t.test("both doors: walk in, walk back out, and stay out (the Main Entrance used to loop in and out)", async () => {
+    const { page } = await open({ site: false }); // the local build keeps its debugging handle
+    await enter(page);
+    const trips = await page.evaluate(() => {
+      const { player, hospital } = window.__ucd3d;
+      const STEP = 0.1; // ~ one frame of walking
+      const walk = (dx, dz, n) => {
+        const seen = [];
+        for (let k = 0; k < n; k++) {
+          const p = player.object.position;
+          player.nudgeTo(p.x + dx * STEP, p.z + dz * STEP);
+          const f = player.state.floor;
+          if (seen[seen.length - 1] !== f) seen.push(f);
+        }
+        return seen;
+      };
+      return hospital.entrances.map((e) => {
+        const dx = e.inside.x - e.x;
+        const dz = e.inside.z - e.z;
+        const l = Math.hypot(dx, dz);
+        const ux = dx / l;
+        const uz = dz / l;
+        player.leaveBuilding();
+        player.teleport(e.x - ux * 12, e.z - uz * 12); // 12 m out, facing the door
+        const goingIn = walk(ux, uz, 150);
+        const inside = player.state.floor;
+        const comingOut = walk(-ux, -uz, 150);
+        const p = player.object.position;
+        return { label: e.label, goingIn, inside, comingOut, end: player.state.floor, fromDoor: Math.hypot(p.x - e.x, p.z - e.z) };
+      });
+    });
+    for (const trip of trips) {
+      assert.strictEqual(trip.inside, "1", `${trip.label}: walking at the door takes you in: ${JSON.stringify(trip)}`);
+      assert.deepStrictEqual(trip.comingOut, ["1", null], `${trip.label}: walking back out leaves once and stays out: ${JSON.stringify(trip)}`);
+      assert.ok(trip.fromDoor > 5, `${trip.label}: and keeps walking away from the door: ${JSON.stringify(trip)}`);
+    }
+    await page.close();
+  });
 });

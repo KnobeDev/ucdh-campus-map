@@ -10,7 +10,7 @@
 // you are standing at one.
 import * as THREE from "./lib/three.module.js";
 import { footprintAt } from "./buildings.js?v=7";
-import { DOOR_RADIUS_OUT, DOOR_RADIUS_IN, CELL_RADIUS } from "./hospital.js?v=15";
+import { DOOR_RADIUS_OUT, DOOR_RADIUS_IN, CELL_RADIUS } from "./hospital.js?v=16";
 import { EYE } from "./world.js?v=6";
 
 const WALK_SPEED = 3.2;
@@ -59,18 +59,20 @@ export function createPlayer(world, index, hospital, spawn, zoneAt = () => null)
    * @returns {true | {door, inward} | {blocked: "zone", zone} | {blocked: "wall"}}
    * A pure query: it never announces anything. tryMove decides what to say, once.
    */
-  function passable(x, z) {
-    if (state.floor === null) {
-      const zone = zoneAt(x, z);
-      if (zone) return { blocked: "zone", zone }; // fencing, not a suggestion — you go around
-      const hit = footprintAt(index, x, z, true);
-      if (!hit) return true;
-      if (hit.building && hit.building.renderedBy === "hospital") {
-        const door = hospital.entranceNear(x, z, DOOR_RADIUS_OUT);
-        if (door) return { door, inward: true };
-      }
-      return { blocked: "wall" };
+  function passableOutdoors(x, z) {
+    const zone = zoneAt(x, z);
+    if (zone) return { blocked: "zone", zone }; // fencing, not a suggestion — you go around
+    const hit = footprintAt(index, x, z, true);
+    if (!hit) return true;
+    if (hit.building && hit.building.renderedBy === "hospital") {
+      const door = hospital.entranceNear(x, z, DOOR_RADIUS_OUT);
+      if (door) return { door, inward: true };
     }
+    return { blocked: "wall" };
+  }
+
+  function passable(x, z) {
+    if (state.floor === null) return passableOutdoors(x, z);
     if (hospital.walkable(state.floor, x, z)) return true;
     if (state.floor === "1") {
       // Through the opening and out; or, pressed right up against the door
@@ -81,9 +83,15 @@ export function createPlayer(world, index, hospital, spawn, zoneAt = () => null)
     return { blocked: "wall" };
   }
 
-  /** Step through a door: the walker is placed just past it on the other side. */
+  /**
+   * Step through a door: the walker is placed just past it on the other side,
+   * on ground that is clear there. Coming out, "clear" must mean clear of every
+   * footprint: a spot inside one (the Main Entrance's overlaps the Pavilion's)
+   * turns the next step into walking back in, and the walker loops in and out.
+   */
   function passDoor({ door, inward }) {
-    const spot = hospital.throughDoor(door, inward);
+    const isClear = inward ? (x, z) => hospital.walkable("1", x, z) : (x, z) => passableOutdoors(x, z) === true;
+    const spot = hospital.throughDoor(door, inward, isClear);
     yawObj.position.x = spot.x;
     yawObj.position.z = spot.z;
     if (inward) {

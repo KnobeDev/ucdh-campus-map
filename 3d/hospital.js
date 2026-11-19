@@ -27,6 +27,7 @@ import { flatPatch, extrudedRing } from "./geometry.js?v=7";
 import { pointInPolygon } from "./buildings.js?v=7";
 import { labelSprite } from "./labels.js?v=6";
 import { WALL_T, wallSegments, walkable, routeIndoor, cellOf, cellCenter, inGrid, idx, CORRIDOR } from "./interior-core.js?v=2";
+import { landingSpot, DOOR_STEP } from "./door-core.js?v=1";
 
 const CORE = 3.0; // elevator core footprint, metres: one grid cell (interior-core CELL)
 const AWNING_H = 4.6; // metres: an entrance canopy's underside
@@ -40,7 +41,7 @@ export const CELL_RADIUS = 2.6; // "near enough" to use an elevator or stairs
 // the oblique floor drawing onto the building — that gap is gone.
 export const DOOR_RADIUS_OUT = 6.0;
 export const DOOR_RADIUS_IN = 4.0;
-export const DOOR_STEP = 2.0; // metres past the door the walker is placed
+export { DOOR_STEP }; // metres past the door the walker is placed (door-core.js)
 
 /** Wall boxes along world segments [x1, z1, x2, z2]. */
 function wallGeometry(segments, floorH) {
@@ -338,17 +339,13 @@ export function buildHospital(world, hospital) {
       }
       return best;
     },
-    /** A point DOOR_STEP metres inside (or outside) the door: the data's `inside` point, or its mirror. */
-    throughDoor(door, inward) {
-      if (door.inside) {
-        return inward ? { x: door.inside.x, z: door.inside.z } : { x: 2 * door.x - door.inside.x, z: 2 * door.z - door.inside.z };
-      }
-      const f = byId.get("1");
-      const dx = f.center[0] - door.x;
-      const dz = f.center[1] - door.z;
-      const l = Math.hypot(dx, dz) || 1;
-      const s = (inward ? 1 : -1) * DOOR_STEP;
-      return { x: door.x + (dx / l) * s, z: door.z + (dz / l) * s };
+    /**
+     * Where to set the walker down on the far side of a door: the data's
+     * `inside` point (or its mirror outside), moved further along the same line
+     * when that spot is not clear — `isClear` says what clear means over there.
+     */
+    throughDoor(door, inward, isClear = () => true) {
+      return landingSpot(door, inward, isClear, byId.get("1").center);
     },
     elevatorNear(id, x, z, r = CELL_RADIUS) {
       const f = byId.get(id);
