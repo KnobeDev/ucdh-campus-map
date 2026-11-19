@@ -1,18 +1,22 @@
 // The Medical Center, built from its floor plan rather than from OSM shells.
 //
 // Each floor carries the REAL OSM footprints of its tier (one ring for the
-// podium, several for the tower floors) — see tools/lib/floorplan.js. Exterior:
-// every ring extruded one storey, which is the true massing. Interior: per
-// ring, a slab, a ceiling and perimeter walls; per floor, elevator cores, an
-// (estimated) stairwell and labelled room zones. When the walker is inside,
-// floors above the current one are cut away so the inside stays visible.
+// podium, several for the tower floors) plus the connector bands that join
+// them into one building — see tools/lib/floorplan.js. Exterior: every ring
+// extruded one storey, which is the true massing. Interior: per ring, a slab
+// and a ceiling; per floor, the exterior wall pieces of the rings' union, the
+// inferred partition walls, elevator cores, the (estimated) stairwell and
+// labelled room zones. When the walker is inside, floors above the current
+// one are cut away so the inside stays visible.
 //
 // What is and isn't real here, so nobody mistakes the picture for a survey:
-//   · floor outlines are real OSM footprints — exact;
+//   · floor outlines are real OSM footprints — exact; the bands joining the
+//     towers are corridor-width links between their nearest edges;
 //   · room and elevator positions come from the printed plan, which is drawn
 //     in oblique projection and "not to scale", so they are fitted into the
 //     footprint and clamped inside it: approximate by construction;
-//   · corridors are not traced yet, so each floor is open space;
+//   · corridors and partitions are inferred from those room positions
+//     (tools/lib/interior.js), not surveyed;
 //   · the printed plan shows no stairs; one stairwell per floor is placed
 //     beside the main elevators and labelled "estimated".
 import * as THREE from "./lib/three.module.js";
@@ -20,12 +24,14 @@ import { mergeGeometries } from "./lib/BufferGeometryUtils.js";
 import { flatPatch, extrudedRing } from "./geometry.js?v=6";
 import { pointInPolygon } from "./buildings.js?v=6";
 import { labelSprite } from "./labels.js?v=6";
+import { wallNear } from "./floor-core.js?v=1";
 
 const WALL_T = 0.35;
 const CORE = 3.2; // elevator core footprint, metres
 const STAIR = [3.0, 4.4]; // stairwell footprint
-const STAIR_OFFSET = 6.5; // metres beside the main elevator
 const ROOM_R = 3.2;
+const LAYER = 0.004; // metres between overlapping slabs (a connector over a tower) so they never z-fight
+const CONNECTOR_DROP = 0.03; // a connector's roof sits this far below the towers it joins, for the same reason
 export const CELL_RADIUS = 2.6; // "near enough" to use an elevator or stairs
 // The floor-1 outline and the outdoor collision footprint are now the SAME
 // geometry (the real OSM podium), so a door needs only a tight radius on both
@@ -35,11 +41,10 @@ export const DOOR_RADIUS_OUT = 6.0;
 export const DOOR_RADIUS_IN = 4.0;
 export const DOOR_STEP = 2.0; // metres past the door the walker is placed
 
-function wallGeometry(ring, floorH) {
+/** Full-height walls along segments [[ax, az], [bx, bz]] — the outline, or the partitions. */
+function wallGeometry(segments, floorH) {
   const parts = [];
-  for (let i = 0; i < ring.length; i++) {
-    const [ax, az] = ring[i];
-    const [bx, bz] = ring[(i + 1) % ring.length];
+  for (const [[ax, az], [bx, bz]] of segments) {
     const len = Math.hypot(bx - ax, bz - az);
     if (len < 0.05) continue;
     const g = new THREE.BoxGeometry(len + WALL_T, floorH, WALL_T);
@@ -56,22 +61,7 @@ function boxAt(w, h, d, x, y, z) {
   return g;
 }
 
-/** Stairwell beside the floor's main elevator, nudged to stay inside the ring. */
-function stairSpot(floor) {
-  const main = floor.nodes.find((n) => n.id === `T_${floor.id}_elev_main`) || floor.nodes.find((n) => n.kind === "elevator");
-  if (!main) return null;
-  for (const dx of [STAIR_OFFSET, -STAIR_OFFSET, 0]) {
-    for (const dz of [0, STAIR_OFFSET, -STAIR_OFFSET]) {
-      const x = main.x + dx;
-      const z = main.z + dz;
-      if ((dx || dz) && floor.rings.some((r) => pointInPolygon(x, z, r))) return { x, z };
-    }
-  }
-  // Nowhere to put it without sitting on the elevator core (where the elevator
-  // would always win the proximity check). Better no stairs than unreachable ones.
-  console.warn(`hospital: floor ${floor.id} has no room for a stairwell beside the elevators; none placed`);
-  return null;
-}
+const isConnector = (floor, i) => (floor.ringSources?.[i] || "").startsWith("connector:");
 
 /** Accessible entrances say so on their sign — that is what the ♿ flag is for. */
 const doorText = (e) => `${e.label || "Entrance"}${e.accessible ? " ♿" : ""}`;
@@ -81,12 +71,18 @@ function buildFloorInterior(floor, floorH, mats, entrances) {
   g.position.y = floor.y;
   g.visible = false;
 
-  for (const ring of floor.rings) {
-    g.add(new THREE.Mesh(flatPatch(ring, 0.02), mats.floor));
-    g.add(new THREE.Mesh(flatPatch(ring, floorH - 0.05), mats.ceiling));
-    const walls = wallGeometry(ring, floorH);
-    if (walls) g.add(new THREE.Mesh(walls, mats.wall));
-  }
+  floor.rings.forEach((ring, i) => {
+    // Rings overlap where a connector joins a tower: stagger the slabs a hair.
+    g.add(new THREE.Mesh(flatPatch(ring, 0.02 + i * LAYER), mats.floor));
+    g.add(new THREE.Mesh(flatPatch(ring, floorH - 0.05 - i * LAYER), mats.ceiling));
+  });
+  // Exterior walls follow the union of the rings (a tower edge that lies
+  // inside a connector band is an opening, not a wall); partitions are the
+  // inferred department walls, with door gaps where the corridors pass.
+  const outline = wallGeometry(floor.outline || [], floorH);
+  if (outline) g.add(new THREE.Mesh(outline, mats.wall));
+  const partitions = wallGeometry(floor.walls || [], floorH);
+  if (partitions) g.add(new THREE.Mesh(partitions, mats.partition));
 
   const cores = [];
   for (const n of floor.nodes) {
@@ -98,7 +94,7 @@ function buildFloorInterior(floor, floorH, mats, entrances) {
   }
   if (cores.length) g.add(new THREE.Mesh(mergeGeometries(cores, false), mats.core));
 
-  const stairs = stairSpot(floor);
+  const stairs = floor.stairs || null;
   if (stairs) {
     g.add(new THREE.Mesh(boxAt(STAIR[0], floorH, STAIR[1], stairs.x, 0, stairs.z), mats.stairs));
     const label = labelSprite("Stairs (position estimated)", "stairs", 0.8);
@@ -141,6 +137,7 @@ export function buildHospital(world, hospital) {
     floor: lit(0xe9e5dc, 0.35),
     ceiling: new THREE.MeshLambertMaterial({ color: 0xf4f1ea, emissive: 0xf4f1ea, emissiveIntensity: 0.7, side: THREE.DoubleSide }),
     wall: lit(0xf3f0e8, 0.5),
+    partition: lit(0xe6e1d6, 0.45),
     core: new THREE.MeshLambertMaterial({ color: 0x8a8f96 }),
     stairs: new THREE.MeshLambertMaterial({ color: 0xb9a878 }),
     room: new THREE.MeshLambertMaterial({ color: 0x00a6ce, transparent: true, opacity: 0.55 }),
@@ -153,13 +150,13 @@ export function buildHospital(world, hospital) {
   const exteriorByFloor = new Map();
   for (const f of floors) {
     const g = new THREE.Group();
-    for (const ring of f.rings) {
-      const geo = extrudedRing(ring, floorH);
+    f.rings.forEach((ring, i) => {
+      const geo = extrudedRing(ring, floorH - (isConnector(f, i) ? CONNECTOR_DROP : 0));
       geo.translate(0, f.y, 0);
       const mesh = new THREE.Mesh(geo, massingMat);
       mesh.userData.pickable = true;
       g.add(mesh);
-    }
+    });
     exteriorByFloor.set(f.id, g);
     exterior.add(g);
   }
@@ -206,6 +203,13 @@ export function buildHospital(world, hospital) {
     banks: hospital.banks,
     floor: (id) => byId.get(id) || null,
     contains: (id, x, z) => byId.get(id).rings.some((r) => pointInPolygon(x, z, r)),
+    /** Inside the floor AND clear of its partition walls: where the walker may stand. */
+    walkable(id, x, z) {
+      const f = byId.get(id);
+      return f.rings.some((r) => pointInPolygon(x, z, r)) && !wallNear(f.walls || [], x, z);
+    },
+    /** The floor's corridor centrelines, as route-core paths. */
+    corridorPaths: (id) => (byId.get(id).corridors || []).map((pts) => ({ kind: "foot", pts })),
     /** The NEAREST entrance within r — two doors can sit within one radius of each other. */
     entranceNear(x, z, r = DOOR_RADIUS_IN) {
       let best = null;
