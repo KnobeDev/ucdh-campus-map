@@ -6,7 +6,7 @@
 //
 // aria-hidden in index.html: the same text already reaches assistive technology
 // through the #status live region, and exposing it twice would read it twice.
-import { prefs } from "./minimap-core.js?v=1";
+import { prefs } from "./minimap-core.js?v=2";
 
 const KEY = "ucdh3d-captions";
 const LINGER_MS = 1500; // after the voice finishes a line, so its last words can still be read

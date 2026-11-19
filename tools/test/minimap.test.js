@@ -79,3 +79,53 @@ test("minimap: three.js hex colours become CSS colours", async () => {
   assert.strictEqual(cssHex(0xffffff), "#ffffff");
   assert.strictEqual(cssHex(0), "#000000");
 });
+
+// placeMinimap: the effective corner and canvas height, so the map never
+// covers the side panel's top row (the Menu button) at any viewport.
+const place = async (o) => {
+  const { placeMinimap } = await import(CORE);
+  // A 170 px wide map whose chrome (title, controls, padding) is 80 px tall,
+  // below a collapsed panel whose row ends 60 px down. gap/edge default to 12.
+  return placeMinimap({ preferred: "bottom-left", viewportW: 1400, viewportH: 900, rowBottom: 60, hudRight: 110, chromeH: 80, panelW: 185, canvasW: 170, ...o });
+};
+
+test("place: on a roomy screen the map keeps its corner and full size", async () => {
+  const p = await place({});
+  assert.deepStrictEqual(p, { corner: "bottom-left", canvasH: 170, fits: true, moved: false });
+  const q = await place({ preferred: "top-right" });
+  assert.deepStrictEqual(q, { corner: "top-right", canvasH: 170, fits: true, moved: false });
+});
+
+test("place: a short window shrinks the canvas so the map stays below the row", async () => {
+  // 800x300: 300 - 60 (row) - 12 (gap) - 12 (edge) - 80 (chrome) = 136 px of canvas.
+  const p = await place({ viewportW: 800, viewportH: 300 });
+  assert.deepStrictEqual(p, { corner: "bottom-left", canvasH: 136, fits: true, moved: false });
+  // The map's top edge then clears the row by the gap.
+  const panelH = p.canvasH + 80;
+  assert.ok(300 - 12 - panelH >= 60 + 12);
+});
+
+test("place: with no usable room below the row, the map moves to the other corner", async () => {
+  const { MIN_CANVAS_PX } = await import(CORE);
+  // 320x256 (400% zoom): 256 - 60 - 24 - 80 = 92 < the minimum → top right, 256 - 24 - 80 = 152.
+  const p = await place({ viewportW: 320, viewportH: 256 });
+  assert.ok(92 < MIN_CANVAS_PX);
+  assert.deepStrictEqual(p, { corner: "top-right", canvasH: 152, fits: true, moved: true });
+  // And the mirror case: top right preferred but the panel is too wide for it.
+  const q = await place({ preferred: "top-right", viewportW: 320, viewportH: 600, hudRight: 300 });
+  assert.deepStrictEqual(q, { corner: "bottom-left", canvasH: 170, fits: true, moved: true });
+});
+
+test("place: the top right needs the panel to clear the map horizontally", async () => {
+  // Room to the right of the panel: 320 - 12 - 185 = 123 ≥ 110 + 12 → fits.
+  assert.strictEqual((await place({ viewportW: 320, viewportH: 256, hudRight: 111 })).corner, "top-right");
+  // One pixel wider and the top right collides; nothing fits.
+  const p = await place({ viewportW: 320, viewportH: 256, hudRight: 112 });
+  assert.deepStrictEqual(p, { corner: "bottom-left", canvasH: 0, fits: false, moved: false });
+});
+
+test("place: the canvas never grows past its width, and a junk corner is the default", async () => {
+  const p = await place({ viewportH: 1200, canvasW: 120 });
+  assert.strictEqual(p.canvasH, 120);
+  assert.strictEqual((await place({ preferred: "elsewhere" })).corner, "bottom-left");
+});

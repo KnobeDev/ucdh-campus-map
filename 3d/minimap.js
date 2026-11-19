@@ -13,11 +13,13 @@ import { PALETTES } from "./theme.js?v=6";
 import { AREA_KIND } from "./ground.js?v=7";
 import {
   viewTransform, headingAngle, ZOOM_LEVELS, DEFAULT_ZOOM, stepZoom,
-  normalizeCorner, otherCorner, cssHex, prefs,
-} from "./minimap-core.js?v=1";
+  normalizeCorner, otherCorner, cssHex, prefs, placeMinimap,
+} from "./minimap-core.js?v=2";
 
 const DRAW_EVERY = 1 / 15; // seconds: smooth for a follow-map, and cheap
 const GAP = 12; // px from the screen edge, matching the code chip
+const HUD_MIN_H_REM = 8; // the open side panel's max-height floor: keep in step with #hud in styles.css
+const CORNER_LABEL = { "bottom-left": "the lower left", "top-right": "the top right" };
 const KEYS = { corner: "ucdh3d-minimap-corner", zoom: "ucdh3d-minimap-zoom", shown: "ucdh3d-minimap-shown" };
 const STROKE_KINDS = ["street", "service", "cycle", "foot", "steps"]; // drawn in order: walkways on top
 
@@ -161,8 +163,9 @@ function drawNorth(ctx, mk) {
 /**
  * @param {object} o
  * @param {(x: number, z: number) => void} o.onLookAt  show this world point in the overhead view
+ * @param {(text: string) => void} [o.announce]  status message (SC 4.1.3) when the window moves or hides the map
  */
-export function createMinimap({ data, hospital, construction, player, overhead, wayfinder, onLookAt }) {
+export function createMinimap({ data, hospital, construction, player, overhead, wayfinder, onLookAt, announce = () => {} }) {
   const root = $("minimap");
   const panel = $("minimap-panel");
   const showBtn = $("minimap-show");
@@ -170,6 +173,7 @@ export function createMinimap({ data, hospital, construction, player, overhead, 
   const zoomIn = $("minimap-in");
   const zoomOut = $("minimap-out");
   const moveBtn = $("minimap-move");
+  const hud = $("hud");
   const ctx = canvas.getContext("2d");
   const layers = buildLayers(data, construction);
   const floorPaths = new Map();
@@ -179,6 +183,11 @@ export function createMinimap({ data, hospital, construction, player, overhead, 
   let shown = prefs.get(KEYS.shown) !== "no";
   let clock = DRAW_EVERY; // draw on the first update
   let view = null; // the last transform, so a click lands where it was drawn
+  // Where the map is right now. The corner can differ from the saved one when
+  // the window is too short for it there (a phone held sideways, 400% zoom).
+  let placed = { corner, canvasH: 0, fits: true, moved: false };
+  let placedFor = [0, 0]; // the viewport size the placement was made for
+  let announced = false; // the first placement is the page loading, not a change worth a status message
 
   const center = () => (player.state.mode === "over"
     ? { x: overhead.focus.x, z: overhead.focus.z }
@@ -194,23 +203,79 @@ export function createMinimap({ data, hospital, construction, player, overhead, 
     return floorPaths.get(id);
   }
 
+  /**
+   * The lowest edge a lower-left map must clear, and the right edge a top-right
+   * map must clear: the whole side panel when collapsed; open, its top row
+   * (the Menu button) and its 8rem floor, which never shrink for the map.
+   *
+   * No feedback loop with --mm-reserve (which reserve() sets and which caps the
+   * open panel's max-height): the open panel's edge comes from the top row and
+   * the 8rem floor, neither of which depends on the panel's clipped height, and
+   * the collapsed panel is shorter than that floor, so the cap never bites it.
+   * Both rest on #hud being position: fixed at the top left (styles.css).
+   */
+  function hudEdges() {
+    if (hud.hidden) return { rowBottom: 0, hudRight: 0 };
+    const r = hud.getBoundingClientRect();
+    if (hud.classList.contains("collapsed")) return { rowBottom: r.bottom, hudRight: r.right };
+    const row = hud.querySelector(".hud-top").getBoundingClientRect();
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    return { rowBottom: Math.max(row.bottom, r.top + HUD_MIN_H_REM * rem), hudRight: r.right };
+  }
+
+  const samePlace = (a, b) => a.corner === b.corner && a.canvasH === b.canvasH && a.fits === b.fits && a.moved === b.moved;
+
+  /** Put the map where it fits (minimap-core placeMinimap); the DOM is written only when the answer changes. */
+  function place() {
+    placedFor = [innerWidth, innerHeight];
+    root.classList.remove("is-nofit"); // the Show button always fits; and a hidden panel measures 0
+    let next = { corner, canvasH: 0, fits: true, moved: false }; // hidden: the Show button sits in the saved corner
+    if (shown && !root.hidden) {
+      const { rowBottom, hudRight } = hudEdges();
+      next = placeMinimap({
+        preferred: corner, viewportW: innerWidth, viewportH: innerHeight, rowBottom, hudRight,
+        chromeH: panel.offsetHeight - canvas.offsetHeight, panelW: panel.offsetWidth, canvasW: canvas.offsetWidth, gap: GAP,
+      });
+    }
+    root.classList.toggle("is-nofit", !next.fits); // put back before the early return: it was cleared to measure
+    if (samePlace(next, placed) && root.classList.contains(`corner-${next.corner}`)) return;
+    // The map vanished, came back or changed corner on its own: say so, since the
+    // screen just did (SC 4.1.3). Not at boot, and not for the user's own Move/Hide.
+    if (announced && shown) {
+      if (next.fits !== placed.fits) announce(next.fits ? "Map shown again." : "Map hidden: no room for it in this window.");
+      else if (next.moved && !placed.moved) announce(`Map moved to ${CORNER_LABEL[next.corner]} for now: no room in ${CORNER_LABEL[otherCorner(next.corner)]}.`);
+      else if (!next.moved && placed.moved) announce(`Map back in ${CORNER_LABEL[next.corner]}.`);
+    }
+    announced = true;
+    placed = next;
+    root.classList.toggle("corner-bottom-left", next.corner === "bottom-left");
+    root.classList.toggle("corner-top-right", next.corner === "top-right");
+    root.style.setProperty("--mm-h", next.fits && shown ? `${next.canvasH}px` : "");
+    // While the map is displaced, the other corner is the one with no room: say so rather than do nothing.
+    moveBtn.setAttribute("aria-disabled", String(next.moved));
+    $("minimap-move-where").textContent = next.moved
+      ? ` map to ${CORNER_LABEL[corner]}: no room there in this window`
+      : ` map to ${CORNER_LABEL[otherCorner(next.corner)]}`;
+  }
+
   /** Room the map takes in the lower left: the side panel stops above it; captions sit above or beside it. */
   function reserve() {
-    const lowerLeft = corner === "bottom-left" && !root.hidden;
-    document.documentElement.style.setProperty("--mm-reserve", `${lowerLeft ? root.offsetHeight + GAP : 0}px`);
-    document.documentElement.style.setProperty("--mm-reserve-w", `${lowerLeft ? root.offsetWidth + GAP : 0}px`);
+    const lowerLeft = placed.corner === "bottom-left" && placed.fits && shown && !root.hidden;
+    const st = document.documentElement.style;
+    const h = `${lowerLeft ? root.offsetHeight + GAP : 0}px`;
+    const w = `${lowerLeft ? root.offsetWidth + GAP : 0}px`;
+    if (st.getPropertyValue("--mm-reserve") !== h) st.setProperty("--mm-reserve", h);
+    if (st.getPropertyValue("--mm-reserve-w") !== w) st.setProperty("--mm-reserve-w", w);
   }
 
   function layout() {
-    root.classList.toggle("corner-bottom-left", corner === "bottom-left");
-    root.classList.toggle("corner-top-right", corner === "top-right");
     panel.hidden = !shown;
     showBtn.hidden = shown;
     $("minimap-scale").textContent = `${ZOOM_LEVELS[zoom]} m across`;
     // aria-disabled, not disabled: a disabled button drops keyboard focus to <body>.
     zoomIn.setAttribute("aria-disabled", String(zoom === 0));
     zoomOut.setAttribute("aria-disabled", String(zoom === ZOOM_LEVELS.length - 1));
-    $("minimap-move-where").textContent = corner === "bottom-left" ? " map to the top right" : " map to the lower left";
+    place();
     reserve();
     clock = DRAW_EVERY;
   }
@@ -314,6 +379,7 @@ export function createMinimap({ data, hospital, construction, player, overhead, 
   zoomIn.addEventListener("click", () => setZoom(-1));
   zoomOut.addEventListener("click", () => setZoom(1));
   moveBtn.addEventListener("click", () => {
+    if (placed.moved) return; // the other corner has no room right now; the button says so
     corner = otherCorner(corner);
     prefs.set(KEYS.corner, corner);
     layout(); // the button moves with the map, so focus stays on it
@@ -336,14 +402,19 @@ export function createMinimap({ data, hospital, construction, player, overhead, 
     const w = view.toWorld(e.clientX - r.left, e.clientY - r.top);
     onLookAt(w.x, w.z);
   });
-  addEventListener("resize", () => { reserve(); clock = DRAW_EVERY; });
+  addEventListener("resize", layout);
+  // Collapsing or opening the panel changes the edges the map must clear.
+  if (typeof ResizeObserver === "function") new ResizeObserver(layout).observe(hud);
 
   return {
     layout,
     get corner() { return corner; },
+    get placed() { return placed; },
     get zoom() { return zoom; },
     get shown() { return shown; },
     update(dt) {
+      // Belt and braces for the resize event: a viewport that changed size is re-placed on the next frame.
+      if (innerWidth !== placedFor[0] || innerHeight !== placedFor[1]) layout();
       if (!shown || root.hidden || document.hidden) return;
       clock += dt;
       if (clock < DRAW_EVERY) return;

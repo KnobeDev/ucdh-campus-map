@@ -62,3 +62,38 @@ export const prefs = {
     try { globalThis.localStorage?.setItem(key, value); } catch { /* not persisted */ }
   },
 };
+
+/** The shortest canvas worth showing; below this the map moves or goes. */
+export const MIN_CANVAS_PX = 96;
+
+/**
+ * Where the inset map actually goes and how tall its canvas can be, so that
+ * it never covers the side panel's top row (the Menu button) at any viewport
+ * (SC 2.1.1: the button must stay reachable; SC 1.4.10: no lost content at
+ * 400% zoom or on a phone held sideways).
+ *
+ * The preferred corner wins whenever a canvas of at least MIN_CANVAS_PX fits
+ * there; otherwise the other corner, if the map fits; otherwise nothing fits
+ * (`fits: false`) and the caller hides the map. The saved preference is never
+ * changed here: `moved` says the map is somewhere else for now.
+ *
+ * All lengths in CSS px. `rowBottom` is the lowest edge the lower-left map
+ * must clear (the panel's top row, or the whole panel when collapsed);
+ * `hudRight` is the panel's right edge, which a top-right map must clear;
+ * `chromeH` is the map panel's height minus its canvas; `panelW` its width.
+ */
+export function placeMinimap({
+  preferred, viewportW, viewportH, rowBottom, hudRight, chromeH, panelW, canvasW, gap = 12, edge = 12,
+}) {
+  const roomTopRight = hudRight + gap <= viewportW - edge - panelW ? viewportH - 2 * edge - chromeH : 0;
+  const room = {
+    "bottom-left": viewportH - rowBottom - gap - edge - chromeH,
+    "top-right": roomTopRight,
+  };
+  const first = normalizeCorner(preferred);
+  for (const corner of [first, otherCorner(first)]) {
+    if (room[corner] < MIN_CANVAS_PX) continue;
+    return { corner, canvasH: Math.min(canvasW, Math.floor(room[corner])), fits: true, moved: corner !== first };
+  }
+  return { corner: first, canvasH: 0, fits: false, moved: false };
+}

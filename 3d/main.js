@@ -13,12 +13,12 @@ import { buildConstruction, buildPointLayers } from "./layers.js?v=5";
 import { zoneListText } from "./caution-core.js?v=1";
 import { createSpeech } from "./speech.js?v=7";
 import { readingMs } from "./speech-core.js?v=3";
-import { createCaptions } from "./captions.js?v=1";
+import { createCaptions } from "./captions.js?v=2";
 import { createSonar } from "./sonar.js?v=5";
 import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=2";
 import { createSession } from "./session.js?v=3";
-import { createMinimap } from "./minimap.js?v=5";
-import { initialPanelOpen, prefs } from "./minimap-core.js?v=1";
+import { createMinimap } from "./minimap.js?v=6";
+import { initialPanelOpen, prefs } from "./minimap-core.js?v=2";
 
 const $ = (id) => document.getElementById(id);
 
@@ -437,6 +437,7 @@ async function boot() {
   const minimap = createMinimap({
     data, hospital, construction, player, overhead, wayfinder,
     onLookAt: (x, z) => walker.showOverheadAt(x, z),
+    announce: (text) => say(text, { interrupt: false }),
   });
   wirePanel();
   session.start({

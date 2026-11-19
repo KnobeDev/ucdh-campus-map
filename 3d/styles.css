@@ -122,6 +122,7 @@ main { position: fixed; inset: 0; }
 
 /* --- wayfinding panel ------------------------------------------------------ */
 /* --mm-reserve: the inset map's height while it sits below the panel (minimap.js). */
+/* The 8rem floor is mirrored by HUD_MIN_H_REM in minimap.js. */
 #hud { max-height: max(8rem, calc(100vh - 1.5rem - var(--mm-reserve, 0px))); overflow-y: auto; box-sizing: border-box; }
 
 /* --- collapsible panel --------------------------------------------------- */
@@ -153,7 +154,10 @@ main { position: fixed; inset: 0; }
 }
 .mm-bar button[aria-disabled="true"] { opacity: 0.6; cursor: default; }
 .mm-bar button:focus-visible, #minimap-show:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
-#minimap-canvas { display: block; width: var(--mm-size); height: var(--mm-size); border-radius: 0.5rem; cursor: crosshair; }
+/* --mm-h (minimap.js): the canvas gives up height, never width, when the window is too short. */
+#minimap-canvas { display: block; width: var(--mm-size); height: var(--mm-h, var(--mm-size)); border-radius: 0.5rem; cursor: crosshair; }
+/* Neither corner has room without covering the panel's Menu button; back as soon as the window allows. */
+#minimap.is-nofit { display: none; }
 .mm-scale { margin: 0; font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
 #minimap-show { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 44px; padding: 0.3rem 0.8rem; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3); }
 #wayfind { margin-top: 0.9rem; padding-top: 0.75rem; border-top: 1px solid var(--panel-border); }
