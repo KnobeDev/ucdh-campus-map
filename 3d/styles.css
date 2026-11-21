@@ -308,3 +308,59 @@ body.sess-member #wf-go, body.sess-member #info-guide { display: none; }
     pointer-events: auto; /* so an overflowing caption can actually be scrolled */
   }
 }
+
+/* --- overhead gauges (gauges.js) ------------------------------------------------ */
+/* The heading 0-360 along the top and the pitch 0-90 on the side, in the overhead view only.
+   Sizes in rem match gauges.js SIZE. Text and ticks are --text on --panel (7:1+ in both themes);
+   the pointer and marker are --accent (navy 14:1 on the light panel, gold 10:1 on the dark one)
+   and are told apart by shape too: the pointer is the one line across the whole strip, the marker
+   an arrowhead. No transitions: they follow the camera, they never animate on their own. */
+#gauges { pointer-events: none; user-select: none; } /* never takes a drag or a click from the map */
+.gauge {
+  position: fixed; box-sizing: border-box; overflow: hidden;
+  background: var(--panel); color: var(--text);
+  border: 1px solid var(--panel-border); border-radius: 0.6rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  font-variant-numeric: tabular-nums;
+}
+#heading-strip { height: 4.25rem; padding: 0.3rem 0.5rem 0.25rem; }
+.hs-tape { position: relative; height: 2.25rem; overflow: hidden; }
+.hs-tape::after { /* the pointer: where the camera faces; it stops above the labels, so none is struck through */
+  content: ""; position: absolute; left: 50%; top: 0; height: 0.75rem; margin-left: -1.5px;
+  border-left: 3px solid var(--accent);
+}
+.hs-tape::before { /* a small downward wedge under it, so the pointer reads as a pointer, not as another tick */
+  content: ""; position: absolute; left: 50%; top: 0.7rem; margin-left: -0.35rem;
+  border-left: 0.35rem solid transparent; border-right: 0.35rem solid transparent; border-top: 0.3rem solid var(--accent);
+}
+.hs-tick {
+  position: absolute; top: 0; transform: translateX(-50%);
+  padding-top: 0.9rem; font-size: 0.75rem; font-weight: 600; line-height: 1; white-space: nowrap;
+}
+.hs-tick::before { content: ""; position: absolute; top: 0; left: 50%; height: 0.4rem; margin-left: -1px; border-left: 2px solid var(--text); }
+.hs-major::before { height: 0.65rem; }
+.hs-cardinal { font-size: 0.95rem; font-weight: 800; padding-top: 0.8rem; }
+.hs-cardinal::before { height: 0.65rem; }
+.hs-readout { margin: 0.15rem 0 0; text-align: center; font-size: 0.85rem; line-height: 1.2; white-space: nowrap; }
+.hs-name { color: var(--muted); font-weight: 600; }
+#heading-value, #heading-point, #pitch-value { font-weight: 800; }
+
+#pitch-scale { width: 4.75rem; padding: 0.35rem 0.3rem; display: flex; flex-direction: column; }
+.ps-head { margin: 0; font-size: 0.8rem; font-weight: 600; text-align: center; line-height: 1.2; overflow-wrap: anywhere; } /* may wrap under text-spacing overrides (SC 1.4.12) rather than clip */
+.ps-end { margin: 0; font-size: 0.72rem; color: var(--muted); text-align: center; line-height: 1.1; }
+.ps-track { position: relative; flex: 1; min-height: 2rem; margin: 0.55rem 0; }
+.ps-track::before { content: ""; position: absolute; top: 0; bottom: 0; left: 1.55rem; margin-left: -1px; border-left: 2px solid var(--text); }
+.ps-tick {
+  position: absolute; left: 1.55rem; transform: translateY(-50%);
+  padding-left: 0.8rem; font-size: 0.72rem; font-weight: 600; line-height: 1;
+}
+.ps-tick::before { content: ""; position: absolute; left: 0; top: 50%; width: 0.4rem; margin-top: -1px; border-top: 2px solid var(--text); }
+.ps-major::before { width: 0.6rem; }
+.ps-major { font-weight: 800; }
+/* A short scale names only 0, 45 and 90; the other ticks stay. */
+#pitch-scale.compact .ps-tick:not(.ps-major) { font-size: 0; }
+.ps-marker { /* the arrowhead and its bar: the current pitch */
+  position: absolute; left: 0.1rem; transform: translateY(-50%);
+  font-size: 0.9rem; line-height: 1; color: var(--accent);
+}
+.ps-marker::after { content: ""; position: absolute; left: 0.85rem; top: 50%; width: 1.25rem; margin-top: -1.5px; border-top: 3px solid var(--accent); }

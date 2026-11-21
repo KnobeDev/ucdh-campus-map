@@ -2,7 +2,9 @@
 import { createWorld } from "./world.js?v=7";
 import { buildBuildings } from "./buildings.js?v=13";
 import { buildGroundSurfaces } from "./ground.js?v=8";
-import { createOverheadCamera } from "./overhead.js?v=7";
+import { createOverheadCamera } from "./overhead.js?v=9";
+import { OPEN_PITCH, gaugeReadout, compassName, degreesWord } from "./overhead-core.js?v=4";
+import { createGauges } from "./gauges.js?v=2";
 import { initialTheme, saveTheme } from "./theme.js?v=6";
 import { buildHospital } from "./hospital.js?v=22";
 import { createPlayer } from "./player.js?v=25";
@@ -67,14 +69,14 @@ function throttle(fn, ms) {
   };
 }
 
-function wireWalker(world, player, overhead, hospital, canvas) {
+function wireWalker(world, player, overhead, gauges, hospital, canvas) {
   const viewBtn = $("view-btn");
   const useBtn = $("use-btn");
   const where = $("where");
   const hint = $("hint");
   // The map's name says how to drive the current view; the hint (aria-describedby) repeats it in short.
   const WALK_LABEL = canvas.getAttribute("aria-label");
-  const OVERHEAD_LABEL = "3D map of the UC Davis Health Sacramento campus, overhead view. Drag or the arrow keys move the map, Shift+drag or Q and E turn it, Page Up and Page Down tilt it, plus and minus zoom, V or the Walk button returns to walking. Press Tab to leave the map.";
+  const OVERHEAD_LABEL = "3D map of the UC Davis Health Sacramento campus, overhead view. W, A, S and D move the map north, west, south and east, and dragging moves it too. The arrow keys tilt and turn it: up and down tilt, left and right turn; Shift+drag, Q and E, and Page Up and Page Down do the same. Plus and minus zoom. H says the heading and the pitch. V or the Walk button returns to walking. Press Tab to leave the map.";
 
   const setWhere = () => {
     const f = player.state.floor;
@@ -94,16 +96,23 @@ function wireWalker(world, player, overhead, hospital, canvas) {
   function setView(mode) {
     player.setMode(mode);
     overhead.setEnabled(mode === "over");
-    if (mode === "over") overhead.lookAt(player.object.position.x, player.object.position.z, 260);
+    if (mode === "over") {
+      overhead.lookAt(player.object.position.x, player.object.position.z, 260);
+      overhead.setPitch(OPEN_PITCH); // the view opens at pitch 45, halfway between straight down and level
+    }
     const over = mode === "over";
+    gauges.show(over);
     viewBtn.setAttribute("aria-pressed", String(over));
     viewBtn.querySelector(".btn-txt").textContent = over ? "Walk" : "Overhead view";
     viewBtn.querySelector(".btn-ico").textContent = over ? "🚶" : "🚁";
     hint.textContent = over
-      ? "Overhead: drag or arrows move the map · Shift+drag or Q E turn · PgUp PgDn tilt · + − zoom · V or the Walk button to walk"
+      ? "Overhead: W A S D move N W S E · drag moves the map · arrows tilt and turn · Shift+drag turns · + − zoom · H heading and pitch · V or the Walk button to walk"
       : "Walk: W A S D · Shift runs · arrows look · E what's ahead / use elevator · P sonar · G guide me · V overhead · drag to look";
     canvas.setAttribute("aria-label", over ? OVERHEAD_LABEL : WALK_LABEL);
-    say(over ? "Overhead view. Drag or the arrow keys move the map." : "Walking view.");
+    const r = gaugeReadout(overhead.yaw, overhead.pitch);
+    say(over
+      ? `Overhead view, facing ${compassName(r.heading)}, pitch ${degreesWord(r.pitch)}. W, A, S and D move the map north, west, south and east; the arrow keys tilt and turn it; H says the heading and pitch.`
+      : "Walking view.");
     canvas.focus();
   }
   viewBtn.addEventListener("click", () => setView(player.state.mode === "over" ? "walk" : "over"));
@@ -115,6 +124,15 @@ function wireWalker(world, player, overhead, hospital, canvas) {
     }
   };
   window.addEventListener("keydown", onViewKey);
+  // H, in the overhead view: the gauges' heading and pitch, aloud and in #status, on request only.
+  // A single-character shortcut, so only while the map has focus (SC 2.1.4); H is used nowhere else.
+  const onGaugeKey = (e) => {
+    if ((e.code === "KeyH" || String(e.key).toLowerCase() === "h") && !e.repeat && !e.ctrlKey && !e.altKey && !e.metaKey
+        && player.state.mode === "over" && document.activeElement === canvas && !document.querySelector("dialog[open]")) {
+      say(gauges.text);
+    }
+  };
+  window.addEventListener("keydown", onGaugeKey);
 
   const picker = createFloorPicker({
     onChoose: (id) => {
@@ -177,9 +195,9 @@ function wireWalker(world, player, overhead, hospital, canvas) {
     showOverheadAt(x, z) {
       if (player.state.mode !== "over") setView("over");
       overhead.lookAt(x, z);
-      canvas.focus(); // so the arrow keys pan from there straight away
+      canvas.focus(); // so W A S D move the view on from there straight away
     },
-    dispose() { window.removeEventListener("keydown", onViewKey); player.dispose(); },
+    dispose() { window.removeEventListener("keydown", onViewKey); window.removeEventListener("keydown", onGaugeKey); player.dispose(); },
   };
 }
 
@@ -449,6 +467,7 @@ async function boot() {
   const hospital = buildHospital(world, data.hospital);
   const overhead = createOverheadCamera(world, canvas);
   overhead.setEnabled(false);
+  const gauges = createGauges({ overhead });
 
   // Spawn on the street outside the Main Entrance, facing it.
   const construction = buildConstruction(world, data.construction);
@@ -460,7 +479,7 @@ async function boot() {
   setTheme(world, initialTheme());
   captions = createCaptions($("captions"), $("captions-btn"));
   speech = createSpeech({ onStart: (text) => captions.show(text), onEnd: () => captions.end(), engine: config.voice });
-  const walker = wireWalker(world, player, overhead, hospital, canvas);
+  const walker = wireWalker(world, player, overhead, gauges, hospital, canvas);
   // Buildings that are a signpost, not an outline: sonar and What's ahead name them too, so
   // the sign is never something only a sighted visitor can read.
   const places = data.buildings.filter((b) => b.marker && b.center).map((b) => ({ name: b.name, x: b.center.x, z: b.center.z, building: b }));
@@ -514,7 +533,7 @@ async function boot() {
     { speak: false });
   // A handle for devtools and the owner's own tests: the local build only.
   if (config.mode === "local") {
-    window.__ucd3d = { world, index, data, overhead, player, hospital, walker, wayfinder, wayfindingWiring, graph, sonar, picking, speech, captions, session, minimap, construction, config };
+    window.__ucd3d = { world, index, data, overhead, gauges, player, hospital, walker, wayfinder, wayfindingWiring, graph, sonar, picking, speech, captions, session, minimap, construction, config };
   }
   // Members' extras (3d/fun/): loaded only after the server said yes, and never needed to
   // find your way. A file the server will not send, or a module that fails, changes nothing.
@@ -531,6 +550,7 @@ async function boot() {
     sonar.update(dt);
     session.update(dt);
     overhead.update(dt);
+    gauges.update(dt); // after the camera has moved, so the gauges show this frame's view
     construction.update(); // after the cameras have moved for this frame
     minimap.update(dt);
     world.renderer.render(world.scene, world.camera);

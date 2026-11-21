@@ -57,6 +57,10 @@ Remove. A refresh resumes the session; the session survives a silent guide for
   right and back, **Hide** tucks it away): north-up, following you — or the
   overhead camera — with your heading, the floor you're on, construction and
   the guided route. Click a spot on it to see that spot from overhead.
+- **Overhead gauges**: in the overhead view, the heading 0-360 along the top
+  (0 north, 90 east: the way the camera faces, N E S W marked) and the pitch
+  0-90 on the side (0 looking straight down, 90 level with the horizon); the
+  view opens at 45. `H` says both; they step aside for the panel and the map.
 - **The side panel collapses to a ☰ Menu button**; it starts collapsed on
   narrow screens. Menu, map corner, zoom and visibility are remembered.
 
@@ -94,10 +98,13 @@ Remove. A refresh resumes the session; the session survives a silent guide for
 | **Captions on/off** | show or hide the caption line at the bottom of the screen: what the voice is saying, or each announcement when the voice is off (on by default) |
 | `G` / **Guide me** button | start (or stop) guidance to the chosen destination |
 | `V` / **Overhead view** button | switch to the overhead orbit camera and back |
-| Overhead: arrows, `Q` `E`, `PgUp` `PgDn`, `+` `−` | pan, rotate, tilt, zoom |
+| Overhead: `W` `A` `S` `D` | move the view north, west, south, east (whichever way the camera faces) |
+| Overhead: `↑` `↓`, `←` `→` (also `PgUp` `PgDn`, `Q` `E`) | tilt, turn |
+| Overhead: `+` `−`, drag, Shift+drag | zoom, move the map, turn it |
+| Overhead: `H` | say the heading and the pitch shown on the gauges |
 | **Menu** | collapse or expand the side panel (Use elevator stays visible either way) |
 | Map **+** **−** / **Move** / **Hide** | zoom the inset map (120 m to 2 km across), move it between the lower-left and top-right corners, hide or show it |
-| Click the inset map | look at that spot in the overhead view (the keyboard equivalent is panning the overhead view) |
+| Click the inset map | look at that spot in the overhead view (the keyboard equivalent is moving the overhead view with `W` `A` `S` `D`) |
 | `Tab` | leave the map (nothing traps focus) |
 
 Walk into a Medical Center entrance to go inside; walk back through the door to
@@ -177,7 +184,8 @@ are straight lines until corridors are traced in the 2D editor.
 | `session.js` / `peers.js` | tours and events: lobby, sync loop, group panel, peer avatars |
 | `route-core.js` | pedestrian router over the OSM network (pure; node-tested) |
 | `wayfind.js` | guided route: ribbon, legs, re-routing, arrival, indoor continuation |
-| `overhead.js` | keyboard-first orbit camera |
+| `overhead.js` | keyboard-first orbit camera (`overhead-core.js` is the tested maths: keys, drag, heading and pitch, gauge placement) |
+| `gauges.js` | the overhead view's heading strip (0-360 along the top) and pitch scale (0 straight down to 90 level, on the side) |
 | `labels.js` | canvas-texture text sprites |
 | `geometry.js` | shared ring → shape/extrude helpers, the merge-bucket rule |
 | `campus-data.json` | generated — `node ../tools/gen-3d-data.js` |

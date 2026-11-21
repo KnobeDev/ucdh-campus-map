@@ -15,12 +15,30 @@
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' blob:; base-uri 'self'; form-action 'self'; object-src 'none'">
 <title>UC Davis Health — 3D Walkable Campus</title>
-<link rel="stylesheet" href="styles.css?v=23">
+<link rel="stylesheet" href="styles.css?v=25">
 </head>
 <body>
 <main>
   <canvas id="scene" tabindex="0" role="application" aria-describedby="hint"
           aria-label="3D walkable map of the UC Davis Health Sacramento campus, first person. W A S D walks, Shift runs, arrow keys look around, E identifies the building ahead, or uses the elevator or stairs you are standing at, P sends a sonar pulse, G starts or stops guidance to the chosen destination, V switches to the overhead view and back. Walk into a Medical Center entrance to go inside. Press Tab to leave the map."></canvas>
+  <!-- Overhead gauges (gauges.js), shown in the overhead view only: the heading 0-360 along the
+       top (0 north, the way the camera faces) and the pitch 0-90 on the side (0 straight down,
+       90 level, 45 halfway). The pictures are aria-hidden; #gauge-text holds the same values in
+       words and is deliberately NOT a live region (#status is the one voice); H reads them aloud.
+       Here, before the panel and the inset map in source order, so those are drawn over them. -->
+  <div id="gauges" hidden>
+    <p id="gauge-text" class="sr-only"></p>
+    <div id="heading-strip" class="gauge" aria-hidden="true">
+      <div id="heading-tape" class="hs-tape"></div>
+      <p class="hs-readout"><span class="hs-name">Heading</span> <span id="heading-value">0°</span> <span id="heading-point">N</span></p>
+    </div>
+    <div id="pitch-scale" class="gauge" aria-hidden="true">
+      <p class="ps-head">Pitch <span id="pitch-value">45°</span></p>
+      <p class="ps-end">down</p>
+      <div id="pitch-track" class="ps-track"><span id="pitch-marker" class="ps-marker">▶</span></div>
+      <p class="ps-end">level</p>
+    </div>
+  </div>
 </main>
 
 <p id="loading" role="status">Loading the 3D campus…</p>
@@ -233,6 +251,6 @@
 </dialog>
 
 <script src="boot-guard.js?v=7"></script>
-<script type="module" src="main.js?v=50"></script>
+<script type="module" src="main.js?v=53"></script>
 </body>
 </html>

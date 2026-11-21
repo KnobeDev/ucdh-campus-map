@@ -440,10 +440,33 @@ test("the 3D page in a browser", { skip: !PLAYWRIGHT && "set PLAYWRIGHT_MODULE t
     // A drag is not a click: no place opened under the pointer (SC 2.5.2).
     assert.strictEqual(await page.locator("#info").isHidden(), true, "dragging opened nothing");
 
-    // The arrow keys still pan, the wheel still zooms, and Shift+drag still turns the view around its spot.
+    // W A S D move the view due north, west, south, east, whichever way the camera faces; the
+    // arrows tilt and turn it; the wheel still zooms; Shift+drag still turns it around its spot.
     await centre();
+    await page.keyboard.press("ArrowLeft"); // turn first, so "north" can't just mean "away"
+    await page.keyboard.press("ArrowLeft");
+    const afterTurn = await state();
+    assert.ok(Math.abs(afterTurn.x) < 1e-6 && Math.abs(afterTurn.z) < 1e-6, "an arrow turns the view without moving its spot");
+    await page.keyboard.press("w");
+    let s1 = await state();
+    assert.ok(s1.z < -5 && Math.abs(s1.x) < 1e-6, `W moves due north (-z), not toward the camera's away: ${JSON.stringify(s1)}`);
+    await centre(); await page.keyboard.press("s"); s1 = await state();
+    assert.ok(s1.z > 5 && Math.abs(s1.x) < 1e-6, `S moves due south: ${JSON.stringify(s1)}`);
+    await centre(); await page.keyboard.press("d"); s1 = await state();
+    assert.ok(s1.x > 5 && Math.abs(s1.z) < 1e-6, `D moves due east: ${JSON.stringify(s1)}`);
+    await centre(); await page.keyboard.press("a"); s1 = await state();
+    assert.ok(s1.x < -5 && Math.abs(s1.z) < 1e-6, `A moves due west: ${JSON.stringify(s1)}`);
+    await centre();
+    const flat = await state();
+    await page.keyboard.press("ArrowDown");
+    const lower = await state();
+    assert.ok(lower.cam[1] < flat.cam[1] - 1, `the down arrow tilts the view toward the horizon: ${flat.cam[1]} -> ${lower.cam[1]}`);
+    await page.keyboard.press("ArrowUp");
+    await page.keyboard.press("ArrowUp");
+    assert.ok((await state()).cam[1] > lower.cam[1] + 1, "the up arrow tilts it back up");
     await page.keyboard.press("ArrowRight");
-    assert.ok((await state()).x > 5, "an arrow tap pans");
+    const st2 = await state();
+    assert.ok(Math.abs(st2.x) < 1e-6 && Math.abs(st2.z) < 1e-6, "and no arrow pans any more");
     const before = await state();
     await page.mouse.move(MX, MY);
     await page.mouse.wheel(0, 120);
@@ -513,8 +536,10 @@ test("the 3D page in a browser", { skip: !PLAYWRIGHT && "set PLAYWRIGHT_MODULE t
     await page.locator("#view-btn").click();
     const over = await read();
     assert.match(over.label, /overhead view/i);
-    assert.match(over.label, /Drag or the arrow keys move the map/);
-    assert.match(over.hint, /drag or arrows move the map/i);
+    assert.match(over.label, /W, A, S and D move the map north, west, south and east/);
+    assert.match(over.label, /arrow keys tilt and turn it/);
+    assert.match(over.hint, /W A S D move N W S E/);
+    assert.match(over.hint, /arrows tilt and turn/);
     await page.locator("#view-btn").click(); // now labelled "Walk"
     assert.strictEqual((await read()).label, walk.label, "back to the walking name");
     assert.deepStrictEqual(errors, []);
@@ -743,6 +768,136 @@ test("the 3D page in a browser", { skip: !PLAYWRIGHT && "set PLAYWRIGHT_MODULE t
     assert.ok(Number(m[1]) <= 6, `to its front wall, not the block behind it: ${seen.status}`);
     assert.ok(seen.fenced, "the lot's west end is inside the fence");
     assert.ok(seen.reached < -177, `the fence stops the walker at the site's west edge (x -178): ${seen.reached}`);
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
+
+  // The owner, 2026-11-21: in the overhead view, the heading 0-360 along the top (0 north, 90 east,
+  // the way the camera faces, N E S W marked) and the pitch 0-90 on the side (0 straight down at
+  // the map, 90 level with the horizon, 45 halfway), opening at 45.
+  await t.test("overhead view: a heading strip on top and a pitch scale on the side, opening at 45, clear of the menu and the map", async () => {
+    const { page, errors } = await open({ site: false });
+    await enter(page);
+    const frames = () => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    const read = async () => {
+      await frames();
+      return page.evaluate(() => {
+        const { overhead } = window.__ucd3d;
+        const $ = (id) => document.getElementById(id);
+        const box = (id) => { const r = $(id).getBoundingClientRect(); return r.width && r.height ? { left: r.left, top: r.top, right: r.right, bottom: r.bottom } : null; };
+        return {
+          hidden: $("gauges").hidden, heading: $("heading-value").textContent, pitch: $("pitch-value").textContent,
+          text: $("gauge-text").textContent, status: $("status").textContent,
+          strip: box("heading-strip"), scale: box("pitch-scale"), hud: box("hud"), map: box("minimap"),
+          pe: getComputedStyle($("gauges")).pointerEvents, yaw: overhead.yaw, p: overhead.pitch,
+          live: [$("gauges"), ...$("gauges").querySelectorAll("*")].filter((el) => el.getAttribute("aria-live") || /status|alert|log/.test(el.getAttribute("role") || "")).length,
+        };
+      });
+    };
+    const num = (t) => Number(/-?\d+/.exec(t)[0]);
+    const turned = (a, b) => ((num(b) - num(a) + 540) % 360) - 180; // signed change, across north
+    const hits = (a, b) => a && b && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+
+    let g = await read();
+    assert.strictEqual(g.hidden, true, "no gauges while walking");
+    await page.locator("#view-btn").click();
+    g = await read();
+    assert.strictEqual(g.hidden, false, "the gauges show in the overhead view");
+    assert.ok(g.strip && g.scale, `both drawn at 1100 x 760: ${JSON.stringify(g)}`);
+    assert.ok(g.strip.top < 30, "the heading strip runs along the top");
+    assert.ok(g.scale.right > 1100 - 30 || g.scale.left < 30, "the pitch scale stands at a side");
+    assert.strictEqual(g.pe, "none", "never in the way of a drag");
+    assert.ok(Math.abs(g.p - Math.PI / 4) < 1e-9, `opens at pitch 45: ${g.p}`);
+    assert.strictEqual(num(g.pitch), 45, g.pitch);
+    assert.match(g.text, /Pitch 45 degrees/);
+    assert.match(g.status, /pitch 45/i, "the spoken line says it as the view opens");
+    assert.strictEqual(g.live, 0, "the gauges are no live region: #status stays the one voice");
+
+    // Turning left (the left arrow, Q) is counter-clockwise: the heading falls; right, it rises.
+    await page.keyboard.press("ArrowLeft");
+    let h = await read();
+    assert.ok(turned(g.heading, h.heading) < -5, `left arrow: ${g.heading} -> ${h.heading}`);
+    await page.keyboard.press("q");
+    const q = await read();
+    assert.ok(turned(h.heading, q.heading) < -5, `Q: ${h.heading} -> ${q.heading}`);
+    await page.keyboard.press("ArrowRight");
+    h = await read();
+    assert.ok(turned(q.heading, h.heading) > 5, `right arrow: ${q.heading} -> ${h.heading}`);
+    // the shown heading is the way the camera faces, clockwise from north
+    const facing = await page.evaluate(() => {
+      const { world, overhead } = window.__ucd3d;
+      const d = { x: overhead.focus.x - world.camera.position.x, z: overhead.focus.z - world.camera.position.z };
+      return ((Math.atan2(d.x, -d.z) * 180) / Math.PI + 360) % 360;
+    });
+    assert.ok(Math.abs(((num(h.heading) - facing + 540) % 360) - 180) <= 0.5, `${h.heading} vs the camera's facing ${facing}`);
+    assert.match(h.text, new RegExp(`heading ${num(h.heading)} degrees`));
+    // W moves the view north and keeps the heading.
+    await page.keyboard.press("w");
+    const w = await read();
+    assert.strictEqual(w.heading, h.heading, "W keeps the heading");
+    // Down tilts toward the horizon (toward 90), up toward straight down (toward 0).
+    await page.keyboard.press("ArrowDown");
+    const down = await read();
+    assert.ok(num(down.pitch) > 45, `down arrow: ${down.pitch}`);
+    await page.keyboard.press("ArrowUp");
+    await page.keyboard.press("ArrowUp");
+    const up = await read();
+    assert.ok(num(up.pitch) < 45, `up arrow: ${up.pitch}`);
+    for (let i = 0; i < 12; i++) await page.keyboard.press("ArrowUp");
+    const top = await read();
+    assert.ok(num(top.pitch) >= 0 && num(top.pitch) <= 2, `close to straight down at the end of the scale: ${top.pitch}`);
+    for (let i = 0; i < 14; i++) await page.keyboard.press("ArrowDown");
+    const level = await read();
+    assert.ok(num(level.pitch) >= 80 && num(level.pitch) < 90, `toward the horizon, short of level: ${level.pitch}`);
+    // H says it on request.
+    await page.keyboard.press("h");
+    assert.strictEqual((await read()).status, level.text, "H reads the heading and pitch aloud");
+
+    // Clear of the panel and the inset map, in both corners, at desktop, phone and short sizes.
+    for (const [vw, vh] of [[1100, 760], [375, 812], [800, 300]]) {
+      await page.setViewportSize({ width: vw, height: vh });
+      for (const corner of ["first", "moved"]) {
+        if (corner === "moved") { await page.locator("#minimap-move").click(); await page.locator("#scene").focus(); }
+        await page.waitForTimeout(400); // the gauges re-measure the panel and the map a few times a second
+        g = await read();
+        const at = `${vw} x ${vh}, map ${corner}`;
+        for (const gauge of [g.strip, g.scale]) {
+          if (!gauge) continue;
+          assert.ok(gauge.left >= 0 && gauge.top >= 0 && gauge.right <= vw && gauge.bottom <= vh, `${at}: on screen ${JSON.stringify(gauge)}`);
+          assert.ok(!hits(gauge, g.hud), `${at}: clear of the panel ${JSON.stringify(gauge)} ${JSON.stringify(g.hud)}`);
+          assert.ok(!hits(gauge, g.map), `${at}: clear of the inset map ${JSON.stringify(gauge)} ${JSON.stringify(g.map)}`);
+        }
+        assert.ok(!hits(g.strip, g.scale), `${at}: the two don't overlap`);
+        if (vw === 1100) assert.ok(g.strip && g.scale, `${at}: both drawn`);
+      }
+      await page.locator("#minimap-move").click(); // back to where it started
+      await page.locator("#scene").focus();
+    }
+    await page.setViewportSize({ width: 1100, height: 760 });
+
+    // SC 1.4.12: with the text-spacing overrides on, the pitch title and the heading readout keep all their text.
+    // (set through each element's style: the page's CSP refuses an injected <style>)
+    await page.evaluate(() => {
+      for (const el of document.querySelectorAll("#gauges *")) {
+        for (const [k, v] of [["line-height", "1.5"], ["letter-spacing", "0.12em"], ["word-spacing", "0.16em"]]) el.style.setProperty(k, v, "important");
+      }
+    });
+    await page.waitForTimeout(400);
+    const clipped = await page.evaluate(() => [...document.querySelectorAll("#gauges .ps-head, #gauges .hs-readout")]
+      .filter((el) => el.getClientRects().length && (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1))
+      .map((el) => `${el.className}: ${el.textContent} (${el.scrollWidth} x ${el.scrollHeight} in ${el.clientWidth} x ${el.clientHeight})`));
+    assert.deepStrictEqual(clipped, [], "no gauge text clipped under text-spacing overrides");
+    if (process.env.GAUGE_SHOTS) await page.screenshot({ path: path.join(process.env.GAUGE_SHOTS, "gauges-spacing.png") });
+
+    if (AXE) {
+      await page.evaluate(fs.readFileSync(path.join(AXE, "axe.min.js"), "utf8"));
+      const found = await page.evaluate(() => window.axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] }, resultTypes: ["violations"] })
+        .then((r) => r.violations.map((v) => `${v.id} x${v.nodes.length}: ${v.nodes.slice(0, 2).map((n) => n.target.join(" ")).join(" | ")}`)));
+      assert.deepStrictEqual(found, [], "the overhead view with its gauges");
+    }
+
+    await page.locator("#view-btn").click();
+    assert.strictEqual((await read()).hidden, true, "hidden again on walking");
     assert.deepStrictEqual(errors, []);
     await page.close();
   });

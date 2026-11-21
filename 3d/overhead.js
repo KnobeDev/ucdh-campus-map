@@ -1,5 +1,6 @@
 // Overhead camera for the scene shell: an orbit around a focus point on the
-// ground, driven by keyboard first (arrows pan, Q/E rotate, +/- zoom) and by
+// ground, driven by keyboard first (W A S D move the view north, west, south, east;
+// the arrows tilt and turn it; Q/E turn, PgUp/PgDn tilt, +/- zoom) and by
 // pointer drag / wheel second: a drag pans the map as it does on the 2D map (mouse,
 // pen or finger), Shift+drag turns and tilts it. Phase 3 adds the first-person
 // player; this stays as the "helicopter" view.
@@ -8,7 +9,7 @@
 // nothing fires on pointer-down alone (SC 2.5.2 pointer cancellation) and there
 // is no motion unless the user is actively driving it.
 import * as THREE from "./lib/three.module.js";
-import { dragAction, dragToPan, panToWorld, clampToBox } from "./overhead-core.js?v=1";
+import { dragAction, dragToPan, panToWorld, clampToBox, keyAction, compassStep, TILT_MIN, TILT_MAX, OPEN_PITCH } from "./overhead-core.js?v=4";
 
 const PAN_SPEED = 220; // metres per second at 1× zoom, scaled by distance
 const ROT_SPEED = 1.4; // radians per second
@@ -20,7 +21,7 @@ export function createOverheadCamera(world, canvas) {
   const cam = world.camera;
   const focus = new THREE.Vector3(world.center.x, 0, world.center.z);
   let yaw = 0; // radians around +y
-  let pitch = 0.95; // radians above the ground plane
+  let pitch = OPEN_PITCH; // radians above the ground plane: shown as 45, halfway between straight down and level
   let dist = 900;
   const keys = new Set();
   let dragging = false;
@@ -56,25 +57,10 @@ export function createOverheadCamera(world, canvas) {
     dist = Math.min(Math.max(dist * factor, MIN_DIST), MAX_DIST);
   }
 
-  // Normalise a key event to one action name, accepting either e.key or e.code
-  // (some automation and some keyboards deliver only one of them).
-  const ACTIONS = {
-    ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right",
-    q: "ccw", Q: "ccw", KeyQ: "ccw", e: "cw", E: "cw", KeyE: "cw",
-    "+": "in", "=": "in", Equal: "in", NumpadAdd: "in",
-    "-": "out", "_": "out", Minus: "out", NumpadSubtract: "out",
-  };
-  // Tilt is keyboard-reachable too (PageUp/PageDown, or Shift+Up/Down) — a
-  // switch or keyboard-only user must be able to do everything the mouse drag can.
-  const actionOf = (e) => {
-    if (e.key === "PageUp" || e.code === "PageUp") return "tiltUp";
-    if (e.key === "PageDown" || e.code === "PageDown") return "tiltDown";
-    if (e.shiftKey && (e.key === "ArrowUp" || e.code === "ArrowUp")) return "tiltUp";
-    if (e.shiftKey && (e.key === "ArrowDown" || e.code === "ArrowDown")) return "tiltDown";
-    return ACTIONS[e.key] || ACTIONS[e.code] || null;
-  };
-  const TILT_MIN = 0.15;
-  const TILT_MAX = 1.5;
+  // One key event as one action (overhead-core.js keyAction): W A S D move due north, west,
+  // south, east; the arrows tilt (up, down) and turn (left, right); Q E, PgUp PgDn, + − too.
+  // Everything a drag does is reachable by keyboard (SC 2.1.1).
+  const actionOf = keyAction;
   const tilt = (d) => { pitch = Math.min(Math.max(pitch + d, TILT_MIN), TILT_MAX); };
 
   // A single key press must do something visible on its own — a screen-reader
@@ -84,16 +70,15 @@ export function createOverheadCamera(world, canvas) {
   const NUDGE_ROT = 0.18; // radians per tap
   function nudge(action) {
     const step = dist * NUDGE_PAN;
-    if (action === "up") pan(0, step);
-    else if (action === "down") pan(0, -step);
-    else if (action === "left") pan(-step, 0);
-    else if (action === "right") pan(step, 0);
+    const move = compassStep(action, step);
+    if (move) setFocus(focus.x + move[0], focus.z + move[1]);
     else if (action === "ccw") yaw += NUDGE_ROT;
     else if (action === "cw") yaw -= NUDGE_ROT;
     else if (action === "in") zoom(1 / ZOOM_RATE);
     else if (action === "out") zoom(ZOOM_RATE);
     else if (action === "tiltUp") tilt(NUDGE_ROT);
     else if (action === "tiltDown") tilt(-NUDGE_ROT);
+    apply(); // a tap shows at once, not a frame later
   }
 
   function press(e) {
@@ -145,16 +130,11 @@ export function createOverheadCamera(world, canvas) {
     zoom(e.deltaY > 0 ? ZOOM_RATE : 1 / ZOOM_RATE);
   }
 
-  // On key-up, clear EVERY action this physical key could have armed — e.key
-  // reflects the modifiers held at release, so Shift+Up armed "tiltUp" but a
-  // key-up after Shift is released reports plain "up" and would leave the tilt
-  // running until focus left the canvas.
-  const SIBLINGS = { up: ["tiltUp"], down: ["tiltDown"], tiltUp: ["up"], tiltDown: ["down"] };
+  // On key-up, clear what this physical key armed. Read the key without its modifiers: one
+  // released with Ctrl or Alt now held must still stop the move it started.
   const release = (e) => {
-    const action = actionOf(e);
-    if (!action) return;
-    keys.delete(action);
-    for (const s of SIBLINGS[action] || []) keys.delete(s);
+    const action = actionOf({ key: e.key, code: e.code });
+    if (action) keys.delete(action);
   };
   const listeners = [
     ["keydown", press],
@@ -186,10 +166,11 @@ export function createOverheadCamera(world, canvas) {
       if (!enabled) return;
       if (keys.size) {
         const step = PAN_SPEED * dt * (dist / 900);
-        if (keys.has("up")) pan(0, step);
-        if (keys.has("down")) pan(0, -step);
-        if (keys.has("left")) pan(-step, 0);
-        if (keys.has("right")) pan(step, 0);
+        for (const a of ["north", "south", "east", "west"]) {
+          if (!keys.has(a)) continue;
+          const [dx, dz] = compassStep(a, step);
+          setFocus(focus.x + dx, focus.z + dz);
+        }
         if (keys.has("ccw")) yaw += ROT_SPEED * dt;
         if (keys.has("cw")) yaw -= ROT_SPEED * dt;
         if (keys.has("in")) zoom(1 - 0.9 * dt);
@@ -203,6 +184,15 @@ export function createOverheadCamera(world, canvas) {
     dispose() {
       for (const [type, fn, opts] of listeners) canvas.removeEventListener(type, fn, opts);
       keys.clear();
+    },
+    /** The heading and tilt, for the gauges (overhead-core.js headingDeg, displayPitch). */
+    get yaw() { return yaw; },
+    get pitch() { return pitch; },
+    /** Set the tilt (radians above the ground, held in range): the view opens at OPEN_PITCH. */
+    setPitch(p) {
+      if (!Number.isFinite(p)) return;
+      tilt(p - pitch);
+      apply();
     },
     /** Re-aim at a world point — used by later phases to jump to a building. */
     lookAt(x, z, d) {
