@@ -224,7 +224,7 @@ const AGGIE = [
   // [code, OSM way, storeys, facade of the part that reaches the top, base facade or null]
   ["AS5", 1539582698, 8, "glass", "brick"],
   ["AS4", 1539582699, 3, "brick", null],
-  ["AS3", 1493760477, 5, "punched", null],
+  ["AS3", 1493760477, 6, "punched", null], // six storeys as UC Davis publishes them
   ["P6", 791935708, 6, "garage", null],
 ];
 for (const file of BUILDS) {
@@ -240,7 +240,7 @@ for (const file of BUILDS) {
       assert.strictEqual(f.floors, floors, `${code} storeys`);
       assert.strictEqual(top.facade, facade, `${code} walls`);
       assert.strictEqual(f.height, top.height);
-      assert.strictEqual(f.heightSource, "estimated");
+      assert.strictEqual(f.heightSource, code === "AS3" ? "published" : "estimated", `${code} storey source`);
       for (const p of f.design.parts) assert.deepStrictEqual(p.ring, f.ring, `${code}: every part is the whole OSM outline`);
       if (base) assert.strictEqual(f.design.parts[0].facade, base, `${code} base`);
     }
@@ -479,5 +479,27 @@ for (const file of BUILDS) {
     assert.deepStrictEqual(zone.ring, f.ring, "the fence is the OSM construction outline");
     assert.strictEqual(zone.ringSource, `osm:${f.osmId}`);
     assert.ok(Math.abs(zone.coversHeight - f.height) < 1e-9, "its sign still clears the tower");
+  });
+}
+
+// Storey counts from published sources (UC Davis Health and UC pages, architects', builders' and
+// CEQA documents, hotel listings), 2026-11-21; and two estimated from published floor area.
+const STOREYS = {
+  PS: [4, "published"], W: [6, "published"], M: [3, "published"], L: [3, "published"], A: [4, "published"],
+  EI: [4, "published"], G: [4, "published"], E: [4, "published"], BB: [2, "published"], AA: [1, "published"],
+  Hp: [4, "published"], CM: [4, "published"], P4: [5, "published"], AS3: [6, "published"],
+  J: [1, "estimated"], V: [6, "estimated"],
+};
+for (const file of BUILDS) {
+  test(`heights (${file}): buildings with a published storey count stand at it, and say where it came from`, () => {
+    const data = JSON.parse(fs.readFileSync(path.join(DIR, file), "utf8"));
+    for (const [code, [floors, source]] of Object.entries(STOREYS)) {
+      const b = data.buildings.find((x) => x.code === code);
+      assert.ok(b, code);
+      const f = b.footprints[0];
+      assert.strictEqual(f.floors, floors, `${code} ${b.name}: ${f.floors} floors`);
+      assert.strictEqual(f.heightSource, source, `${code} ${b.name}: ${f.heightSource}`);
+      assert.ok(f.height > (floors - 0.5) * 2.5 && f.height < (floors + 0.5) * 5, `${code} height ${f.height} m for ${floors} storeys`);
+    }
   });
 }

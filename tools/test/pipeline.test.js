@@ -146,7 +146,7 @@ test("output: every building has at least one footprint with a height", (t) => {
       assert.ok(["osm", "traced"].includes(f.geomSource));
       // "not mapped": a footprint whose storeys no source gives (the Medical Center's outline:
       // OSM has no building:levels, the floor plan shows only its ground floor there).
-      assert.ok(["OpenStreetMap", "floorplan", "estimated", "curated", "not mapped"].includes(f.heightSource));
+      assert.ok(["OpenStreetMap", "floorplan", "published", "estimated", "curated", "not mapped"].includes(f.heightSource));
     }
   }
 });

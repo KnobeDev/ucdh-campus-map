@@ -7,6 +7,7 @@
 //
 //   floorplan     — derived from the traced Medical Center floor plan in this repo
 //   OpenStreetMap — the building:levels or height tag on the OSM way
+//   published     — a public source states the storey count (cited beside each entry below)
 //   estimated     — a category default, or a considered guess recorded below
 "use strict";
 
@@ -39,7 +40,7 @@ const BY_OSM_NAME = {
   "Parking Structure 1": { floors: 5, source: "estimated" },
   "Parking Structure 2": { floors: 5, source: "estimated" },
   "Parking Structure 3": { floors: 6, source: "estimated" }, // six open decks under the roof deck (tools/lib/designs.js)
-  "Parking Structure 4": { floors: 5, source: "estimated" },
+  "Parking Structure 4": { floors: 5, source: "published" }, // UC Davis Health PS4 addendum 2020: "five-floor parking structure (inclusive of roof level parking)"
   "Parking Structure 5": { floors: 5, source: "estimated" },
   "Aggie Square Garage": { floors: 6, source: "estimated" },
 };
@@ -52,6 +53,23 @@ const BY_CODE = {
   // ground floor, gets no storey count (source "not mapped").
   T: { floors: 8, source: "estimated" },
   VC: { floors: 0, source: "curated" }, // Vanderhoef Commons is an outdoor fitness field: flat, never a box
+
+  // Published storey counts, researched 2026-11-21 (each source states the count):
+  PS: { floors: 4, source: "published" }, // architect FCA: "a four-story Patient Support Services Building" (fca-arch.com/education/ucd-medical-center)
+  W: { floors: 6, source: "published" }, // architect AC Martin "6-story facility"; UC Davis CEQA findings "six-story building"
+  M: { floors: 3, source: "published" }, // UC Davis Health: Cancer Center North lists a 3rd floor (Suite 3100); SmithGroup "three stories"
+  L: { floors: 3, source: "published" }, // UC Davis Health: Cancer Center South 1st-3rd floors plus a ground (radiation oncology) level
+  A: { floors: 4, source: "published" }, // UC Davis Health facilities: "the four-story ... 48X complex"
+  EI: { floors: 4, source: "published" }, // UC Davis Health facilities: Tschannen Eye Institute "a new four-story ... structure"
+  G: { floors: 4, source: "published" }, // builder Kitchell: "four-story telemedicine facility" (Center for Health and Technology)
+  E: { floors: 4, source: "published" }, // UC Davis news 2004: "four-story, 120,000-square-foot building"; structural engineer CYS
+  BB: { floors: 2, source: "published" }, // UC Regents item May 2020 and the 2020 LRDP: "two-story" rehabilitation hospital
+  AA: { floors: 1, source: "published" }, // CEQA notice 2005: "single-story modular building" (12,000 GSF; the OSM footprint is 12,390 sq ft)
+  Hp: { floors: 4, source: "published" }, // hotel listings: Hotel Med Park, "Floors: 4"
+  CM: { floors: 4, source: "published" }, // hotel listings: Courtyard Sacramento Midtown, "Floors: 4"
+  // Estimated from a published floor area over the OSM footprint (no storey count found):
+  J: { floors: 1, source: "estimated" }, // UC Davis IRC: "a 13,000 sq. ft. building"; the footprint is about 14,900 sq ft
+  V: { floors: 6, source: "estimated" }, // property record: 66,372 sq ft; the footprint is about 11,300 sq ft
 };
 
 // Fallback storeys by curated category.

@@ -88,10 +88,11 @@ const DESIGNS = {
   "osm:1493760477": {
     name: "Aggie Square - Anova",
     floorH: 3.6,
-    whole: { floors: 5, facade: "punched", plant: false },
+    // UC Davis: ANOVA is "a six-story smart residential complex" at Stockton Blvd and 3rd Avenue
+    whole: { floors: 6, facade: "punched", plant: false },
     roof: { helipads: 0 },
-    source: "estimated",
-    note: "Storeys and the pale walls with a grid of windows are read from renderings of Aggie Square (reference only). The outline is OpenStreetMap's.",
+    source: "published",
+    note: "Six storeys as UC Davis publishes them; the pale walls with a grid of windows are read from renderings of Aggie Square (reference only). The outline is OpenStreetMap's.",
   },
   "osm:791935708": {
     name: "Aggie Square Garage",

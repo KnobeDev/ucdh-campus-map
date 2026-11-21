@@ -19,6 +19,9 @@ const OUT = path.join(__dirname, "..", "ucdh-data", "osm-extra.json");
 const API = "https://api.openstreetmap.org/api/0.6";
 const TIMEOUT_MS = 30000;
 
+// Only ways that ARE a building's outline belong here. Checked and left out (2026-11-21):
+// way 198423270 "UC Davis Institute for Regenerative Cures" is the institute's whole site,
+// a 10,625 m² parcel between Stockton Blvd and its footpaths, not the building.
 const WAYS = [
   {
     id: 796721511,
