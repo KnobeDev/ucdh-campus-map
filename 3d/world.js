@@ -65,6 +65,12 @@ export function createWorld(canvas, worldBox) {
         mat.emissive.setHex(em ? em[0] : 0x000000);
         mat.emissiveIntensity = em ? em[1] : 0;
       }
+      // Designed buildings keep their own facade colours; at night they glow like the rest.
+      const night = p.building.emissiveIntensity > 0;
+      for (const mat of this.themeTargets.designMats || []) {
+        mat.emissive.setHex(night ? p.building.emissive : mat.userData.dayEmissive || 0x000000);
+        mat.emissiveIntensity = night ? p.building.emissiveIntensity : 1;
+      }
       for (const [key, mat] of Object.entries(this.themeTargets.catMats)) {
         const cat = key.split("#")[0];
         mat.color.setHex(p.cats[cat] ?? p.cats.default);

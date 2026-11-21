@@ -239,4 +239,42 @@ test("the 3D page in a browser", { skip: !PLAYWRIGHT && "set PLAYWRIGHT_MODULE t
     }
     await page.close();
   });
+
+  await t.test("the California Tower: drawn as its finished design, still fenced, and identify says both", async () => {
+    const { page, errors } = await open({ site: false }); // the local build keeps its debugging handle
+    await enter(page);
+    const seen = await page.evaluate(() => {
+      const { world, player, picking } = window.__ucd3d;
+      const parts = [];
+      let ghostOfTower = false;
+      world.scene.traverse((o) => {
+        if (o.userData && o.userData.design) parts.push(o.userData.design);
+        if (o.userData && o.userData.bucket === "construction") {
+          o.geometry.computeBoundingBox();
+          const b = o.geometry.boundingBox; // the tower stands around x -95..-8, z -339..-178
+          if (b.max.x > -100 && b.min.x < -10 && b.max.z > -330 && b.min.z < -190) ghostOfTower = true;
+        }
+      });
+      // stand on 45th Street, east of the slab, and face it (west)
+      player.leaveBuilding();
+      player.teleport(15, -280);
+      player.object.rotation.y = Math.PI / 2;
+      player.object.children[0].rotation.x = 0;
+      return { parts, ghostOfTower };
+    });
+    // the camera follows the walker when a frame is drawn
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    Object.assign(seen, await page.evaluate(() => {
+      window.__ucd3d.picking.identifyAhead();
+      return { title: document.getElementById("info-title").textContent, meta: document.getElementById("info-meta").textContent, shown: !document.getElementById("info").hidden };
+    }));
+    assert.deepStrictEqual(seen.parts.sort(), ["California Tower · tower", "California Tower · wing"], JSON.stringify(seen));
+    assert.strictEqual(seen.ghostOfTower, false, "no orange ghost over the tower any more");
+    assert.ok(seen.shown, "identify opens the card");
+    assert.strictEqual(seen.title, "California Tower");
+    assert.match(seen.meta, /14 floors \(estimated\)/);
+    assert.match(seen.meta, /under construction until 2 February 2030, shown as the finished design/);
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
 });

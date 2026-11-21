@@ -24,6 +24,7 @@ const { matchBuildings } = require("./lib/match");
 const { resolveHeight, FLOOR_H } = require("./lib/heights");
 const { registerHospital } = require("./lib/floorplan");
 const { markUnderConstruction, flattenPlaceholders } = require("./lib/construction-cover");
+const { withDesign } = require("./lib/designs");
 const { centroid, area, cleanRing, roundRing, round } = require("./lib/geom");
 
 const ROOT = path.join(__dirname, "..");
@@ -138,13 +139,14 @@ function shellOf(m, cur, code) {
     cat: cur.cat,
     osmTag: m.building,
   });
-  return {
+  // A building site with a published finished form is drawn as that form (lib/designs.js).
+  return withDesign({
     osmId: m.osmId,
     osmName: m.name,
     geomSource: "osm",
     ring: roundRing(m.ring),
     ...h,
-  };
+  }, FLOOR_H[cur.cat] || FLOOR_H._default);
 }
 
 /** Neighbourhood context: real footprints nobody claimed, rendered without identity. */

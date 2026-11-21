@@ -13,6 +13,7 @@
 // add a BoxGeometry (uv layout differs) to either.
 import * as THREE from "./lib/three.module.js";
 import { flatPatch, extrudedRing, mergeBuckets } from "./geometry.js?v=7";
+import { buildDesigned } from "./designed.js?v=1";
 
 const CELL = 60; // metres, spatial hash cell
 const FLAT_Y = 0.05; // ground patches: above lawn (0.03), below walkways (0.07)
@@ -46,6 +47,7 @@ function registerInIndex(index, entry) {
 export function buildBuildings(world, buildings, context) {
   const buckets = {}; // "cat" | "cat#flat" -> geometry list
   const index = { cells: new Map(), entries: [] };
+  const designed = []; // footprints drawn as their finished design
   let skipped = 0;
 
   const add = (bucketKey, ring, height, entry) => {
@@ -74,6 +76,15 @@ export function buildBuildings(world, buildings, context) {
         const entry = { building: b, footprint: f, ring: f.ring, bbox: bboxOf(f.ring), solid: true };
         index.entries.push(entry);
         registerInIndex(index, entry);
+        continue;
+      }
+      // A site whose finished form is published (tools/lib/designs.js) is drawn as
+      // that form by designed.js; it collides and answers to its name like any other.
+      if (f.design && f.design.parts && f.design.parts.length) {
+        const entry = { building: b, footprint: f, ring: f.ring, bbox: bboxOf(f.ring), solid: true };
+        index.entries.push(entry);
+        registerInIndex(index, entry);
+        designed.push(entry);
         continue;
       }
       // A building site: its planned mass as a translucent ghost so the caution
@@ -121,6 +132,10 @@ export function buildBuildings(world, buildings, context) {
     group.add(edges);
   }
   world.scene.add(group);
+  if (designed.length) {
+    const out = buildDesigned(world, designed);
+    world.themeTargets.designMats = out.materials;
+  }
   if (skipped) console.warn(`buildings: skipped ${skipped} degenerate footprint(s)`);
   return { group, index };
 }

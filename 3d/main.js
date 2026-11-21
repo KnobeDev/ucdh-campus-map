@@ -1,21 +1,21 @@
 // Entry point: loads campus data, assembles the world, wires the HUD.
-import { createWorld } from "./world.js?v=6";
-import { buildBuildings } from "./buildings.js?v=7";
+import { createWorld } from "./world.js?v=7";
+import { buildBuildings } from "./buildings.js?v=8";
 import { buildGroundSurfaces } from "./ground.js?v=8";
 import { createOverheadCamera } from "./overhead.js?v=6";
 import { initialTheme, saveTheme } from "./theme.js?v=6";
-import { buildHospital } from "./hospital.js?v=16";
-import { createPlayer } from "./player.js?v=19";
+import { buildHospital } from "./hospital.js?v=17";
+import { createPlayer } from "./player.js?v=20";
 import { createFloorPicker } from "./elevator-ui.js?v=9";
 import { buildRouteGraph, snapToGraph } from "./route-core.js?v=2";
 import { createWayfinder } from "./wayfind.js?v=6";
-import { buildConstruction, buildPointLayers, buildPlaceMarkers } from "./layers.js?v=7";
+import { buildConstruction, buildPointLayers, buildPlaceMarkers } from "./layers.js?v=8";
 import { zoneListText } from "./caution-core.js?v=1";
 import { createSpeech } from "./speech.js?v=8";
 import { readingMs } from "./speech-core.js?v=3";
 import { createCaptions } from "./captions.js?v=1";
 import { createSonar } from "./sonar.js?v=6";
-import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=4";
+import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=5";
 import { createSession } from "./session.js?v=4";
 import { createMinimap } from "./minimap.js?v=8";
 import { loadAppConfig } from "./app-config.js?v=1";
@@ -218,6 +218,7 @@ function showInfo(d, data) {
   const meta = [];
   if (d.building) meta.push(data.categories[d.building.cat]?.label || d.building.cat);
   if (d.floors) meta.push(d.floors);
+  if (d.status) meta.push(d.status);
   meta.push(`${Math.round(d.distance)} m ${d.dir}`);
   $("info-meta").textContent = meta.join(" · ");
   const ul = $("info-depts");
