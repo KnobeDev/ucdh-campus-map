@@ -2,7 +2,8 @@
 // 14-storey slab of white fins over pale-blue glass with two rooftop helipads,
 // and its 3-storey wing with a roof garden, drawn finished while still a site;
 // Shriners Hospital, 8 storeys of pale stone with a grid of blue windows; and
-// the MIND Institute, 2 storeys of sandstone with a round tower at its entrance.
+// the MIND Institute, 2 storeys of sandstone with a round tower at its entrance;
+// and Aggie Square: glass over a brick base, brick, pale walls, a parking garage.
 //
 // Everything is drawn from plain shapes and small canvas patterns made here:
 // no photo, rendering or texture of the real building is used. The storeys and
@@ -38,7 +39,7 @@ function pattern(w, h, draw, px = 128) {
 }
 
 /** Tower facade: one storey of pale-blue glass behind white vertical fins of uneven widths, slab edge at the floor. */
-const towerFacade = () => pattern(9, STOREY, (g, w, h) => {
+const towerFacade = (storeyH = STOREY) => pattern(9, storeyH, (g, w, h) => {
   g.fillStyle = "#b4d2e4"; g.fillRect(0, 0, w, h);
   g.fillStyle = "#d3e4ef"; g.fillRect(0, 0, w, h * 0.45); // sky caught in the upper glass
   g.fillStyle = "#fbfcfc";
@@ -47,7 +48,7 @@ const towerFacade = () => pattern(9, STOREY, (g, w, h) => {
 });
 
 /** Wing facade: white spandrel with one ribbon window per storey, thin mullions. */
-const wingFacade = () => pattern(6, STOREY, (g, w, h) => {
+const wingFacade = (storeyH = STOREY) => pattern(6, storeyH, (g, w, h) => {
   g.fillStyle = "#f1f2f0"; g.fillRect(0, 0, w, h);
   g.fillStyle = "#9fc1d6"; g.fillRect(0, h * 0.18, w, h * 0.5);
   g.fillStyle = "#f1f2f0";
@@ -55,7 +56,7 @@ const wingFacade = () => pattern(6, STOREY, (g, w, h) => {
 });
 
 /** Punched windows: pale stone, one blue window per bay, a dark band at each floor. */
-const punchedFacade = () => pattern(3.6, STOREY, (g, w, h) => {
+const punchedFacade = (storeyH = STOREY) => pattern(3.6, storeyH, (g, w, h) => {
   g.fillStyle = "#efe6df"; g.fillRect(0, 0, w, h);
   g.fillStyle = "#6fa6bd"; g.fillRect(w * 0.22, h * 0.3, w * 0.56, h * 0.5);
   g.fillStyle = "#a9cfe0"; g.fillRect(w * 0.22, h * 0.3, w * 0.56, h * 0.2); // sky in the upper pane (canvas top = top of the storey)
@@ -72,7 +73,7 @@ const stoneDraw = (g, w, h) => {
   g.fillStyle = "#5d8ea6"; g.fillRect(w * 0.36, h * 0.22, w * 0.28, h * 0.6);
   g.fillStyle = "#9cc2d4"; g.fillRect(w * 0.36, h * 0.22, w * 0.28, h * 0.16); // sky in the upper pane (canvas top = top of the storey)
 };
-const stoneFacade = () => pattern(STONE_BAY, STOREY, stoneDraw);
+const stoneFacade = (storeyH = STOREY) => pattern(STONE_BAY, storeyH, stoneDraw);
 
 /**
  * A round tower. CylinderGeometry's side UVs run 0..1 around and 0 (bottom) to 1
@@ -94,6 +95,31 @@ function drum(feature, mats) {
   cornice.translate(x, height - 0.3, z);
   return { mesh, cornice: new THREE.Mesh(cornice, mats.plant), wall };
 }
+
+/** Red brick: running-bond courses, one tall window per bay. */
+const brickFacade = (storeyH = STOREY) => pattern(4.2, storeyH, (g, w, h) => {
+  g.fillStyle = "#a4563f"; g.fillRect(0, 0, w, h);
+  g.fillStyle = "#8f4a36";
+  for (let k = 1; k < 14; k++) g.fillRect(0, (h * k) / 14, w, Math.max(1, h * 0.01));
+  g.fillStyle = "#4f7d93"; g.fillRect(w * 0.3, h * 0.2, w * 0.4, h * 0.62);
+  g.fillStyle = "#8fb6c8"; g.fillRect(w * 0.3, h * 0.2, w * 0.4, h * 0.16); // sky in the upper pane
+  g.fillStyle = "#cfc6bb"; g.fillRect(w * 0.28, h * 0.82, w * 0.44, h * 0.04); // sill
+});
+
+/** Blue glass curtain wall: light mullions, a spandrel at each floor, sky in the upper half. */
+const glassFacade = (storeyH = STOREY) => pattern(3, storeyH, (g, w, h) => {
+  g.fillStyle = "#3f6f95"; g.fillRect(0, 0, w, h);
+  g.fillStyle = "#7fa7c6"; g.fillRect(0, 0, w, h * 0.42);
+  g.fillStyle = "#2c5274"; g.fillRect(0, h * 0.86, w, h * 0.14);
+  g.fillStyle = "#d9e0e5"; g.fillRect(0, 0, w * 0.04, h); g.fillRect(0, h * 0.84, w, h * 0.03);
+});
+
+/** Parking decks: a concrete spandrel band at each level, open and dark above it. */
+const garageFacade = (storeyH = 3) => pattern(4, storeyH, (g, w, h) => {
+  g.fillStyle = "#3d4247"; g.fillRect(0, 0, w, h);
+  g.fillStyle = "#b9b5ad"; g.fillRect(0, h * 0.62, w, h * 0.38);
+  g.fillStyle = "#a8a49c"; g.fillRect(0, 0, w * 0.08, h); // column
+});
 
 /** A helipad marking: white disc, red ring, red cross. Drawn here, the usual aviation sign. */
 function padTexture() {
@@ -126,10 +152,6 @@ export function buildDesigned(world, designed) {
   const group = new THREE.Group();
   const lit = (opts) => new THREE.MeshLambertMaterial(opts);
   const mats = {
-    fins: lit({ map: towerFacade() }),
-    ribbon: lit({ map: wingFacade() }),
-    punched: lit({ map: punchedFacade() }),
-    stone: lit({ map: stoneFacade() }),
     drumWall: lit({ map: pattern(STONE_BAY, STOREY, stoneDraw) }),
     // By day a pale facade on its shaded side still reads as pale (world.applyTheme swaps in the night glow).
     roof: lit({ color: 0xd9dcdc }),
@@ -138,6 +160,16 @@ export function buildDesigned(world, designed) {
     pad: new THREE.MeshLambertMaterial({ map: padTexture(), transparent: true, alphaTest: 0.5, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
   };
   const extraMats = []; // per-feature materials that also take the day/night glow
+  // Walls: one material per facade and storey height, so a pattern's floor line
+  // repeats with the building's own storeys (3.6 m flats, 4.6 m labs, 3 m decks).
+  const FACADES = { fins: towerFacade, ribbon: wingFacade, punched: punchedFacade, stone: stoneFacade, brick: brickFacade, glass: glassFacade, garage: garageFacade };
+  const wallMats = new Map();
+  const wallMat = (facade, storeyH) => {
+    const make = FACADES[facade] || FACADES.punched;
+    const key = `${FACADES[facade] ? facade : "punched"}@${storeyH}`;
+    if (!wallMats.has(key)) wallMats.set(key, lit({ map: make(storeyH) }));
+    return wallMats.get(key);
+  };
   for (const { footprint } of designed) {
     const d = footprint.design;
     const before = group.children.length;
@@ -145,8 +177,12 @@ export function buildDesigned(world, designed) {
       try {
         // ExtrudeGeometry: group 0 is the caps (roof and underside), group 1 the walls.
         const roof = part.roof === "garden" ? mats.garden : mats.roof;
-        const walls = mats[part.facade] || mats.punched;
-        const mesh = new THREE.Mesh(extrudedRing(part.ring, part.height), [roof, walls]);
+        const walls = wallMat(part.facade, part.storeyH || STOREY);
+        // a stacked part (glass over a brick base) starts at its minHeight
+        const lift = part.minHeight || 0;
+        const geo = extrudedRing(part.ring, part.height - lift);
+        if (lift) geo.translate(0, lift, 0);
+        const mesh = new THREE.Mesh(geo, [roof, walls]);
         mesh.userData.pickable = true;
         mesh.userData.design = `${d.name} · ${part.role}`;
         group.add(mesh);
@@ -182,11 +218,11 @@ export function buildDesigned(world, designed) {
       try { group.add(new THREE.Mesh(flatPatch(footprint.ring, 0.05), mats.roof)); } catch { /* nothing to draw */ }
     }
   }
-  for (const m of [mats.fins, mats.ribbon, mats.punched, mats.stone, mats.plant]) {
+  for (const m of [...wallMats.values(), mats.plant]) {
     m.emissiveMap = m.map || null;
     m.userData.dayEmissive = DAY_EMISSIVE;
   }
   world.scene.add(group);
   // Night: the facades take the same faint window glow as every other building (world.applyTheme).
-  return { group, materials: [mats.fins, mats.ribbon, mats.punched, mats.stone, mats.plant, ...extraMats] };
+  return { group, materials: [...wallMats.values(), mats.plant, ...extraMats] };
 }

@@ -158,3 +158,70 @@ test("designs: a round tower's collision ring is a closed polygon on its circle"
   assert.ok(inRing([10, -5], ring) && inRing([16.5, -5], ring), "its centre and near its rim are inside");
   assert.ok(!inRing([17.5, -5], ring), "outside the rim is not");
 });
+
+test("designs: a stacked design is a base part, then the main part starting at the base's top", () => {
+  const f = { osmId: 1539582698, osmName: null, ring: sq(0, 0, 40, 100), floors: 2, height: 8, heightSource: "estimated" };
+  const out = withDesign(f, 4.0);
+  const [base, main] = out.design.parts;
+  assert.strictEqual(base.role, "base");
+  assert.strictEqual(base.minHeight, 0);
+  assert.strictEqual(main.role, "main");
+  assert.strictEqual(main.minHeight, base.height, "the glass starts where the brick ends");
+  assert.strictEqual(out.height, main.height, "the footprint's height is the top of the building");
+  assert.strictEqual(out.floors, main.floors);
+});
+
+const AGGIE = [
+  // [code, OSM way, storeys, facade of the part that reaches the top, base facade or null]
+  ["AS5", 1539582698, 8, "glass", "brick"],
+  ["AS4", 1539582699, 3, "brick", null],
+  ["AS3", 1493760477, 5, "punched", null],
+  ["P6", 791935708, 6, "garage", null],
+];
+for (const file of BUILDS) {
+  test(`designs (${file}): Aggie Square's buildings stand at their storeys with their own walls, names unchanged`, () => {
+    const data = JSON.parse(fs.readFileSync(path.join(DIR, file), "utf8"));
+    const names = { AS5: "Aggie Square - Lifelong Learning Building & East Lab", AS4: "400 Aggie Square", AS3: "Aggie Square - Anova", P6: "Aggie Square Parking" };
+    for (const [code, way, floors, facade, base] of AGGIE) {
+      const b = data.buildings.find((x) => x.code === code);
+      assert.strictEqual(b.name, names[code], `${code} keeps its name`);
+      const f = b.footprints.find((x) => x.osmId === way);
+      assert.ok(f && f.design, `${code} has a design`);
+      const top = f.design.parts[f.design.parts.length - 1];
+      assert.strictEqual(f.floors, floors, `${code} storeys`);
+      assert.strictEqual(top.facade, facade, `${code} walls`);
+      assert.strictEqual(f.height, top.height);
+      assert.strictEqual(f.heightSource, "estimated");
+      for (const p of f.design.parts) assert.deepStrictEqual(p.ring, f.ring, `${code}: every part is the whole OSM outline`);
+      if (base) assert.strictEqual(f.design.parts[0].facade, base, `${code} base`);
+    }
+    // 100 Aggie Square is not built yet: nothing is invented for it
+    assert.ok(!data.buildings.some((x) => /100 Aggie Square/i.test(x.name)), "no 100 Aggie Square");
+  });
+}
+
+for (const file of BUILDS) {
+  test(`designs (${file}): every part's walls repeat with its own storeys, and a stacked part starts on a floor line`, () => {
+    const data = JSON.parse(fs.readFileSync(path.join(DIR, file), "utf8"));
+    for (const b of data.buildings) for (const f of b.footprints || []) {
+      if (!f.design) continue;
+      for (const p of f.design.parts) {
+        assert.ok(p.storeyH > 2.5 && p.storeyH < 6, `${b.name} ${p.role}: storey ${p.storeyH}`);
+        assert.ok(Math.abs(p.height - p.floors * p.storeyH) < 0.01, `${b.name} ${p.role}: height is whole storeys`);
+        const k = p.minHeight / p.storeyH;
+        assert.ok(Math.abs(k - Math.round(k)) < 1e-6, `${b.name} ${p.role}: starts on a floor line (${p.minHeight} m)`);
+      }
+    }
+  });
+}
+
+test("designs: a base as tall as the building is refused", () => {
+  const { DESIGNS } = require("../lib/designs");
+  const key = "osm:999999999";
+  DESIGNS[key] = { name: "Test", base: { floors: 3, facade: "brick" }, whole: { floors: 3, facade: "glass" }, roof: { helipads: 0 }, source: "estimated", note: "test" };
+  try {
+    assert.throws(() => withDesign({ osmId: 999999999, ring: sq(0, 0, 10, 10) }, 4), /fewer storeys/);
+  } finally {
+    delete DESIGNS[key];
+  }
+});

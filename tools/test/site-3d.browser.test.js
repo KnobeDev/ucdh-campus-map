@@ -356,4 +356,42 @@ test("the 3D page in a browser", { skip: !PLAYWRIGHT && "set PLAYWRIGHT_MODULE t
     assert.deepStrictEqual(errors, []);
     await page.close();
   });
+
+  await t.test("Aggie Square: glass over a brick base, brick, pale walls and a garage, each identified by its name", async () => {
+    const { page, errors } = await open({ site: false });
+    await enter(page);
+    const seen = await page.evaluate(() => {
+      const { world, player, data } = window.__ucd3d;
+      const box = {};
+      world.scene.traverse((o) => {
+        const n = o.userData && o.userData.design;
+        if (typeof n === "string" && /Aggie Square/.test(n)) { o.geometry.computeBoundingBox(); box[n] = [o.geometry.boundingBox.min.y, o.geometry.boundingBox.max.y]; }
+      });
+      // stand on 3rd Avenue south of 400 Aggie Square and face north at it
+      const ring = data.buildings.find((b) => b.code === "AS4").footprints[0].ring;
+      const cx = ring.reduce((a, p) => a + p[0], 0) / ring.length;
+      const maxZ = Math.max(...ring.map((p) => p[1]));
+      player.leaveBuilding();
+      player.teleport(cx, maxZ + 25);
+      player.object.rotation.y = 0;
+      player.object.children[0].rotation.x = 0;
+      return { box };
+    });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    Object.assign(seen, await page.evaluate(() => {
+      window.__ucd3d.picking.identifyAhead();
+      return { title: document.getElementById("info-title").textContent, meta: document.getElementById("info-meta").textContent };
+    }));
+    const base = seen.box["Aggie Square - Lifelong Learning Building & East Lab · base"];
+    const main = seen.box["Aggie Square - Lifelong Learning Building & East Lab · main"];
+    assert.ok(base && main, JSON.stringify(seen.box));
+    assert.ok(Math.abs(base[0]) < 1e-3 && Math.abs(base[1] - 8.4) < 1e-3, `the brick base: two storeys from the ground: ${base}`);
+    assert.ok(Math.abs(main[0] - 8.4) < 1e-3 && Math.abs(main[1] - 33.6) < 1e-3, `the glass starts on top of it: ${main}`);
+    assert.ok(Math.abs(seen.box["400 Aggie Square · main"][1] - 12.6) < 1e-3, "400 stands 3 storeys");
+    assert.ok(seen.box["Aggie Square Garage · main"], "the garage is drawn as designed");
+    assert.strictEqual(seen.title, "400 Aggie Square", JSON.stringify(seen));
+    assert.match(seen.meta, /3 floors \(estimated\)/);
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
 });

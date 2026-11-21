@@ -14,7 +14,11 @@
 // A design is keyed by the OSM way's name, or by "osm:<way id>" for a way with
 // no name. Facades: "fins" (white fins over glass), "ribbon" (a window band per
 // storey), "punched" (a grid of windows in stone with a band at each floor),
-// "stone" (sandstone coursing with tall windows). A design may add features
+// "stone" (sandstone coursing with tall windows), "brick" (red brick with tall
+// windows), "glass" (a blue glass curtain wall), "garage" (open parking decks).
+// A whole design may stand on a `base` of other walls (brick under glass): the
+// base is its own part, and the main part starts at the base's top (minHeight).
+// A design may add features
 // that OSM does not map, such as a round tower ("drum"); their places are
 // estimates, said so in the note.
 //
@@ -50,6 +54,42 @@ const DESIGNS = {
     roof: { helipads: 0 },
     source: "estimated",
     note: "Storeys, the look of the walls and the round entrance tower are read from photos of the building (reference only: nothing from them is used in the map). The tower's place is estimated from the outline's rounded corner; OSM does not map it. The outline is OpenStreetMap's.",
+  },
+  // Aggie Square (Stockton Boulevard, 2nd to 3rd Avenue). The owner, 2026-11-20:
+  // the long block east of 400 is ONE building (its name stays as curated), and
+  // 100 Aggie Square is not built yet (a later phase), so nothing is drawn for it.
+  "osm:1539582698": {
+    name: "Aggie Square - Lifelong Learning Building & East Lab",
+    floorH: 4.2, // lab storeys
+    base: { floors: 2, facade: "brick" },
+    whole: { floors: 8, facade: "glass", plant: true },
+    roof: { helipads: 0 },
+    source: "estimated",
+    note: "Storeys and the look (a two-storey brick base under a blue glass curtain wall) are read from photos and renderings of Aggie Square (reference only: nothing from them is used in the map). The outline is OpenStreetMap's.",
+  },
+  "osm:1539582699": {
+    name: "400 Aggie Square",
+    floorH: 4.2,
+    whole: { floors: 3, facade: "brick", plant: false },
+    roof: { helipads: 0 },
+    source: "estimated",
+    note: "Storeys and the brick walls are read from photos and renderings of Aggie Square (reference only). The outline is OpenStreetMap's.",
+  },
+  "osm:1493760477": {
+    name: "Aggie Square - Anova",
+    floorH: 3.6,
+    whole: { floors: 5, facade: "punched", plant: false },
+    roof: { helipads: 0 },
+    source: "estimated",
+    note: "Storeys and the pale walls with a grid of windows are read from renderings of Aggie Square (reference only). The outline is OpenStreetMap's.",
+  },
+  "osm:791935708": {
+    name: "Aggie Square Garage",
+    floorH: 3.0,
+    whole: { floors: 6, facade: "garage", plant: false },
+    roof: { helipads: 0 },
+    source: "estimated",
+    note: "Decks and the open concrete walls are read from photos of the garage (reference only; its mural is art and is not copied). The outline is OpenStreetMap's.",
   },
   // Shriners Children's Northern California, OSM way 307095185 (building=hospital, no name, no levels).
   "osm:307095185": {
@@ -110,28 +150,39 @@ function withDesign(f, floorH) {
   const h = d.floorH || (typeof floorH === "number" ? floorH : 4.2);
   const helipads = (d.roof && d.roof.helipads) || 0;
   // The first part is the tallest: helipads and the plant room go on its roof.
-  const part = (role, ring, spec, first) => ({
+  const part = (role, ring, spec, first, minHeight = 0) => ({
     role,
     ring: roundRing(ring),
     floors: spec.floors,
     height: +(spec.floors * h).toFixed(2),
+    minHeight,
+    storeyH: h, // the wall pattern repeats once per storey of this height
     facade: spec.facade,
     roof: spec.roof || "plain",
     plant: !!spec.plant,
     helipads: first ? helipads : 0,
   });
   let parts;
-  if (d.whole) {
+  if (d.whole && d.base) {
+    // The base is the lower storeys of the same building: it must be shorter, and
+    // the part above starts on a floor line (base.floors × the one storey height).
+    if (!(d.base.floors < d.whole.floors)) throw new Error(`design ${d.name}: base (${d.base.floors}) must be fewer storeys than the building (${d.whole.floors})`);
+    const base = part("base", f.ring, d.base, false);
+    // the plant room and any helipads go on the top part's roof
+    parts = [base, part("main", f.ring, d.whole, true, base.height)];
+  } else if (d.whole) {
     parts = [part("main", f.ring, d.whole, true)];
   } else {
     const zLine = nearestVertex(f.ring, d.cutAtVertexNear)[1];
     const { north, south } = splitRing(f.ring, zLine);
     parts = [part("tower", north, d.tower, true), part("wing", south, d.wing, false)];
   }
+  // The tallest part sets the footprint's storeys and height (what the caution sign clears, what identify says).
+  const top = parts.reduce((a, b) => (b.height > a.height ? b : a));
   return {
     ...f,
-    floors: parts[0].floors,
-    height: parts[0].height,
+    floors: top.floors,
+    height: top.height,
     heightSource: d.source,
     design: {
       name: d.name,
