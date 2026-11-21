@@ -1,0 +1,85 @@
+{
+ "retrieved": "2026-11-20",
+ "source": "https://api.openstreetmap.org/api/0.6/way/<id>/full.json",
+ "licence": "© OpenStreetMap contributors, ODbL 1.0",
+ "elements": [
+  {
+   "type": "way",
+   "id": 852273806,
+   "version": 3,
+   "timestamp": "2024-08-25T15:33:57Z",
+   "tags": {
+    "addr:state": "CA",
+    "aeroway": "helipad",
+    "ele": "10",
+    "gnis:feature_id": "1653906",
+    "location": "roof",
+    "name": "UC Davis Health Helipad",
+    "operator": "UC Davis Health",
+    "source": "Bing 2019",
+    "source_ref": "geonames.usgs.gov"
+   },
+   "why": "aeroway=helipad, location=roof: the Medical Center rooftop helipads. The main extract asks for buildings and parking, not aeroways.",
+   "geometry": [
+    {
+     "lat": 38.5549172,
+     "lon": -121.4552304
+    },
+    {
+     "lat": 38.5548956,
+     "lon": -121.4550946
+    },
+    {
+     "lat": 38.5547882,
+     "lon": -121.4551227
+    },
+    {
+     "lat": 38.5548098,
+     "lon": -121.4552584
+    },
+    {
+     "lat": 38.5549172,
+     "lon": -121.4552304
+    }
+   ]
+  },
+  {
+   "type": "way",
+   "id": 852273807,
+   "version": 2,
+   "timestamp": "2024-08-25T15:33:57Z",
+   "tags": {
+    "addr:state": "CA",
+    "aeroway": "helipad",
+    "ele": "10",
+    "gnis:feature_id": "1653906",
+    "location": "roof",
+    "source": "Bing 2019",
+    "source_ref": "geonames.usgs.gov"
+   },
+   "why": "aeroway=helipad, location=roof: the Medical Center rooftop helipads. The main extract asks for buildings and parking, not aeroways.",
+   "geometry": [
+    {
+     "lat": 38.5549538,
+     "lon": -121.4554585
+    },
+    {
+     "lat": 38.5549321,
+     "lon": -121.4553228
+    },
+    {
+     "lat": 38.5548247,
+     "lon": -121.4553508
+    },
+    {
+     "lat": 38.5548464,
+     "lon": -121.4554866
+    },
+    {
+     "lat": 38.5549538,
+     "lon": -121.4554585
+    }
+   ]
+  }
+ ]
+}

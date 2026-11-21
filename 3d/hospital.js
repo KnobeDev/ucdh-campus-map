@@ -4,7 +4,8 @@
 // podium, several for the tower floors) joined by connector bands where a tier
 // has more than one — see tools/lib/floorplan.js and tools/lib/interior.js.
 // Exterior: every ring and connector extruded one storey, which is the true
-// massing. Interior: slabs, ceilings, the perimeter walls (cut at doors and
+// massing, with walls drawn in code (pale, a band of windows per storey) and
+// OSM's two rooftop helipads on the Davis Tower. Interior: slabs, ceilings, the perimeter walls (cut at doors and
 // connectors), the inferred partition walls, elevator cores, an (estimated)
 // stairwell and labelled room zones. When the walker is inside, floors above
 // the current one are cut away so the inside stays visible.
@@ -24,16 +25,32 @@
 import * as THREE from "./lib/three.module.js";
 import { mergeGeometries } from "./lib/BufferGeometryUtils.js";
 import { flatPatch, extrudedRing } from "./geometry.js?v=7";
-import { pointInPolygon } from "./buildings.js?v=12";
+import { pointInPolygon } from "./buildings.js?v=13";
 import { labelSprite } from "./labels.js?v=6";
 import { WALL_T, wallSegments, walkable, routeIndoor, cellOf, cellCenter, inGrid, idx, CORRIDOR } from "./interior-core.js?v=2";
 import { landingSpot, DOOR_STEP } from "./door-core.js?v=1";
+import { pattern, padTexture, DAY_EMISSIVE } from "./designed.js?v=6";
 
 const CORE = 3.0; // elevator core footprint, metres: one grid cell (interior-core CELL)
 const AWNING_H = 4.6; // metres: an entrance canopy's underside
 const STAIR = [3.0, 4.4]; // stairwell footprint
 const ROOM_R = 3.2;
 const LINK_SINK = 0.03; // metres a connector's slab and roof sit below its towers', so coplanar overlaps don't flicker
+const PAD_Y = 0.3; // a helipad marking's height above its roof (with a polygon offset, as in designed.js)
+
+/**
+ * The Medical Center's walls, one storey of pattern repeated up every floor: pale walls with
+ * one band of windows per storey and slim mullions, the slab edge at the floor line. Drawn
+ * here from plain shapes: the colours are picked by hand, not sampled from any photo.
+ */
+const hospitalFacade = (storeyH) => pattern(6, storeyH, (g, w, h) => {
+  g.fillStyle = "#f1e8d7"; g.fillRect(0, 0, w, h);
+  g.fillStyle = "#5b7682"; g.fillRect(0, h * 0.32, w, h * 0.34); // the window band
+  g.fillStyle = "#95b3c2"; g.fillRect(0, h * 0.32, w, h * 0.1); // sky in its upper panes (canvas top = top of the storey)
+  g.fillStyle = "#f1e8d7";
+  for (let x = 0; x < w; x += w / 4) g.fillRect(x, h * 0.32, w * 0.025, h * 0.34);
+  g.fillStyle = "#ddd1bb"; g.fillRect(0, h * 0.93, w, h * 0.07); // slab edge at the floor
+});
 export const CELL_RADIUS = 2.6; // "near enough" to use an elevator or stairs
 // The floor-1 outline and the outdoor collision footprint are now the SAME
 // geometry (the real OSM podium), so a door needs only a tight radius on both
@@ -196,28 +213,49 @@ export function buildHospital(world, hospital) {
   };
 
   const exterior = new THREE.Group();
-  const massingMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-  world.themeTargets.catMats["hospital#massing"] = massingMat;
+  // ExtrudeGeometry: group 0 is the caps (roof and underside), group 1 the walls. Like the
+  // other buildings drawn as they look (designed.js), the Medical Center keeps its own wall
+  // colours by day and takes the shared window glow at night (world.applyTheme).
+  const wallMat = new THREE.MeshLambertMaterial({ map: hospitalFacade(floorH) });
+  wallMat.emissiveMap = wallMat.map;
+  wallMat.userData.dayEmissive = DAY_EMISSIVE;
+  const roofMat = new THREE.MeshLambertMaterial({ color: 0xd8d5ce });
+  const massingMats = [roofMat, wallMat];
+  const padMat = new THREE.MeshLambertMaterial({ map: padTexture(), transparent: true, alphaTest: 0.5, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  // Only the walls take the night window glow; roofs stay unlit, as on the other designed buildings.
+  world.themeTargets.designMats = [...(world.themeTargets.designMats || []), wallMat];
   const exteriorByFloor = new Map();
+  const massing = (geo) => {
+    const mesh = new THREE.Mesh(geo, massingMats);
+    mesh.userData.pickable = true;
+    mesh.userData.hospitalPart = "massing";
+    return mesh;
+  };
   for (const f of floors) {
     const g = new THREE.Group();
     for (const ring of f.rings) {
       const geo = extrudedRing(ring, floorH);
       geo.translate(0, f.y, 0);
-      const mesh = new THREE.Mesh(geo, massingMat);
-      mesh.userData.pickable = true;
-      g.add(mesh);
+      g.add(massing(geo));
     }
     // Connectors: a hair lower than the towers they join, so the roofs don't fight.
     for (const l of f.links || []) {
       const geo = extrudedRing(l.ring, floorH - LINK_SINK);
       geo.translate(0, f.y, 0);
-      const mesh = new THREE.Mesh(geo, massingMat);
-      mesh.userData.pickable = true;
-      g.add(mesh);
+      g.add(massing(geo));
     }
     exteriorByFloor.set(f.id, g);
     exterior.add(g);
+  }
+  // OSM's rooftop helipads (tools/lib/floorplan.js helipadsOn), on the roof of the floor
+  // under each, and hidden with that floor when the walker is inside below it.
+  for (const p of hospital.helipads || []) {
+    const geo = new THREE.CircleGeometry(p.radius, 40);
+    geo.rotateX(-Math.PI / 2);
+    geo.translate(p.x, p.y + PAD_Y, p.z);
+    const pad = new THREE.Mesh(geo, padMat);
+    pad.userData.hospitalPart = "helipad";
+    (exteriorByFloor.get(p.floor) || exterior).add(pad);
   }
   world.scene.add(exterior);
 
@@ -288,6 +326,19 @@ export function buildHospital(world, hospital) {
     floor: (id) => byId.get(id) || null,
     /** Inside the floor's outline (footprints and connectors) — walls not considered. */
     contains: (id, x, z) => shapes.get(id).some((r) => pointInPolygon(x, z, r)),
+    /**
+     * The highest floor drawn at or above grade at (x, z), { id, index }, from the footprints
+     * and connectors covering the point; null off the building. The info card reads it, so a
+     * tower or connector never takes the outline's height. index 0 means only the ground
+     * floor is drawn there: the plan leaves the rest out, and the card says so.
+     */
+    topFloorAt(x, z) {
+      let top = null;
+      for (const f of floors) {
+        if (f.index >= 0 && (!top || f.index > top.index) && shapes.get(f.id).some((r) => pointInPolygon(x, z, r))) top = f;
+      }
+      return top ? { id: top.id, index: top.index } : null;
+    },
     /** Inside the outline AND clear of every wall: what the walker collides with. */
     walkable(id, x, z) {
       const f = byId.get(id);

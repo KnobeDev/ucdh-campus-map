@@ -75,8 +75,15 @@ function buildLayers(data, construction) {
   for (const b of data.buildings) {
     for (const f of b.footprints) {
       if (!(f.height > 0)) { addRing(lots, f.ring); continue; }
-      addRing((cats[b.cat] ||= new Path2D()), f.ring);
-      addRing(outline, f.ring);
+      // A designed building is painted by the parts the 3D map draws (the California Tower's
+      // lot is no building), each ring once (a base and the block above share one).
+      const rings = f.design && f.design.parts && f.design.parts.length
+        ? [...new Map(f.design.parts.map((p) => [JSON.stringify(p.ring), p.ring])).values()]
+        : [f.ring];
+      for (const r of rings) {
+        addRing((cats[b.cat] ||= new Path2D()), r);
+        addRing(outline, r);
+      }
     }
   }
   const strokes = {};

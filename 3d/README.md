@@ -28,7 +28,9 @@ Remove. A refresh resumes the session; the session survives a silent guide for
 - **71 campus buildings** with identity from the 2D map (`data.jsx` +
   `default-edits.json`) and footprints from OSM where OSM has them; 12 buildings
   OSM has never mapped are extruded from the hand-traced polygons instead. Every
-  height carries its provenance (`OpenStreetMap` / `floorplan` / `estimated`).
+  height carries its provenance (`OpenStreetMap` / `floorplan` / `estimated` /
+  `curated`, or `not mapped` where no source gives the storeys, as over the
+  Medical Center's outline outside its towers and Pavilion).
 - **The Medical Center is built from its floor plan**, not from OSM shells: the
   13 traced floors are registered onto the real footprints (podium → towers +
   pavilion → towers → Davis Tower) and you can **walk in through the Main or

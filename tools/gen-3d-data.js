@@ -17,13 +17,13 @@
 const fs = require("fs");
 const path = require("path");
 
-const { GEOREF, ORIGIN, pxToEnu, pxPolyToEnu } = require("./lib/georef");
+const { GEOREF, ORIGIN, pxToEnu, pxPolyToEnu, osmGeomToEnu } = require("./lib/georef");
 const { loadCurated } = require("./lib/curated");
 const { loadOsm } = require("./lib/osm");
 const { matchBuildings } = require("./lib/match");
 const { resolveHeight, FLOOR_H } = require("./lib/heights");
-const { registerHospital } = require("./lib/floorplan");
-const { markUnderConstruction, flattenPlaceholders } = require("./lib/construction-cover");
+const { registerHospital, topFloorOver, helipadsOn } = require("./lib/floorplan");
+const { markUnderConstruction, dropPlaceholders, fenceDesignedSites } = require("./lib/construction-cover");
 const { withDesign } = require("./lib/designs");
 const { centroid, area, cleanRing, roundRing, round } = require("./lib/geom");
 
@@ -379,11 +379,29 @@ function main() {
     // An awning is not a wall: the outdoor collision shape loses it too.
     for (const fp of medCenter.footprints) {
       if (hospital.footprintOverrides[fp.osmName]) fp.ring = hospital.footprintOverrides[fp.osmName];
+      // The info card reads these. Where the floor plan shows upper floors (the Pavilion to
+      // 3, the towers to 8, the Davis Tower to 14) they are the storeys hospital.js draws, and
+      // the top floor's own number. Where it shows only the ground floor (the outline outside
+      // the towers and Pavilion) nothing says how tall the building is: OSM gives no
+      // building:levels, and the plan just leaves those floors out. So no storey count is
+      // claimed there; the height stays the one storey drawn, so it still collides.
+      const top = topFloorOver(hospital.floors, fp.osmName);
+      if (top && top.index > 0) {
+        const floors = top.index + 1;
+        Object.assign(fp, { floors, height: +(floors * FLOOR_H.hospital).toFixed(2), heightSource: "floorplan", topFloor: top.id });
+      } else if (top) {
+        Object.assign(fp, { floors: null, height: FLOOR_H.hospital, heightSource: "not mapped" });
+      }
     }
+    // OSM's two rooftop helipads (cached in ucdh-data/osm-helipads.json: the main extract
+    // asks for buildings and parking, not aeroways), on the roof drawn under each.
+    const padsFile = path.join(ROOT, "ucdh-data", "osm-helipads.json");
+    const pads = fs.existsSync(padsFile) ? JSON.parse(fs.readFileSync(padsFile, "utf8")).elements : [];
+    hospital.helipads = helipadsOn(hospital.floors, FLOOR_H.hospital, pads.map((w) => ({ id: w.id, tags: w.tags, ring: osmGeomToEnu(w.geometry) })));
   }
 
   // Buildings inside an active site are drawn as ghosts, and the site's sign clears them.
-  const covered = markUnderConstruction(flattenPlaceholders(buildings), buildConstruction(curated));
+  const covered = markUnderConstruction(dropPlaceholders(buildings), buildConstruction(curated));
   const data = {
     meta: {
       generated: new Date().toISOString(),
@@ -405,7 +423,8 @@ function main() {
     areas: buildAreas(osm),
     points: buildPointFeatures(curated),
     graph: buildGraph(curated),
-    construction: covered.zones,
+    // a designed site's fence follows its OSM outline (lib/construction-cover.js)
+    construction: fenceDesignedSites(covered.buildings, covered.zones),
     hospital,
     osmBusStops: osm.points.filter((p) => touchesWorld([[p.x, p.z]])),
   };

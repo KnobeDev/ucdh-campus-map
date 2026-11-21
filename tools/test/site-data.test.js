@@ -23,8 +23,19 @@ const { siteCampusData, FRAME_PAD } = require(path.join(ROOT, "tools", "lib", "s
 
 const FULL = JSON.parse(fs.readFileSync(path.join(ROOT, "3d", "campus-data.json"), "utf8"));
 const DATA = siteCampusData(FULL);
+/**
+ * A hotspot the 2D editor left unnamed, with an outline traced over the printed map. The full
+ * file no longer carries one (gen-3d-data.js drops X1, the California Tower site's), so the
+ * hybrid below is handed one, to show site-data.js still leaves it off.
+ */
+const PLACEHOLDER = {
+  code: "X1", name: "New hotspot", label: "X1", cat: "external", type: null, entryNode: null, departments: [],
+  match: { status: "contested", reason: "best footprint went to U", osmName: null },
+  center: { x: -69.8, z: -249.5 }, pxCenter: { x: 402.5, y: 227 },
+  footprints: [{ osmId: null, osmName: null, geomSource: "traced", ring: [[-74.53, -342.06], [-8.84, -327.62], [-50.01, -177.49], [-145.03, -174.14]], floors: 0, height: 0, heightSource: "curated" }],
+};
 /** The site's frame with the full file's buildings: traced outlines and the placeholder included. */
-const HYBRID = { ...DATA, buildings: FULL.buildings };
+const HYBRID = { ...DATA, buildings: [...FULL.buildings, PLACEHOLDER] };
 
 /** data.jsx is pure data assigned onto `window`: the app's base records. */
 function baseRecords() {
@@ -132,8 +143,8 @@ test("a hotspot nobody named is not a place: it is left off the site map", () =>
   for (const name of ["New hotspot 2", "Medical Center", "", undefined]) assert.strictEqual(SiteData.isPlaceholder({ name }), false, String(name));
   assert.ok(!MAP.buildings.some((b) => /new hotspot/i.test(b.name)));
   // The site's data file has none. Handed the full file's buildings, which do, it still lists none.
-  const placeholders = FULL.buildings.filter(SiteData.isPlaceholder);
-  assert.ok(placeholders.length >= 1, "the full file has one today (X1, the California Tower site)");
+  const placeholders = HYBRID.buildings.filter(SiteData.isPlaceholder);
+  assert.ok(placeholders.length >= 1, "the hybrid carries one (X1, the California Tower site's)");
   const map = applied(BUILT_HYBRID.edits);
   for (const p of placeholders) assert.ok(!map.buildings.some((b) => b.code === p.code), p.code);
 });

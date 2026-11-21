@@ -78,3 +78,21 @@ extract does return is taken from there instead.
 Refresh or add a way with **`node tools/fetch-osm-extra.js`** (the list and the
 reason for each way are in that script). It writes only when every way comes
 back whole, and records each way's version and edit time.
+
+## `osm-helipads.json` — the Medical Center's rooftop helipads
+
+| | |
+|---|---|
+| Retrieved | 2026-11-20 (date stored in the file) |
+| Endpoint | `https://api.openstreetmap.org/api/0.6/way/<id>/full.json` |
+| Ways | 852273806 ("UC Davis Health Helipad", v3), 852273807 (v2) |
+| Licence | © OpenStreetMap contributors, **ODbL**, credited like the main extract |
+
+The main extract's query takes no `aeroway` ways, so the two helipads on the Medical
+Center's roofs (`aeroway=helipad`, `location=roof`) are cached here.
+`tools/gen-3d-data.js` reads them into `hospital.helipads`, and `3d/hospital.js` marks
+them on the roof. Unlike `osm-extra.json`, these are not offered as buildings.
+
+To refresh, fetch each way with the endpoint above (a generic User-Agent, no personal
+data), keep the same file shape (`retrieved`, `source`, `licence`, `elements` with each
+way's `id`, `version`, `timestamp`, `tags` and lat/lon `geometry`), and regenerate the data.

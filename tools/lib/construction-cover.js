@@ -48,9 +48,31 @@ function markUnderConstruction(buildings, zones, today = new Date().toISOString(
  */
 const isPlaceholderHotspot = (b) => /^new hotspot$/i.test(String(b && b.name || "").trim());
 
-/** Placeholder hotspots become flat ground patches: 0 floors, never extruded. */
-const flattenPlaceholders = (buildings) => buildings.map((b) => (isPlaceholderHotspot(b)
-  ? { ...b, footprints: b.footprints.map((f) => ({ ...f, floors: 0, height: 0, heightSource: "curated" })) }
-  : b));
+/**
+ * Placeholder hotspots are left out of the 3D data altogether. Their outline is traced over
+ * the printed map, never OSM's, and they name nothing. Flattened, X1 (the California Tower
+ * site) was still drawn as a surface lot under the Medical Center's east end, painted as a
+ * lot on the mini-map and listed as a destination called "New hotspot". The zone keeps its
+ * own ring and its `affects` list; nothing in the 3D app reads a placeholder.
+ */
+const dropPlaceholders = (buildings) => buildings.filter((b) => !isPlaceholderHotspot(b));
 
-module.exports = { markUnderConstruction, INSIDE_FRACTION, isPlaceholderHotspot, flattenPlaceholders };
+/**
+ * A designed building site whose design asks for it (design.fenceSite) has its zone's fence
+ * moved onto the site's own OpenStreetMap outline: OSM's geometry, not a ring traced over the
+ * printed map, and the whole lot is fenced even where the design draws no building
+ * (the California Tower: only its slab is drawn; the rest of the site is the fenced lot).
+ * @returns {Array} zones, copied where changed (ring, ringSource "osm:<way id>")
+ */
+function fenceDesignedSites(buildings, zones) {
+  const byZone = new Map();
+  for (const b of buildings) for (const f of b.footprints || []) {
+    if (f.design && f.design.fenceSite && f.underConstruction && f.geomSource === "osm" && f.osmId != null) byZone.set(f.underConstruction.zoneId, f);
+  }
+  return zones.map((z) => {
+    const f = byZone.get(z.id);
+    return f ? { ...z, ring: f.ring, ringSource: `osm:${f.osmId}` } : z;
+  });
+}
+
+module.exports = { markUnderConstruction, fenceDesignedSites, INSIDE_FRACTION, isPlaceholderHotspot, dropPlaceholders };

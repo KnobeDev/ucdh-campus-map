@@ -268,7 +268,7 @@ test("the 3D page in a browser", { skip: !PLAYWRIGHT && "set PLAYWRIGHT_MODULE t
       window.__ucd3d.picking.identifyAhead();
       return { title: document.getElementById("info-title").textContent, meta: document.getElementById("info-meta").textContent, shown: !document.getElementById("info").hidden };
     }));
-    assert.deepStrictEqual(seen.parts.filter((n) => n.startsWith("California Tower")).sort(), ["California Tower · tower", "California Tower · wing"], JSON.stringify(seen));
+    assert.deepStrictEqual(seen.parts.filter((n) => n.startsWith("California Tower")).sort(), ["California Tower · tower"], JSON.stringify(seen));
     assert.strictEqual(seen.ghostOfTower, false, "no orange ghost over the tower any more");
     assert.ok(seen.shown, "identify opens the card");
     assert.strictEqual(seen.title, "California Tower");
@@ -517,6 +517,232 @@ test("the 3D page in a browser", { skip: !PLAYWRIGHT && "set PLAYWRIGHT_MODULE t
     assert.match(over.hint, /drag or arrows move the map/i);
     await page.locator("#view-btn").click(); // now labelled "Walk"
     assert.strictEqual((await read()).label, walk.label, "back to the walking name");
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
+  await t.test("Shriners Hospital: a 2-storey curved front on the plaza, the 8-storey block behind it, identified from the plaza", async () => {
+    const { page, errors } = await open({ site: false });
+    await enter(page);
+    const seen = await page.evaluate(() => {
+      const { world, player } = window.__ucd3d;
+      const box = {};
+      world.scene.traverse((o) => {
+        const n = o.userData && o.userData.design;
+        if (typeof n === "string" && n.startsWith("Shriners Hospital") && o.geometry) {
+          o.geometry.computeBoundingBox();
+          const b = o.geometry.boundingBox;
+          box[n] = { minY: b.min.y, maxY: b.max.y, minX: b.min.x, maxX: b.max.x, minZ: b.min.z, maxZ: b.max.z };
+        }
+      });
+      // in the plaza, at the centre of the curved front (OSM's quarter circle), facing it (south-east)
+      player.leaveBuilding();
+      player.teleport(-240, -137);
+      player.object.rotation.y = (-3 * Math.PI) / 4; // forward = (-sin, -cos) = south-east
+      player.object.children[0].rotation.x = 0;
+      return { box };
+    });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    Object.assign(seen, await page.evaluate(() => {
+      window.__ucd3d.picking.identifyAhead();
+      return { title: document.getElementById("info-title").textContent, meta: document.getElementById("info-meta").textContent };
+    }));
+    const front = seen.box["Shriners Hospital · front"];
+    const main = seen.box["Shriners Hospital · main"];
+    assert.ok(front && main, JSON.stringify(seen.box));
+    assert.ok(Math.abs(front.minY) < 1e-3 && Math.abs(front.maxY - 8.4) < 1e-3, `the front: 2 storeys of 4.2 m from the ground: ${JSON.stringify(front)}`);
+    assert.ok(Math.abs(main.maxY - 33.6) < 1e-3, `the block behind: 8 storeys: ${JSON.stringify(main)}`);
+    assert.ok(front.maxX < -205 && front.maxZ < -105, `the front is the north-west corner, on the plaza: ${JSON.stringify(front)}`);
+    assert.strictEqual(seen.title, "Shriners Hospital", JSON.stringify(seen));
+    assert.match(seen.meta, /8 floors \(estimated\)/);
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
+  // The owner, 2026-11-20: "Recheck the Medical Center parking structure (night image) nearest
+  // Stockton Blvd." Parking Structure 3 (OSM way 198423271) was a plain 7-storey box.
+  await t.test("Parking Structure 3: six open decks, two stair towers and three solar canopies on its roof, identified from Stockton Boulevard", async () => {
+    const { page, errors } = await open({ site: false });
+    await enter(page);
+    const seen = await page.evaluate(() => {
+      const { world, player } = window.__ucd3d;
+      const box = {};
+      let glows = false;
+      world.scene.traverse((o) => {
+        const n = o.userData && o.userData.design;
+        if (typeof n === "string" && n.startsWith("Parking Structure 3") && o.geometry) {
+          o.geometry.computeBoundingBox();
+          (box[n] = box[n] || []).push([o.geometry.boundingBox.min.y, o.geometry.boundingBox.max.y]);
+          if (n.endsWith("· main")) glows = [].concat(o.material).some((m) => (world.themeTargets.designMats || []).includes(m));
+        }
+      });
+      // on Stockton Boulevard, 25 m out from the garage's south-west face (the chamfer between
+      // OSM vertices (-360.94,-230.36) and (-336.76,-195.38)), facing it (north-east)
+      player.leaveBuilding();
+      player.teleport(-369.4, -198.6);
+      player.object.rotation.y = Math.atan2(-0.823, 0.569); // forward = (-sin, -cos) = (0.823, -0.569)
+      player.object.children[0].rotation.x = 0;
+      return { box, glows };
+    });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    Object.assign(seen, await page.evaluate(() => {
+      window.__ucd3d.picking.identifyAhead();
+      return { title: document.getElementById("info-title").textContent, meta: document.getElementById("info-meta").textContent };
+    }));
+    const near = (a, b) => Math.abs(a - b) < 1e-3;
+    const [main] = seen.box["Parking Structure 3 · main"] || [];
+    assert.ok(main && near(main[0], 0) && near(main[1], 19.8), `six decks of 3.3 m from the ground: ${JSON.stringify(seen.box)}`);
+    const towers = seen.box["Parking Structure 3 · stair tower"] || [];
+    assert.strictEqual(towers.length, 2, JSON.stringify(seen.box));
+    for (const [lo, hi] of towers) assert.ok(near(lo, 19.8) && near(hi, 24.3), `a tower rises from the roof deck: ${lo}-${hi}`);
+    const panels = seen.box["Parking Structure 3 · solar canopy"] || [];
+    assert.strictEqual(panels.length, 3, `three solar canopies: ${JSON.stringify(seen.box)}`);
+    for (const [lo, hi] of panels) assert.ok(lo > 19.8 + 3 && near(hi, 24), `a canopy over the roof deck: ${lo}-${hi}`);
+    const posts = seen.box["Parking Structure 3 · solar canopy posts"] || [];
+    assert.ok(posts.length && near(posts[0][0], 19.8), `its posts stand on the roof deck: ${JSON.stringify(posts)}`);
+    assert.ok(seen.glows, "the decks take the night glow, like every other building");
+    assert.strictEqual(seen.title, "Parking 3 (hospital main)", JSON.stringify(seen));
+    assert.match(seen.meta, /6 floors \(estimated\)/);
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
+  // Checker, 2026-11-20: the card said "8 floors (estimated)" for the Medical Center's outline
+  // and its Pavilion, where hospital.js draws 1 and 3 storeys; then "1 floor (floorplan)" for
+  // the outline, which the floor plan does not say either (second pass). Where the crosshair
+  // lands, the card names the top floor the plan shows there (Pavilion 3, Davis Tower 14),
+  // and over the rest of the outline says its height is not mapped.
+  await t.test("the Medical Center: identify names the floor plan's top floor where it is looked at, and says where the height is not mapped", async () => {
+    const { page, errors } = await open({ site: false });
+    await enter(page);
+    const rings = await page.evaluate(() => Object.fromEntries(window.__ucd3d.data.buildings.find((b) => b.code === "T").footprints.map((f) => [f.osmName, f.ring])));
+    const inRing = ([x, z], ring) => {
+      let inside = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [xi, zi] = ring[i]; const [xj, zj] = ring[j];
+        if (zi > z !== zj > z && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) inside = !inside;
+      }
+      return inside;
+    };
+    const views = [
+      // west of the outline's west lobe, facing it (east): a one-storey wall
+      { at: [-420, -300], yaw: -Math.PI / 2, pitch: 0, part: "UC Davis Medical Center", not: ["Surgery and Emergency Services Pavilion", "UC Davis Davis Tower", "UC Davis University Tower", "UC Davis East Wing"], says: "height not mapped, drawn one storey high" },
+      // on X Street, facing the Pavilion (north)
+      { at: [-170, -215], yaw: 0, pitch: 0, part: "Surgery and Emergency Services Pavilion", says: "top floor 3 (floorplan)" },
+      // at the roundabout, looking up over the Pavilion at the Davis Tower (north)
+      { at: [-220, -215], yaw: 0, pitch: 0.52, part: "UC Davis Davis Tower", says: "top floor 14 (floorplan)" },
+    ];
+    for (const v of views) {
+      await page.evaluate((v) => {
+        const { player } = window.__ucd3d;
+        player.leaveBuilding();
+        player.teleport(v.at[0], v.at[1]);
+        player.object.rotation.y = v.yaw;
+        player.object.children[0].rotation.x = v.pitch;
+      }, v);
+      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+      const seen = await page.evaluate(() => {
+        const { picking } = window.__ucd3d;
+        picking.identifyAhead();
+        return { hit: picking.lastHit ? picking.lastHit() : null, title: document.getElementById("info-title").textContent, meta: document.getElementById("info-meta").textContent };
+      });
+      const why = `${v.part}: ${JSON.stringify(seen)}`;
+      assert.strictEqual(seen.title, "Medical Center", why);
+      assert.ok(seen.hit, why);
+      assert.ok(inRing([seen.hit.x, seen.hit.z], rings[v.part]), `the crosshair is on ${why}`);
+      for (const other of v.not || []) assert.ok(!inRing([seen.hit.x, seen.hit.z], rings[other]), `not on ${other}: ${why}`);
+      assert.ok(seen.meta.includes(v.says), why);
+      assert.ok(!/\d+ floors? \(/.test(seen.meta), `no storey count is claimed: ${why}`);
+    }
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
+  // Checker, 2026-11-20: the real Medical Center was blank category-blue massing with no
+  // helipads, while the finished California Tower beside it, white with two red-cross pads,
+  // read as "the hospital". The Medical Center now has its own walls drawn in code (pale
+  // walls, one band of windows per storey) and OSM's two rooftop helipads on the Davis Tower.
+  await t.test("the Medical Center: walls with a window band per storey, OSM's two helipads on the Davis Tower roof", async () => {
+    const { page, errors } = await open({ site: false });
+    await enter(page);
+    const seen = await page.evaluate(() => {
+      const { world, data } = window.__ucd3d;
+      const pads = [];
+      let walls = null;
+      let massing = 0;
+      world.scene.traverse((o) => {
+        if (o.userData.hospitalPart === "helipad") {
+          o.geometry.computeBoundingBox();
+          const b = o.geometry.boundingBox;
+          pads.push({ x: (b.min.x + b.max.x) / 2, y: b.max.y, z: (b.min.z + b.max.z) / 2, r: (b.max.x - b.min.x) / 2, map: !!o.material.map });
+        }
+        if (o.userData.hospitalPart === "massing") {
+          massing++;
+          const m = [].concat(o.material);
+          walls = walls || { n: m.length, map: !!(m[1] && m[1].map), glows: (world.themeTargets.designMats || []).includes(m[1]) && !(world.themeTargets.designMats || []).includes(m[0]), repeatV: m[1] && m[1].map ? m[1].map.repeat.y : null };
+        }
+      });
+      return { pads, walls, massing, floorH: data.hospital.floorH, want: data.hospital.helipads };
+    });
+    assert.ok(seen.massing > 13, `every floor ring and connector is drawn: ${seen.massing}`);
+    assert.deepStrictEqual({ n: seen.walls.n, map: seen.walls.map, glows: seen.walls.glows }, { n: 2, map: true, glows: true }, JSON.stringify(seen.walls));
+    assert.ok(Math.abs(-1 / seen.walls.repeatV - seen.floorH) < 1e-6, `one window band per ${seen.floorH} m storey: ${seen.walls.repeatV}`);
+    assert.strictEqual(seen.pads.length, 2, JSON.stringify(seen.pads));
+    for (const w of seen.want) {
+      const p = seen.pads.find((q) => Math.hypot(q.x - w.x, q.z - w.z) < 0.5);
+      assert.ok(p, `a helipad at OSM ${w.osmId}: ${JSON.stringify(seen.pads)}`);
+      assert.ok(p.y > w.y && p.y < w.y + 0.5, `on the roof at ${w.y} m: ${p.y}`);
+      assert.ok(Math.abs(p.r - w.radius) < 0.1 && p.map, JSON.stringify(p));
+    }
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
+
+  await t.test("the California Tower: only the slab is a building; its lot along X Street is not (owner, 2026-11-20)", async () => {
+    const { page, errors } = await open({ site: false });
+    await enter(page);
+    const seen = await page.evaluate(() => {
+      const { index, data } = window.__ucd3d;
+      const f = data.buildings.find((b) => b.name === "California Tower").footprints[0];
+      const tower = f.design.parts[0].ring;
+      const entries = index.entries.filter((e) => e.building && e.building.name === "California Tower");
+      // a point in the site's south part (the former wing), and one in the slab
+      const pip = (x, z, r) => { let i = false; for (let a = 0, b = r.length - 1; a < r.length; b = a++) { const [xa, za] = r[a]; const [xb, zb] = r[b]; if (za > z !== zb > z && x < ((xb - xa) * (z - za)) / (zb - za) + xa) i = !i; } return i; };
+      const lot = [-120, -200];
+      const slab = tower.reduce((m, p) => [m[0] + p[0] / tower.length, m[1] + p[1] / tower.length], [0, 0]);
+      return {
+        parts: f.design.parts.map((p) => p.role),
+        lotInSite: pip(lot[0], lot[1], f.ring),
+        lotIsBuilding: entries.some((e) => pip(lot[0], lot[1], e.ring)),
+        slabIsBuilding: entries.some((e) => pip(slab[0], slab[1], e.ring)),
+      };
+    });
+    assert.deepStrictEqual(seen.parts, ["tower"]);
+    assert.ok(seen.lotInSite, "the test point is on the site");
+    assert.strictEqual(seen.lotIsBuilding, false, "the lot is no building: nothing invisible stands there");
+    assert.strictEqual(seen.slabIsBuilding, true);
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
+
+  await t.test("sonar measures to a building's nearest drawn part, and the California Tower's whole lot is fenced", async () => {
+    const { page, errors } = await open({ site: false });
+    await enter(page);
+    const seen = await page.evaluate(async () => {
+      const { player, sonar, construction } = window.__ucd3d;
+      // in the plaza, 4.8 m from Shriners' 2-storey front wall
+      player.leaveBuilding();
+      player.teleport(-230.5, -127.9);
+      sonar.fire();
+      await new Promise((r) => setTimeout(r, 300));
+      const status = document.getElementById("status").textContent;
+      // the lot's west end along X Street, outside the old traced fence but inside OSM's site
+      const fenced = construction.zoneAt(-160, -185) != null;
+      player.teleport(-200, -185);
+      for (let k = 0; k < 60; k++) player.nudgeTo(player.object.position.x + 0.5, -185);
+      return { status, fenced, reached: player.object.position.x };
+    });
+    const m = /Shriners Hospital, (\d+) metres?/.exec(seen.status);
+    assert.ok(m, `sonar names Shriners: ${seen.status}`);
+    assert.ok(Number(m[1]) <= 6, `to its front wall, not the block behind it: ${seen.status}`);
+    assert.ok(seen.fenced, "the lot's west end is inside the fence");
+    assert.ok(seen.reached < -177, `the fence stops the walker at the site's west edge (x -178): ${seen.reached}`);
     assert.deepStrictEqual(errors, []);
     await page.close();
   });

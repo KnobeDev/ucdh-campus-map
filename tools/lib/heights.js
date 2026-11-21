@@ -29,7 +29,8 @@ const FLOOR_H = {
 // The three tower entries come from this repo's own Medical Center floor plan
 // (default-edits.json floorplan.T): floors LL and 1-8 are shared by East Wing,
 // University Tower and Davis Tower; 10, 11, 12 and 14 are Davis-Tower-only. So
-// Davis Tower stands 12 storeys above grade (there is no 9 or 13) and the other
+// the plan shows no floor 9 or 13 for Davis Tower, so 12 storeys are drawn for it (its
+// top floor is numbered 14; floors the plan leaves out may still exist), and the other
 // two stand 8. Everything else in this table is an honest guess.
 const BY_OSM_NAME = {
   "UC Davis Davis Tower": { floors: 12, source: "floorplan" },
@@ -37,7 +38,7 @@ const BY_OSM_NAME = {
   "UC Davis East Wing": { floors: 8, source: "floorplan" },
   "Parking Structure 1": { floors: 5, source: "estimated" },
   "Parking Structure 2": { floors: 5, source: "estimated" },
-  "Parking Structure 3": { floors: 7, source: "estimated" },
+  "Parking Structure 3": { floors: 6, source: "estimated" }, // six open decks under the roof deck (tools/lib/designs.js)
   "Parking Structure 4": { floors: 5, source: "estimated" },
   "Parking Structure 5": { floors: 5, source: "estimated" },
   "Aggie Square Garage": { floors: 6, source: "estimated" },
@@ -45,7 +46,11 @@ const BY_OSM_NAME = {
 
 // Storey counts by curated building code, when the OSM name doesn't carry one.
 const BY_CODE = {
-  T: { floors: 8, source: "estimated" }, // podium + shared stack; towers are separate footprints
+  // A starting guess only: tools/gen-3d-data.js replaces it per footprint from the floor plan
+  // (tools/lib/floorplan.js topFloorOver): the towers and the Pavilion get the plan's top
+  // floor (source "floorplan"); the outline outside them, where the plan shows only the
+  // ground floor, gets no storey count (source "not mapped").
+  T: { floors: 8, source: "estimated" },
   VC: { floors: 0, source: "curated" }, // Vanderhoef Commons is an outdoor fitness field: flat, never a box
 };
 

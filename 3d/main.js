@@ -1,23 +1,23 @@
 // Entry point: loads campus data, assembles the world, wires the HUD.
 import { createWorld } from "./world.js?v=7";
-import { buildBuildings } from "./buildings.js?v=12";
+import { buildBuildings } from "./buildings.js?v=13";
 import { buildGroundSurfaces } from "./ground.js?v=8";
 import { createOverheadCamera } from "./overhead.js?v=7";
 import { initialTheme, saveTheme } from "./theme.js?v=6";
-import { buildHospital } from "./hospital.js?v=21";
-import { createPlayer } from "./player.js?v=24";
+import { buildHospital } from "./hospital.js?v=22";
+import { createPlayer } from "./player.js?v=25";
 import { createFloorPicker } from "./elevator-ui.js?v=9";
 import { buildRouteGraph, snapToGraph } from "./route-core.js?v=2";
 import { createWayfinder } from "./wayfind.js?v=6";
-import { buildConstruction, buildPointLayers, buildPlaceMarkers } from "./layers.js?v=12";
+import { buildConstruction, buildPointLayers, buildPlaceMarkers } from "./layers.js?v=13";
 import { zoneListText } from "./caution-core.js?v=1";
 import { createSpeech } from "./speech.js?v=8";
 import { readingMs } from "./speech-core.js?v=3";
 import { createCaptions } from "./captions.js?v=1";
-import { createSonar } from "./sonar.js?v=6";
-import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=9";
+import { createSonar } from "./sonar.js?v=7";
+import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=10";
 import { createSession } from "./session.js?v=4";
-import { createMinimap } from "./minimap.js?v=8";
+import { createMinimap } from "./minimap.js?v=9";
 import { loadAppConfig } from "./app-config.js?v=1";
 import { checkFun } from "./entitlement.js?v=1";
 import { initialPanelOpen, prefs } from "./minimap-core.js?v=1";
@@ -465,7 +465,7 @@ async function boot() {
   // the sign is never something only a sighted visitor can read.
   const places = data.buildings.filter((b) => b.marker && b.center).map((b) => ({ name: b.name, x: b.center.x, z: b.center.z, building: b }));
   const sonar = createSonar(world, { index, hospital, player, speech, say, places });
-  const picking = createPicking(world, { index, player, places, onSelect: (d) => showInfo(d, data) });
+  const picking = createPicking(world, { index, player, places, floorAt: (x, z) => hospital.topFloorAt(x, z), onSelect: (d) => showInfo(d, data) });
   wireSenses(speech, sonar, picking, player, canvas);
   const graph = buildRouteGraph(data.paths, { construction: data.construction });
   const wayfinder = createWayfinder(world, { graph, hospital, player, say, ui: wayfindUi() });

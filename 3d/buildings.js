@@ -13,7 +13,7 @@
 // add a BoxGeometry (uv layout differs) to either.
 import * as THREE from "./lib/three.module.js";
 import { flatPatch, extrudedRing, mergeBuckets } from "./geometry.js?v=7";
-import { buildDesigned } from "./designed.js?v=5";
+import { buildDesigned } from "./designed.js?v=6";
 import { drumRing } from "./design-core.js?v=2";
 
 const CELL = 60; // metres, spatial hash cell
@@ -82,10 +82,18 @@ export function buildBuildings(world, buildings, context) {
       // A site whose finished form is published (tools/lib/designs.js) is drawn as
       // that form by designed.js; it collides and answers to its name like any other.
       if (f.design && f.design.parts && f.design.parts.length) {
-        const entry = { building: b, footprint: f, ring: f.ring, bbox: bboxOf(f.ring), solid: true };
-        index.entries.push(entry);
-        registerInIndex(index, entry);
-        designed.push(entry);
+        // Collide and answer by the parts actually drawn, not the whole OSM outline: a design may
+        // leave part of its site unbuilt (the California Tower's lot along X Street).
+        const seen = new Set();
+        for (const part of f.design.parts) {
+          const key = JSON.stringify(part.ring);
+          if (seen.has(key)) continue; // a base and the block above it share one ring
+          seen.add(key);
+          const entry = { building: b, footprint: f, ring: part.ring, bbox: bboxOf(part.ring), solid: true };
+          index.entries.push(entry);
+          registerInIndex(index, entry);
+        }
+        designed.push({ building: b, footprint: f });
         // A round tower may stand past OSM's outline: it collides and answers to the building's name too.
         for (const feature of f.design.features || []) {
           if (feature.kind !== "drum") continue;

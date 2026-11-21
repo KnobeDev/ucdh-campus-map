@@ -3,18 +3,35 @@
 // meets a pickable mesh; the hit point is resolved to a building through the
 // spatial index. Click fires on pointer-UP and a drag is not a click (SC 2.5.2).
 import * as THREE from "./lib/three.module.js";
-import { footprintAt } from "./buildings.js?v=12";
+import { footprintAt } from "./buildings.js?v=13";
 import { nearestOnRing, directionLabel, metresWord, placeAhead } from "./spatial-core.js?v=2";
 import { siteStatus } from "./design-core.js?v=2";
 
 const DRAG_TOLERANCE = 6; // px
 
-/** places: buildings that are a signpost, not an outline ({ name, x, z, building }). */
-export function createPicking(world, { index, player, onSelect, places = [] }) {
+/**
+ * What the card says about a building's height. Where the floor plan draws it (`top`), the
+ * plan's own top floor number, which is not a storey count (the Davis Tower's top is 14, and
+ * the plan shows no 9 or 13); where the plan shows only its ground floor, that its height is not mapped.
+ */
+function storeysText(top, f) {
+  if (top) return top.index > 0 ? `top floor ${top.id} (floorplan)` : "height not mapped, drawn one storey high";
+  if (f.heightSource === "not mapped") return "height not mapped";
+  return f.floors ? `${f.floors} floor${f.floors === 1 ? "" : "s"} (${f.heightSource})` : null;
+}
+
+/**
+ * places: buildings that are a signpost, not an outline ({ name, x, z, building }).
+ * floorAt(x, z): for a building drawn by another module (the Medical Center, by hospital.js),
+ * the top floor drawn at that point, { id, index } or null; its footprints overlap, so one
+ * footprint's own count is not it.
+ */
+export function createPicking(world, { index, player, onSelect, places = [], floorAt = null }) {
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   const canvas = world.renderer.domElement;
   let downAt = null;
+  let last = null; // where the last pick landed, { x, y, z }, for tests and the curious
 
   function entryAt(clientX, clientY) {
     ndc.set((clientX / innerWidth) * 2 - 1, -(clientY / innerHeight) * 2 + 1);
@@ -26,9 +43,11 @@ export function createPicking(world, { index, player, onSelect, places = [] }) {
       const px = h.point.x + ray.ray.direction.x * 0.2;
       const pz = h.point.z + ray.ray.direction.z * 0.2;
       // A wall belongs to a building: a flat patch (a lawn, a lot) that overlaps its outline must not win.
-      const e = footprintAt(index, px, pz, true) || footprintAt(index, h.point.x, h.point.z, true)
-        || footprintAt(index, px, pz, false) || footprintAt(index, h.point.x, h.point.z, false);
-      if (e) return { entry: e, point: h.point, distance: h.distance };
+      const tries = [[px, pz, true], [h.point.x, h.point.z, true], [px, pz, false], [h.point.x, h.point.z, false]];
+      for (const [x, z, solid] of tries) {
+        const e = footprintAt(index, x, z, solid);
+        if (e) return { entry: e, point: h.point, at: { x, y: h.point.y, z }, distance: h.distance };
+      }
       // A pickable surface that resolved to no footprint (a seam, an edge): keep looking along the ray.
     }
     return null;
@@ -42,7 +61,8 @@ export function createPicking(world, { index, player, onSelect, places = [] }) {
     const near = nearestOnRing(p.x, p.z, hit.entry.ring);
     const dir = directionLabel(player.object.rotation.y, p.x, p.z, near.x, near.z);
     const name = b ? b.name : f.name || "an unnamed building";
-    const floors = f.floors ? `${f.floors} floor${f.floors === 1 ? "" : "s"} (${f.heightSource})` : null;
+    const top = b && b.renderedBy === "hospital" && floorAt && hit.at ? floorAt(hit.at.x, hit.at.z) : null;
+    const floors = storeysText(top, f);
     const status = siteStatus(f); // "under construction until …, shown as the finished design"
     return { name, building: b, footprint: f, distance: near.d, dir, floors, status,
       text: `${name}, ${metresWord(near.d)} ${dir}${floors ? `, ${floors}` : ""}${status ? `, ${status}` : ""}.` };
@@ -55,6 +75,7 @@ export function createPicking(world, { index, player, onSelect, places = [] }) {
     downAt = null;
     if (moved > DRAG_TOLERANCE) return; // a drag is a look, not a pick
     const hit = entryAt(e.clientX, e.clientY);
+    last = hit ? hit.at : null;
     onSelect(hit ? describe(hit) : null);
   };
   canvas.addEventListener("pointerdown", onPointerDown);
@@ -64,6 +85,7 @@ export function createPicking(world, { index, player, onSelect, places = [] }) {
     /** Identify whatever the crosshair is on. */
     identifyAhead() {
       const hit = entryAt(innerWidth / 2, innerHeight / 2);
+      last = hit ? hit.at : null;
       if (hit) { onSelect(describe(hit)); return; }
       // No outlined building in view: a signposted one close ahead is named instead.
       const p = player.object.position;
@@ -75,6 +97,8 @@ export function createPicking(world, { index, player, onSelect, places = [] }) {
         text: `${near.place.name}, ${metresWord(near.d)} ${dir}. Shown as a signpost: its outline is not mapped.`,
       });
     },
+    /** Where the last pick landed on a building, { x, y, z } in world metres; null when it found none. */
+    lastHit: () => (last ? { ...last } : null),
     dispose() {
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointerup", onPointerUp);

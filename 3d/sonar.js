@@ -36,14 +36,17 @@ export function createSonar(world, { index, hospital, player, speech, say, place
     const p = player.object.position;
     const out = [];
     if (player.state.floor === null) {
-      const seen = new Set();
+      // One echo per building, from its NEAREST part: a building may be several entries
+      // (Shriners' front and the block behind it; a round tower beside its wings).
+      const best = new Map();
       for (const e of index.entries) {
-        if (!e.building || seen.has(e.building.code)) continue;
+        if (!e.building) continue;
         const near = nearestOnRing(p.x, p.z, e.ring);
         if (near.d > RING_M * RINGS) continue;
-        seen.add(e.building.code);
-        out.push({ name: e.building.name, d: near.d, x: near.x, z: near.z });
+        const had = best.get(e.building.code);
+        if (!had || near.d < had.d) best.set(e.building.code, { name: e.building.name, d: near.d, x: near.x, z: near.z });
       }
+      out.push(...best.values());
       out.push(...placesInReach(places, p.x, p.z, RING_M * RINGS));
     } else {
       const f = hospital.floor(player.state.floor);

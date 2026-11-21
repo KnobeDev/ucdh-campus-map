@@ -144,7 +144,9 @@ test("output: every building has at least one footprint with a height", (t) => {
       // Flat footprints (surface lots, parks matched to OSM areas) legitimately have height 0.
       assert.ok(f.height > 0 || f.floors === 0, `${b.code} footprint has no height`);
       assert.ok(["osm", "traced"].includes(f.geomSource));
-      assert.ok(["OpenStreetMap", "floorplan", "estimated", "curated"].includes(f.heightSource));
+      // "not mapped": a footprint whose storeys no source gives (the Medical Center's outline:
+      // OSM has no building:levels, the floor plan shows only its ground floor there).
+      assert.ok(["OpenStreetMap", "floorplan", "estimated", "curated", "not mapped"].includes(f.heightSource));
     }
   }
 });
@@ -235,13 +237,16 @@ test("construction: a footprint mostly inside an active zone is marked under con
 });
 
 test("construction: an unnamed admin hotspot is a zone's ground, never a building", () => {
-  const { isPlaceholderHotspot, flattenPlaceholders } = require("../lib/construction-cover");
+  const { isPlaceholderHotspot, dropPlaceholders } = require("../lib/construction-cover");
   assert.ok(isPlaceholderHotspot({ name: "New hotspot" }));
   assert.ok(!isPlaceholderHotspot({ name: "Pathology Building" }));
-  const out = flattenPlaceholders([
+  const buildings = [
     { code: "X3", name: "New hotspot", footprints: [{ ring: [[0, 0], [1, 0], [1, 1]], height: 6.8, floors: 2, heightSource: "estimated" }] },
     { code: "P", name: "Pathology Building", footprints: [{ ring: [[0, 0], [1, 0], [1, 1]], height: 7.2, floors: 2, heightSource: "estimated" }] },
-  ]);
-  assert.deepStrictEqual([out[0].footprints[0].height, out[0].footprints[0].floors, out[0].footprints[0].heightSource], [0, 0, "curated"]);
-  assert.strictEqual(out[1].footprints[0].height, 7.2);
+  ];
+  // Not drawn, not a lot, not a destination: left out of the 3D data (it was a flat lot under the hospital).
+  const out = dropPlaceholders(buildings);
+  assert.deepStrictEqual(out.map((b) => b.code), ["P"]);
+  assert.strictEqual(out[0].footprints[0].height, 7.2);
+  assert.strictEqual(buildings.length, 2, "inputs are not mutated");
 });

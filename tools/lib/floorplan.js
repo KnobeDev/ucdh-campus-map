@@ -48,6 +48,58 @@ function tierFor(levelId) {
 const bboxOfAll = (rings) => bbox(rings.flat());
 
 /**
+ * The highest floor (at or above street level, index >= 0) the 3D map draws over one of
+ * the Medical Center's footprints: the top floor whose tier includes it. The podium
+ * floors' outline is the envelope every other footprint stands in, so it counts for all
+ * of them. Returns { id, index } (id is the plan's own floor number: Davis Tower's top is
+ * "14", the 12th storey drawn, as the plan shows no 9 or 13), or null for a name on no tier.
+ * A top floor of index 0 means the plan shows only the ground floor there: it says
+ * nothing about the storeys above, so callers must not present that as a storey count.
+ */
+function topFloorOver(floors, name) {
+  let top = null;
+  for (const f of floors) {
+    if (f.index < 0) continue;
+    const names = tierFor(f.id).names;
+    if ((names.includes(name) || names.includes(OUTLINE)) && (!top || f.index > top.index)) top = { id: f.id, index: f.index };
+  }
+  return top;
+}
+
+/**
+ * OSM rooftop helipads (aeroway=helipad, location=roof) placed on the Medical Center's
+ * roof: each one's centre, the roof height of the highest floor drawn under it, and a
+ * marking radius that fits inside OSM's own outline (its centre's distance to the
+ * nearest edge). A helipad over no drawn floor is
+ * left out (it is not on this building).
+ * @param {Array} floors  registered floors (ENU rings, y)
+ * @param {number} floorH storey height
+ * @param {Array<{id, tags, ring}>} pads OSM ways, ring in ENU
+ */
+function helipadsOn(floors, floorH, pads) {
+  const out = [];
+  for (const p of pads) {
+    if (!p.tags || p.tags.aeroway !== "helipad" || p.tags.location !== "roof") continue;
+    const pts = p.ring.length > 1 && p.ring[0][0] === p.ring[p.ring.length - 1][0] && p.ring[0][1] === p.ring[p.ring.length - 1][1] ? p.ring.slice(0, -1) : p.ring;
+    const x = pts.reduce((s, v) => s + v[0], 0) / pts.length;
+    const z = pts.reduce((s, v) => s + v[1], 0) / pts.length;
+    let top = null;
+    for (const f of floors) if (f.index >= 0 && f.rings.some((r) => contains(r, [x, z])) && (!top || f.index > top.index)) top = f;
+    if (!top) continue;
+    // the largest circle about the centre inside OSM's outline: its distance to the nearest edge
+    let radius = Infinity;
+    for (let i = 0; i < pts.length; i++) {
+      const [ax, az] = pts[i]; const [bx, bz] = pts[(i + 1) % pts.length];
+      const dx = bx - ax; const dz = bz - az;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz || 1)));
+      radius = Math.min(radius, Math.hypot(x - (ax + t * dx), z - (az + t * dz)));
+    }
+    out.push({ osmId: p.id, name: p.tags.name || null, x: +x.toFixed(2), z: +z.toFixed(2), y: +(top.y + floorH).toFixed(2), radius: +radius.toFixed(2), floor: top.id });
+  }
+  return out;
+}
+
+/**
  * Cut the lobe between the vertices nearest `from` and `to` (the shorter arc,
  * by vertex count) out of a ring. Returns the trimmed ring and the lobe as its
  * own ring, both sharing the two neck vertices.
@@ -307,4 +359,4 @@ function registerHospital(floorsPx, footprints, floorH, entrances = []) {
 
 const round = (v, dp = 2) => Math.round(v * 10 ** dp) / 10 ** dp;
 
-module.exports = { registerHospital, deriveBanks, snapToRing, clampInto, stairSpot, tierFor, FLOOR_ORDER, DOOR_STEP, placeEntrances, DOOR_CLEAR, cutLobe, CANOPIES };
+module.exports = { registerHospital, topFloorOver, helipadsOn, deriveBanks, snapToRing, clampInto, stairSpot, tierFor, FLOOR_ORDER, DOOR_STEP, placeEntrances, DOOR_CLEAR, cutLobe, CANOPIES };

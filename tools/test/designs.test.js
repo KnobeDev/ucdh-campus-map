@@ -26,7 +26,7 @@ test("designs: a footprint with no design is returned as it was", () => {
   assert.strictEqual(withDesign(f, "hospital"), f);
 });
 
-test("designs: the California Tower is a 14-storey slab and a 3-storey wing, both estimates", () => {
+test("designs: the California Tower is a 14-storey slab, an estimate, with no lower wing (owner, 2026-11-20)", () => {
   const d = DESIGNS["California Hospital Tower Construction"];
   assert.ok(d, "the design is keyed by the OSM way's name");
   assert.strictEqual(d.source, "estimated");
@@ -41,20 +41,17 @@ for (const file of BUILDS) {
     const f = b.footprints.find((x) => x.osmName === "California Hospital Tower Construction");
     assert.ok(f && f.design, "its footprint has a design");
     assert.strictEqual(f.geomSource, "osm", "the outline is still OpenStreetMap's");
-    const tower = f.design.parts.find((p) => p.role === "tower");
-    const wing = f.design.parts.find((p) => p.role === "wing");
-    assert.ok(tower && wing, "a tower and a wing");
+    // Only the slab: the owner (2026-11-20) had the lower wing along X Street dropped; that
+    // part of the site is still the fenced lot his photos show.
+    assert.deepStrictEqual(f.design.parts.map((p) => p.role), ["tower"]);
+    const [tower] = f.design.parts;
     assert.strictEqual(tower.floors, 14);
-    assert.strictEqual(wing.floors, 3);
-    assert.ok(tower.height > wing.height * 3, `the slab towers over the wing: ${tower.height} vs ${wing.height}`);
     assert.strictEqual(f.height, tower.height, "the footprint's height is the tower's, so the caution sign clears it");
     assert.strictEqual(f.heightSource, "estimated");
-    // The parts are the outline, cut once: together they cover it, and neither leaves it.
-    const sum = area(tower.ring) + area(wing.ring);
-    assert.ok(Math.abs(sum - area(f.ring)) < 1, `parts ${sum.toFixed(1)} m² = outline ${area(f.ring).toFixed(1)} m²`);
-    for (const p of [tower, wing]) assert.ok(contains(f.ring, centroid(p.ring)), `${p.role} lies in the outline`);
-    // The slab is the north arm along 45th Street; the wing runs along X Street to the south.
-    assert.ok(centroid(tower.ring)[1] < centroid(wing.ring)[1], "the tower is north of the wing");
+    // The slab is the outline's north arm along 45th Street, cut once from OSM's site outline.
+    assert.ok(contains(f.ring, centroid(tower.ring)), "the slab lies in the outline");
+    assert.ok(area(tower.ring) < area(f.ring) * 0.75, `only the north arm: ${area(tower.ring).toFixed(0)} of ${area(f.ring).toFixed(0)} m²`);
+    assert.ok(centroid(tower.ring)[1] < centroid(f.ring)[1], "north of the site's centre");
     assert.strictEqual(f.design.roof.helipads, 2);
     assert.ok(f.underConstruction, "still a building site: the fence and caution stay");
   });
@@ -102,21 +99,73 @@ test("designs: a building site says so, with its end date, and says when it is d
   assert.strictEqual(siteStatus({ underConstruction: { zoneId: "z", endDate: null } }), "under construction");
 });
 
+// A square with a quarter-circle bite out of its north-west corner (centre 0,0, radius 20),
+// like Shriners' curved entrance front, with a vertex 8 m along each straight edge past the curve.
+const bitten = () => {
+  const curve = [];
+  for (let deg = 90; deg >= 0; deg -= 15) curve.push([20 * Math.cos((deg * Math.PI) / 180), 20 * Math.sin((deg * Math.PI) / 180)]);
+  return [[28, 0], [60, 0], [60, 60], [0, 60], [0, 28], ...curve];
+};
+
+test("designs: a curved front is cut from the outline along an arc through two of its own vertices, parallel to its curved face", () => {
+  const { cutAlongArc } = require("../lib/designs");
+  const ring = bitten();
+  const { front, rest, arc } = cutAlongArc(ring, [28.3, 0.2], [0.1, 27.8]);
+  // the arc runs between the two OSM vertices, the ends exactly on them
+  assert.deepStrictEqual(arc[0], [0, 28]);
+  assert.deepStrictEqual(arc[arc.length - 1], [28, 0]);
+  for (const [x, z] of arc) assert.ok(Math.abs(Math.hypot(x, z) - 28) < 0.05, `on the circle 8 m behind the curved face: ${x},${z}`);
+  // the front is the band between the curved face and the arc; the rest is everything else
+  const band = (Math.PI / 4) * (28 * 28 - 20 * 20);
+  assert.ok(Math.abs(area(front) - band) < band * 0.02, `front ${area(front).toFixed(1)} m², a quarter ring of ${band.toFixed(1)} m²`);
+  assert.ok(Math.abs(area(front) + area(rest) - area(ring)) < 0.01, "together they are the outline");
+  const at = (r, deg) => [r * Math.cos((deg * Math.PI) / 180), r * Math.sin((deg * Math.PI) / 180)];
+  assert.ok(contains(front, at(24, 45)) && !contains(rest, at(24, 45)), "the band is the front");
+  assert.ok(contains(rest, at(32, 45)) && !contains(front, at(32, 45)), "behind the arc is the rest");
+  for (const v of ring.slice(5)) assert.ok(front.some((p) => p[0] === v[0] && p[1] === v[1]), `the curved face's vertex ${v} is the front's`);
+  for (const v of [[60, 0], [60, 60], [0, 60]]) assert.ok(rest.some((p) => p[0] === v[0] && p[1] === v[1]), `${v} stays with the rest`);
+});
+
+test("designs: an arc cut that is not through the outline's own vertices, or leaves the outline, is refused", () => {
+  const { cutAlongArc } = require("../lib/designs");
+  const ring = bitten();
+  assert.throws(() => cutAlongArc(ring, [34, 0], [0, 28]), /not on the outline/);
+  // through two outline vertices with no curved face between them: nothing to be parallel to
+  assert.throws(() => cutAlongArc(ring, [60, 0], [60, 60]), /curved face/);
+});
+
 for (const file of BUILDS) {
-  test(`designs (${file}): Shriners Hospital stands 8 storeys, its whole OSM outline, a finished building`, () => {
+  test(`designs (${file}): Shriners Hospital is 8 storeys behind a 2-storey curved front on the plaza, both cut from its OSM outline`, () => {
     const data = JSON.parse(fs.readFileSync(path.join(DIR, file), "utf8"));
     const b = data.buildings.find((x) => x.code === "SH");
     assert.ok(b, "the building is there");
     const f = b.footprints.find((x) => x.osmId === 307095185);
     assert.ok(f && f.design, "keyed by its OSM way: the way has no name");
-    assert.strictEqual(f.design.parts.length, 1, "one part: the outline is not cut");
-    const [main] = f.design.parts;
-    assert.deepStrictEqual(main.ring, f.ring, "the part is the outline itself");
+    const main = f.design.parts.find((p) => p.role === "main");
+    const front = f.design.parts.find((p) => p.role === "front");
+    assert.ok(main && front && f.design.parts.length === 2, `a main block and a front: ${f.design.parts.map((p) => p.role)}`);
     assert.strictEqual(main.floors, 8);
-    assert.strictEqual(main.facade, "punched");
-    assert.strictEqual(f.floors, 8);
+    assert.strictEqual(front.floors, 2);
+    assert.strictEqual(front.minHeight, 0, "the front stands on the ground");
+    assert.ok(front.height < 10 && main.height > 30, `${front.height} m front, ${main.height} m block`);
+    assert.strictEqual(main.facade, "banded");
+    assert.strictEqual(front.facade, "arcade");
+    // The parts are the outline, cut once: together they cover it.
+    const sum = area(main.ring) + area(front.ring);
+    assert.ok(Math.abs(sum - area(f.ring)) < 1, `parts ${sum.toFixed(1)} m² = outline ${area(f.ring).toFixed(1)} m²`);
+    // The front holds OSM's curved face (the quarter circle facing the plaza, vertices
+    // (-219.41,-142.91) to (-246.01,-116.79)) and the end vertices the cut runs through.
+    const has = (ring, v) => ring.some((p) => Math.abs(p[0] - v[0]) < 1e-6 && Math.abs(p[1] - v[1]) < 1e-6);
+    // The owner (2026-11-20): the front runs back to the outline's outer corners, about 11 m deep.
+    for (const v of [[-208.42, -143.06], [-212.14, -142.75], [-219.41, -142.91], [-226.84, -124.78], [-246.01, -116.79], [-245.4, -108.64], [-245.55, -105.11]]) assert.ok(has(front.ring, v), `front has OSM vertex ${v}`);
+    for (const v of [[-208.42, -143.06], [-245.55, -105.11], [-181.36, -78.98]]) assert.ok(has(main.ring, v), `main has OSM vertex ${v}`);
+    for (const v of [[-226.84, -124.78], [-212.14, -142.75], [-245.4, -108.64]]) assert.ok(!has(main.ring, v), `the front's vertex ${v} is not the block's`);
+    assert.ok(area(front.ring) > 500 && area(front.ring) < 750, `a band about 11 m deep along the curve: ${area(front.ring).toFixed(1)} m²`);
+    assert.strictEqual(f.floors, 8, "the building's storeys are its tallest part's");
     assert.ok(f.height > 30, `hospital storeys, not the 3.4 m default for an outside building: ${f.height}`);
     assert.strictEqual(f.heightSource, "estimated");
+    assert.match(f.design.note, /2-storey front/);
+    assert.match(f.design.note, /estimate/);
     assert.ok(!f.underConstruction, "a finished building: no fence, no caution");
     assert.strictEqual(b.cat, "external", "still shown as a building outside UC Davis Health");
   });
@@ -281,3 +330,154 @@ test("designs: a canopy's bulge must be a shallow arc on the open side, or the d
     delete DESIGNS[key];
   }
 });
+
+// Parking Structure 3, the Medical Center's main garage on Stockton Boulevard (OSM way 198423271).
+// The owner, 2026-11-20: "Recheck the Medical Center parking structure (night image) nearest
+// Stockton Blvd." Photos show open decks behind light horizontal bands, three solar canopies on
+// posts on the roof deck and stair/elevator towers at the corners; the outline is OSM's.
+const P3_WAY = 198423271;
+const footprintOf = (data, way) => {
+  for (const b of data.buildings) for (const f of b.footprints || []) if (f.osmId === way) return { b, f };
+  return {};
+};
+/** Do two convex rings overlap (separating axis test; touching counts as apart)? */
+const overlap = (a, b) => {
+  for (const ring of [a, b]) {
+    for (let i = 0; i < ring.length; i++) {
+      const [x1, z1] = ring[i]; const [x2, z2] = ring[(i + 1) % ring.length];
+      const n = [z1 - z2, x2 - x1];
+      const proj = (r) => r.map(([x, z]) => x * n[0] + z * n[1]);
+      const pa = proj(a); const pb = proj(b);
+      if (Math.max(...pa) <= Math.min(...pb) + 1e-6 || Math.max(...pb) <= Math.min(...pa) + 1e-6) return false;
+    }
+  }
+  return true;
+};
+/** Distance from a point to a ring's nearest edge. */
+const edgeDist = ([px, pz], ring) => {
+  let best = Infinity;
+  for (let i = 0; i < ring.length; i++) {
+    const [ax, az] = ring[i]; const [bx, bz] = ring[(i + 1) % ring.length];
+    const dx = bx - ax; const dz = bz - az;
+    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / (dx * dx + dz * dz || 1)));
+    best = Math.min(best, Math.hypot(ax + t * dx - px, az + t * dz - pz));
+  }
+  return best;
+};
+
+test("designs: a stair tower is a rectangle on a corner of the outline, along one of its walls, inside it", () => {
+  const { stairTower } = require("../lib/designs");
+  const ring = sq(0, 0, 80, 60);
+  const t = stairTower(ring, { corner: [0.4, 0.3], toward: [79.2, 0.5], size: [7, 6] });
+  assert.ok(Math.abs(area(t) - 42) < 1e-6, `7 m along the wall, 6 m in: ${area(t)}`);
+  assert.ok(t.some(([x, z]) => x === 0 && z === 0), "one corner is the outline's own vertex");
+  for (const p of t) assert.ok(p[0] >= -1e-9 && p[0] <= 7 + 1e-9 && p[1] >= -1e-9 && p[1] <= 6 + 1e-9, `inside the corner: ${p}`);
+  assert.throws(() => stairTower(ring, { corner: [5, 5], toward: [80, 0], size: [7, 6] }), /not on the outline/);
+  assert.throws(() => stairTower(ring, { corner: [0, 0], toward: [80, 60], size: [7, 6] }), /wall/, "the two vertices must be the ends of one wall");
+});
+
+test("designs: solar canopies are spread along the roof's longest wall, their long sides across it, inside the roof", () => {
+  const { solarLayout } = require("../lib/designs");
+  const ring = sq(0, 0, 100, 60); // the longest walls run east-west
+  const { panels } = solarLayout(ring, { count: 3, length: 26, width: 10, spacing: 18 });
+  assert.strictEqual(panels.length, 3);
+  const centres = panels.map((p) => centroid(p.ring));
+  for (const [x, z] of centres) assert.ok(Math.abs(z - 30) < 1e-6, `on the roof's middle line: ${x},${z}`);
+  assert.deepStrictEqual(centres.map(([x]) => +x.toFixed(6)), [32, 50, 68], "18 m apart along the longest wall");
+  for (const p of panels) {
+    const xs = p.ring.map(([x]) => x); const zs = p.ring.map(([, z]) => z);
+    assert.ok(Math.abs(Math.max(...xs) - Math.min(...xs) - 10) < 1e-6 && Math.abs(Math.max(...zs) - Math.min(...zs) - 26) < 1e-6, "10 m wide along the wall, 26 m long across it");
+    for (const c of p.ring) assert.ok(contains(ring, c) && edgeDist(c, ring) >= 1, `inside the roof's edge: ${c}`);
+    assert.ok(p.posts.length >= 2, "on posts");
+    for (const q of p.posts) assert.ok(contains(p.ring, q), `each post under its canopy: ${q}`);
+  }
+  assert.throws(() => solarLayout(sq(0, 0, 20, 20), { count: 3, length: 26, width: 10, spacing: 18 }), /fit/, "a roof too small for them is refused");
+});
+
+for (const file of BUILDS) {
+  test(`designs (${file}): Parking Structure 3 is 6 open decks under its roof deck, with stair towers and three solar canopies, on its OSM outline`, () => {
+    const data = JSON.parse(fs.readFileSync(path.join(DIR, file), "utf8"));
+    const { b, f } = footprintOf(data, P3_WAY);
+    assert.ok(b && f, "OSM way 198423271 is there");
+    assert.strictEqual(b.code, "P3");
+    assert.strictEqual(f.osmName, "Parking Structure 3");
+    assert.strictEqual(f.geomSource, "osm");
+    assert.ok(f.design, "it has a design");
+    const [main] = f.design.parts;
+    assert.strictEqual(f.design.parts.length, 1);
+    assert.deepStrictEqual(main.ring, f.ring, "the decks are the whole OSM outline");
+    assert.strictEqual(main.floors, 6);
+    assert.strictEqual(main.facade, "louvred");
+    assert.ok(main.storeyH >= 3 && main.storeyH <= 3.6, `parking-deck storeys: ${main.storeyH}`);
+    assert.strictEqual(f.floors, 6);
+    assert.strictEqual(f.height, main.height);
+    assert.strictEqual(f.heightSource, "estimated");
+    assert.strictEqual(main.plant, false, "no plant room on a parking deck");
+    assert.strictEqual(f.design.roof.helipads, 0);
+    const feats = f.design.features || [];
+    const stairs = feats.filter((x) => x.kind === "stair");
+    const solar = feats.find((x) => x.kind === "solar");
+    // Two stair/elevator towers, each on a corner of OSM's outline, rising above the roof deck.
+    assert.strictEqual(stairs.length, 2);
+    for (const s of stairs) {
+      assert.ok(s.ring.some(([x, z]) => f.ring.some(([vx, vz]) => vx === x && vz === z)), "a corner is one of OSM's vertices");
+      for (const p of s.ring) assert.ok(contains(f.ring, p) || edgeDist(p, f.ring) < 0.01, `inside the outline (or on its wall, to the centimetre): ${p}`);
+      assert.strictEqual(s.minHeight, main.height, "it stands on the roof deck");
+      assert.ok(s.height > main.height + 3 && s.height < main.height + 6, `about one storey above the deck: ${s.height}`);
+    }
+    // Three solar canopies on posts over the roof deck, inside it, clear of the towers.
+    assert.ok(solar, "the solar canopies");
+    assert.strictEqual(solar.panels.length, 3);
+    assert.strictEqual(solar.minHeight, main.height, "the posts stand on the roof deck");
+    assert.ok(solar.height > main.height + 3 && solar.height < main.height + 5.5, `cars park under them: ${solar.height}`);
+    for (const p of solar.panels) {
+      for (const c of p.ring) assert.ok(contains(f.ring, c) && edgeDist(c, f.ring) >= 1, `on the roof: ${c}`);
+      for (const s of stairs) assert.ok(!overlap(p.ring, s.ring), "clear of the stair towers");
+      for (const q of p.posts) assert.ok(contains(p.ring, q), "posts under the canopy");
+    }
+    for (let i = 0; i < 3; i++) for (let j = i + 1; j < 3; j++) assert.ok(!overlap(solar.panels[i].ring, solar.panels[j].ring), "three separate canopies");
+    // Spread along the outline's longest wall (its north side, OSM vertices (-293.63,-271.03) to (-351.09,-281.88)).
+    const [a, c] = [[-293.63, -271.03], [-351.09, -281.88]];
+    const u = [(c[0] - a[0]) / Math.hypot(c[0] - a[0], c[1] - a[1]), (c[1] - a[1]) / Math.hypot(c[0] - a[0], c[1] - a[1])];
+    const centres = solar.panels.map((p) => centroid(p.ring));
+    const across = centres.map(([x, z]) => x * -u[1] + z * u[0]);
+    assert.ok(Math.max(...across) - Math.min(...across) < 0.05, "the canopies stand in a row parallel to the north wall (to the centimetres they are rounded to)");
+    assert.ok(area(solar.panels[0].ring) > 150 && area(solar.panels[0].ring) < 400, `a canopy over a double row of stalls: ${area(solar.panels[0].ring).toFixed(0)} m²`);
+    assert.match(f.design.note, /estimate/i);
+    assert.match(f.design.note, /reference only/);
+    assert.ok(!f.underConstruction);
+  });
+}
+
+test("designs: Parking Structure 3 is the Medical Center garage nearest Stockton Boulevard", () => {
+  const data = JSON.parse(fs.readFileSync(path.join(DIR, "campus-data.json"), "utf8"));
+  const stockton = data.paths.filter((p) => p.name === "Stockton Boulevard");
+  assert.ok(stockton.length, "Stockton Boulevard is in the data");
+  const segDist = (p, a, b) => edgeDist(p, [a, b]);
+  const dist = (ring) => Math.min(...ring.flatMap((v) => stockton.flatMap((s) => s.pts.slice(1).map((q, i) => segDist(v, s.pts[i], q)))));
+  const garages = data.buildings.filter((b) => b.cat === "parking").flatMap((b) => (b.footprints || []).map((f) => ({ code: b.code, d: dist(f.ring) })));
+  garages.sort((x, y) => x.d - y.d);
+  assert.strictEqual(garages[0].code, "P3", JSON.stringify(garages.slice(0, 3)));
+  assert.ok(garages[0].d < 20, `right on the boulevard: ${garages[0].d.toFixed(1)} m`);
+});
+
+test("designs: an arc cut refuses a face that is not really curved (an L corner, a near-straight noisy edge)", () => {
+  const { cutAlongArc } = require("../lib/designs");
+  // a real L with an inner corner, cut from one end of the L's notch side to the other
+  const L = [[0, 0], [20, 0], [20, 20], [40, 20], [40, 40], [0, 40]];
+  assert.throws(() => cutAlongArc(L, [0, 0], [40, 20]), /curved face/);
+  // a near-straight edge with millimetre noise
+  const noisy = [[0, 0], [10, 0.01], [20, 0.015], [30, 0.01], [40, 0], [40, 30], [0, 30]];
+  assert.throws(() => cutAlongArc(noisy, [0, 0], [40, 0]), /curved face/);
+});
+
+for (const file of BUILDS) {
+  test(`designs (${file}): the California Tower's fence follows OpenStreetMap's site outline, so the whole lot is fenced`, () => {
+    const data = JSON.parse(fs.readFileSync(path.join(DIR, file), "utf8"));
+    const f = data.buildings.find((b) => b.name === "California Tower").footprints[0];
+    const zone = data.construction.find((z) => z.id === f.underConstruction.zoneId);
+    assert.deepStrictEqual(zone.ring, f.ring, "the fence is the OSM construction outline");
+    assert.strictEqual(zone.ringSource, `osm:${f.osmId}`);
+    assert.ok(Math.abs(zone.coversHeight - f.height) < 1e-9, "its sign still clears the tower");
+  });
+}

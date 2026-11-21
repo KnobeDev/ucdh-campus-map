@@ -63,9 +63,16 @@ test("site data: a place's saved share link is left out; its name makes the maps
 });
 
 test("site data: a hotspot nobody named is not a place, and is left out", () => {
-  assert.ok(FULL.buildings.some(isPlaceholder), "the full file has one today");
-  assert.ok(!SITE.buildings.some(isPlaceholder));
-  assert.ok(!JSON.stringify(SITE.buildings).includes("New hotspot"));
+  // The full file no longer carries one either (gen-3d-data.js drops X1, the California Tower
+  // site's, which was drawn as a lot under the Medical Center). Handed one, the site data still leaves it out.
+  assert.ok(!FULL.buildings.some(isPlaceholder), "the full file has none");
+  const placeholder = { code: "X1", name: "New hotspot", label: "X1", cat: "external", departments: [], center: { x: -69.8, z: -249.5 },
+    footprints: [{ osmId: null, geomSource: "traced", ring: [[-74.53, -342.06], [-8.84, -327.62], [-145.03, -174.14]], floors: 0, height: 0, heightSource: "curated" }] };
+  const handed = siteCampusData({ ...FULL, buildings: [...FULL.buildings, placeholder] });
+  for (const site of [SITE, handed]) {
+    assert.ok(!site.buildings.some(isPlaceholder));
+    assert.ok(!JSON.stringify(site.buildings).includes("New hotspot"));
+  }
 });
 
 test("site data: everything else is the full file's, untouched", () => {
