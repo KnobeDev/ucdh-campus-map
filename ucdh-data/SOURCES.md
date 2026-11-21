@@ -58,3 +58,23 @@ reader and adds the local ENU frame the 3D scene uses.
 
 Written by `tools/gen-3d-data.js` on every run: the full curated-building ↔ OSM
 footprint join, with scores and reasons. Read it after any regeneration.
+
+## `osm-extra.json` — OpenStreetMap buildings without a building tag
+
+| | |
+|---|---|
+| Retrieved | 2026-11-20 (date stored in the file) |
+| Endpoint | `https://api.openstreetmap.org/api/0.6/way/<id>/full.json` |
+| Ways | 796721511 (UC Davis MIND Institute, v6) |
+| Licence | © OpenStreetMap contributors, **ODbL**, credited like the main extract |
+
+Some buildings are mapped in OSM with only an amenity tag (here
+`amenity=research_institute`) and no `building=*`, so the main extract's
+`way["building"]` query never returns them, and the map could show them only
+as signposts. `tools/lib/osm.js` offers each way in this file as a building
+(marked `addedFrom: "osm-extra"`); a way that a later refresh of the main
+extract does return is taken from there instead.
+
+Refresh or add a way with **`node tools/fetch-osm-extra.js`** (the list and the
+reason for each way are in that script). It writes only when every way comes
+back whole, and records each way's version and edit time.

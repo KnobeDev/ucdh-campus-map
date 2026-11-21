@@ -1,14 +1,14 @@
 {
-  "generated": "2026-09-10T04:20:07.972Z",
+  "generated": "2026-11-21T04:44:01.619Z",
   "curatedVersion": "applied-2026-05-20T09:16:03Z",
   "summary": {
-    "curated": 71,
-    "joinable": 59,
-    "matched": 52,
+    "curated": 66,
+    "joinable": 57,
+    "matched": 53,
     "ambiguous": 0,
-    "unmatched": 5,
-    "absent": 12,
-    "pctOfJoinable": 88.1
+    "unmatched": 3,
+    "absent": 9,
+    "pctOfJoinable": 93
   },
   "results": [
     {
@@ -222,20 +222,20 @@
       "curatedArea": 7743.30849138596,
       "candidates": 6,
       "status": "matched",
-      "reason": "name",
+      "reason": "geometry",
       "match": {
         "osmId": 1381212787,
         "name": "California Hospital Tower Construction",
         "building": "construction",
         "levels": null,
         "area": 12515,
-        "nameScore": 0.552,
+        "nameScore": 0.547,
         "iou": 0.546,
         "dist": 20.8,
         "isArea": false
       },
       "annexes": [],
-      "evidence": "name",
+      "evidence": "geometry",
       "runnerUp": {
         "osmId": 405350091,
         "name": "UC Davis Pathology Building",
@@ -263,7 +263,7 @@
         "building": "hospital",
         "levels": null,
         "area": 1269,
-        "nameScore": 0.74,
+        "nameScore": 0.741,
         "iou": 0.653,
         "dist": 2.9,
         "isArea": false
@@ -365,7 +365,7 @@
         "building": "yes",
         "levels": null,
         "area": 1845,
-        "nameScore": 0.654,
+        "nameScore": 0.655,
         "iou": 0.63,
         "dist": 3.9,
         "isArea": false
@@ -399,7 +399,7 @@
         "building": "yes",
         "levels": null,
         "area": 6576,
-        "nameScore": 0.605,
+        "nameScore": 0.609,
         "iou": 0.774,
         "dist": 7.2,
         "isArea": false
@@ -412,7 +412,7 @@
         "building": "yes",
         "levels": null,
         "area": 7327,
-        "nameScore": 0.163,
+        "nameScore": 0.162,
         "iou": 0,
         "dist": 127.2,
         "isArea": false
@@ -433,7 +433,7 @@
         "building": "yes",
         "levels": null,
         "area": 7327,
-        "nameScore": 0.765,
+        "nameScore": 0.767,
         "iou": 0.68,
         "dist": 10.7,
         "isArea": false
@@ -446,7 +446,7 @@
         "building": "yes",
         "levels": null,
         "area": 6576,
-        "nameScore": 0.207,
+        "nameScore": 0.205,
         "iou": 0,
         "dist": 135.8,
         "isArea": false
@@ -501,7 +501,7 @@
         "building": "hospital",
         "levels": null,
         "area": 980,
-        "nameScore": 0.875,
+        "nameScore": 0.876,
         "iou": 0.511,
         "dist": 6.8,
         "isArea": false
@@ -514,7 +514,7 @@
         "building": "hospital",
         "levels": null,
         "area": 454,
-        "nameScore": 0.742,
+        "nameScore": 0.743,
         "iou": 0,
         "dist": 78,
         "isArea": false
@@ -535,7 +535,7 @@
         "building": "hospital",
         "levels": null,
         "area": 454,
-        "nameScore": 0.688,
+        "nameScore": 0.689,
         "iou": 0.537,
         "dist": 1.7,
         "isArea": false
@@ -650,7 +650,7 @@
         "building": "yes",
         "levels": null,
         "area": 536,
-        "nameScore": 0.274,
+        "nameScore": 0.271,
         "iou": 0,
         "dist": 49.3,
         "isArea": false
@@ -684,7 +684,7 @@
         "building": "yes",
         "levels": null,
         "area": 1307,
-        "nameScore": 0.682,
+        "nameScore": 0.686,
         "iou": 0,
         "dist": 74.5,
         "isArea": false
@@ -798,7 +798,7 @@
         "building": "yes",
         "levels": null,
         "area": 536,
-        "nameScore": 0.682,
+        "nameScore": 0.686,
         "iou": 0,
         "dist": 76.1,
         "isArea": false
@@ -876,7 +876,7 @@
         "building": "parking",
         "levels": null,
         "area": 5846,
-        "nameScore": 0.598,
+        "nameScore": 0.601,
         "iou": 0.866,
         "dist": 4.4,
         "isArea": false
@@ -1262,7 +1262,7 @@
         "building": "hospital",
         "levels": null,
         "area": 1383,
-        "nameScore": 0.878,
+        "nameScore": 0.879,
         "iou": 0.576,
         "dist": 6.9,
         "isArea": false
@@ -1296,7 +1296,7 @@
         "building": "yes",
         "levels": 3,
         "area": 1049,
-        "nameScore": 0.261,
+        "nameScore": 0.259,
         "iou": 0.604,
         "dist": 5.7,
         "isArea": false
@@ -1414,7 +1414,7 @@
           "building": "yes",
           "levels": 3,
           "area": 1049,
-          "nameScore": 0.261,
+          "nameScore": 0.259,
           "iou": 0.604,
           "dist": 5.7,
           "isArea": false,
@@ -1490,7 +1490,7 @@
         "building": "yes",
         "levels": 3,
         "area": 1046,
-        "nameScore": 0.261,
+        "nameScore": 0.259,
         "iou": 0.622,
         "dist": 4.8,
         "isArea": false
@@ -1503,7 +1503,7 @@
         "building": "yes",
         "levels": 3,
         "area": 1049,
-        "nameScore": 0.847,
+        "nameScore": 0.848,
         "iou": 0,
         "dist": 42.2,
         "isArea": false
@@ -1515,7 +1515,7 @@
           "building": "yes",
           "levels": 3,
           "area": 1049,
-          "nameScore": 0.847,
+          "nameScore": 0.848,
           "iou": 0,
           "dist": 42.2,
           "isArea": false,
@@ -1580,7 +1580,7 @@
           "building": "yes",
           "levels": 3,
           "area": 1046,
-          "nameScore": 0.261,
+          "nameScore": 0.259,
           "iou": 0.622,
           "dist": 4.8,
           "isArea": false,
@@ -1684,7 +1684,7 @@
         "building": "yes",
         "levels": 3,
         "area": 1334,
-        "nameScore": 0.854,
+        "nameScore": 0.856,
         "iou": 0.552,
         "dist": 11.5,
         "isArea": false
@@ -1697,7 +1697,7 @@
         "building": "yes",
         "levels": 3,
         "area": 1049,
-        "nameScore": 0.257,
+        "nameScore": 0.255,
         "iou": 0,
         "dist": 37.3,
         "isArea": false
@@ -1820,7 +1820,7 @@
         "building": "parking",
         "levels": null,
         "area": 6469,
-        "nameScore": 0.748,
+        "nameScore": 0.749,
         "iou": 0.725,
         "dist": 8.3,
         "isArea": false
@@ -1854,7 +1854,7 @@
         "building": "hospital",
         "levels": null,
         "area": 3046,
-        "nameScore": 0.494,
+        "nameScore": 0.495,
         "iou": 0.593,
         "dist": 7.4,
         "isArea": false
@@ -2081,7 +2081,7 @@
         "building": "yes",
         "levels": null,
         "area": 7724,
-        "nameScore": 0.419,
+        "nameScore": 0.417,
         "iou": 0.781,
         "dist": 9.2,
         "isArea": false
@@ -2106,12 +2106,23 @@
       "name": "MIND Institute",
       "cat": "clinic",
       "curatedArea": 5315.922934998991,
-      "candidates": 1,
-      "status": "absent",
-      "reason": "not mapped in OpenStreetMap (nearest footprint 133 m away)",
-      "match": null,
+      "candidates": 2,
+      "status": "matched",
+      "reason": "name",
+      "match": {
+        "osmId": 796721511,
+        "name": "University of California, Davis MIND Institute",
+        "building": "yes",
+        "levels": null,
+        "area": 3845,
+        "nameScore": 0.586,
+        "iou": 0.514,
+        "dist": 11.6,
+        "isArea": false
+      },
       "annexes": [],
-      "nearest": {
+      "evidence": "name",
+      "runnerUp": {
         "osmId": 1256340923,
         "name": "Kiwanis Family House",
         "building": "yes",
@@ -2122,27 +2133,27 @@
         "dist": 133,
         "isArea": false
       },
-      "runnerUp": null
+      "nearest": null
     },
     {
       "code": "ML",
       "name": "MIND Lab",
       "cat": "admin",
       "curatedArea": 1378.4814237345927,
-      "candidates": 1,
+      "candidates": 2,
       "status": "absent",
-      "reason": "not mapped in OpenStreetMap (nearest footprint 139 m away)",
+      "reason": "not mapped in OpenStreetMap (nearest footprint 97 m away)",
       "match": null,
       "annexes": [],
       "nearest": {
-        "osmId": 793116532,
-        "name": null,
+        "osmId": 796721511,
+        "name": "University of California, Davis MIND Institute",
         "building": "yes",
         "levels": null,
-        "area": 114,
-        "nameScore": 0,
+        "area": 3845,
+        "nameScore": 0.298,
         "iou": 0,
-        "dist": 139.2,
+        "dist": 97,
         "isArea": false
       },
       "runnerUp": null
@@ -2152,7 +2163,7 @@
       "name": "Parking 7 (staff only)",
       "cat": "parking",
       "curatedArea": 8641.974103775428,
-      "candidates": 3,
+      "candidates": 4,
       "status": "matched",
       "reason": "geometry",
       "match": {
@@ -2232,7 +2243,7 @@
       "name": "Kiwanis Family House",
       "cat": "external",
       "curatedArea": 1761.3677236843796,
-      "candidates": 1,
+      "candidates": 2,
       "status": "matched",
       "reason": "name",
       "match": {
@@ -2248,7 +2259,17 @@
       },
       "annexes": [],
       "evidence": "name",
-      "runnerUp": null,
+      "runnerUp": {
+        "osmId": 796721511,
+        "name": "University of California, Davis MIND Institute",
+        "building": "yes",
+        "levels": null,
+        "area": 3845,
+        "nameScore": 0,
+        "iou": 0,
+        "dist": 120,
+        "isArea": false
+      },
       "nearest": null
     },
     {
@@ -2381,7 +2402,7 @@
         "building": "yes",
         "levels": null,
         "area": 5253,
-        "nameScore": 0.74,
+        "nameScore": 0.741,
         "iou": 0,
         "dist": 77.6,
         "isArea": false
@@ -2444,121 +2465,6 @@
         "nameScore": 0,
         "iou": 0.742,
         "dist": 16.5,
-        "isArea": false
-      },
-      "runnerUp": null
-    },
-    {
-      "code": "X3",
-      "name": "New hotspot",
-      "cat": "external",
-      "curatedArea": 2068.074734785112,
-      "candidates": 8,
-      "status": "absent",
-      "reason": "not mapped in OpenStreetMap (nearest footprint 128 m away)",
-      "match": null,
-      "annexes": [],
-      "nearest": {
-        "osmId": 242787548,
-        "name": "Administrative Support Building",
-        "building": "office",
-        "levels": null,
-        "area": 3440,
-        "nameScore": 0,
-        "iou": 0,
-        "dist": 128.5,
-        "isArea": false
-      },
-      "runnerUp": null
-    },
-    {
-      "code": "X2",
-      "name": "New hotspot",
-      "cat": "external",
-      "curatedArea": 3645.5721680661936,
-      "candidates": 6,
-      "status": "unmatched",
-      "reason": "best candidate too weak (name 0.00, IoU 0.04, 16 m)",
-      "match": null,
-      "annexes": [],
-      "nearest": {
-        "osmId": 791942008,
-        "name": "UC Davis Imaging Research Center",
-        "building": "hospital",
-        "levels": null,
-        "area": 1383,
-        "nameScore": 0,
-        "iou": 0.041,
-        "dist": 16.3,
-        "isArea": false
-      },
-      "runnerUp": null
-    },
-    {
-      "code": "X4",
-      "name": "New hotspot",
-      "cat": "external",
-      "curatedArea": 11191.794867773422,
-      "candidates": 4,
-      "status": "contested",
-      "reason": "best footprint went to P5",
-      "match": null,
-      "annexes": [],
-      "nearest": {
-        "osmId": 1288445847,
-        "name": "Parking Structure 5",
-        "building": "yes",
-        "levels": null,
-        "area": 6576,
-        "nameScore": 0,
-        "iou": 0.546,
-        "dist": 21.7,
-        "isArea": false
-      },
-      "runnerUp": null
-    },
-    {
-      "code": "X5",
-      "name": "New hotspot",
-      "cat": "external",
-      "curatedArea": 1285.284604053686,
-      "candidates": 6,
-      "status": "absent",
-      "reason": "not mapped in OpenStreetMap (nearest footprint 104 m away)",
-      "match": null,
-      "annexes": [],
-      "nearest": {
-        "osmId": 242787646,
-        "name": "48 X Complex",
-        "building": "yes",
-        "levels": null,
-        "area": 7551,
-        "nameScore": 0.405,
-        "iou": 0,
-        "dist": 104.2,
-        "isArea": false
-      },
-      "runnerUp": null
-    },
-    {
-      "code": "X6",
-      "name": "New hotspot",
-      "cat": "external",
-      "curatedArea": 5360.7349987323505,
-      "candidates": 4,
-      "status": "unmatched",
-      "reason": "best candidate too weak (name 0.00, IoU 0.08, 36 m)",
-      "match": null,
-      "annexes": [],
-      "nearest": {
-        "osmId": 25397831,
-        "name": "Lawrence J. Ellison Ambulatory Care Center",
-        "building": "commercial",
-        "levels": null,
-        "area": 8756,
-        "nameScore": 0,
-        "iou": 0.076,
-        "dist": 36.3,
         "isArea": false
       },
       "runnerUp": null

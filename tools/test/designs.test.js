@@ -127,3 +127,34 @@ test("designs: an OSM name that is also a built-in property name finds no design
   assert.strictEqual(withDesign(f, 4.2), f);
   assert.strictEqual(withDesign({ ...f, osmName: "toString" }, 4.2).design, undefined);
 });
+
+for (const file of BUILDS) {
+  test(`designs (${file}): the MIND Institute is 2 storeys of stone with a taller round tower at its entrance`, () => {
+    const data = JSON.parse(fs.readFileSync(path.join(DIR, file), "utf8"));
+    const b = data.buildings.find((x) => x.code === "V2");
+    const f = b.footprints.find((x) => x.osmId === 796721511);
+    assert.ok(f && f.design, "keyed by its OSM way");
+    const [main] = f.design.parts;
+    assert.strictEqual(f.design.parts.length, 1);
+    assert.strictEqual(main.floors, 2);
+    assert.strictEqual(main.facade, "stone");
+    assert.deepStrictEqual(main.ring, f.ring);
+    const drum = (f.design.features || []).find((x) => x.kind === "drum");
+    assert.ok(drum, "the rotunda");
+    assert.ok(drum.height > main.height, `it rises above the wings: ${drum.height} vs ${main.height}`);
+    assert.ok(drum.radius >= 5 && drum.radius <= 10, `a believable rotunda: r ${drum.radius}`);
+    // it stands at the building, its centre on or inside the outline's edge
+    const near = f.ring.some(([x, z]) => Math.hypot(x - drum.x, z - drum.z) < drum.radius + 2) || contains(f.ring, [drum.x, drum.z]);
+    assert.ok(near, `the rotunda belongs to the building: ${drum.x},${drum.z}`);
+    assert.strictEqual(f.heightSource, "estimated");
+  });
+}
+
+test("designs: a round tower's collision ring is a closed polygon on its circle", async () => {
+  const { drumRing, inRing } = await core();
+  const ring = drumRing({ x: 10, z: -5, radius: 7 }, 24);
+  assert.strictEqual(ring.length, 24);
+  for (const [x, z] of ring) assert.ok(Math.abs(Math.hypot(x - 10, z + 5) - 7) < 1e-9, "every corner on the circle");
+  assert.ok(inRing([10, -5], ring) && inRing([16.5, -5], ring), "its centre and near its rim are inside");
+  assert.ok(!inRing([17.5, -5], ring), "outside the rim is not");
+});

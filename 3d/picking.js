@@ -3,9 +3,9 @@
 // meets a pickable mesh; the hit point is resolved to a building through the
 // spatial index. Click fires on pointer-UP and a drag is not a click (SC 2.5.2).
 import * as THREE from "./lib/three.module.js";
-import { footprintAt } from "./buildings.js?v=9";
+import { footprintAt } from "./buildings.js?v=10";
 import { nearestOnRing, directionLabel, metresWord, placeAhead } from "./spatial-core.js?v=2";
-import { siteStatus } from "./design-core.js?v=1";
+import { siteStatus } from "./design-core.js?v=2";
 
 const DRAG_TOLERANCE = 6; // px
 

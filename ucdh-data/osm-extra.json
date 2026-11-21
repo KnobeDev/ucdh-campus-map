@@ -1,0 +1,141 @@
+{
+ "retrieved": "2026-11-20",
+ "source": "https://api.openstreetmap.org/api/0.6/way/<id>/full.json",
+ "licence": "© OpenStreetMap contributors, ODbL",
+ "elements": [
+  {
+   "type": "way",
+   "id": 796721511,
+   "version": 6,
+   "timestamp": "2025-11-09T11:42:09Z",
+   "tags": {
+    "addr:city": "Sacramento",
+    "addr:country": "US",
+    "addr:county": "Sacramento",
+    "addr:housenumber": "2825",
+    "addr:postcode": "95817",
+    "addr:state": "CA",
+    "addr:street": "50th Street",
+    "amenity": "research_institute",
+    "contact:phone": "+1-916-703-0280",
+    "contact:website": "https://health.ucdavis.edu/mindinstitute/",
+    "name": "University of California, Davis MIND Institute"
+   },
+   "why": "The MIND Institute (2825 50th Street) is mapped as amenity=research_institute with no building=* tag, so the main extract's building query misses it and the map could only show a signpost.",
+   "geometry": [
+    {
+     "lat": 38.5501403,
+     "lon": -121.4457966
+    },
+    {
+     "lat": 38.5501378,
+     "lon": -121.4461535
+    },
+    {
+     "lat": 38.5498689,
+     "lon": -121.4461504
+    },
+    {
+     "lat": 38.5498671,
+     "lon": -121.4464048
+    },
+    {
+     "lat": 38.550087,
+     "lon": -121.4464074
+    },
+    {
+     "lat": 38.550085,
+     "lon": -121.4466839
+    },
+    {
+     "lat": 38.5498188,
+     "lon": -121.4466807
+    },
+    {
+     "lat": 38.5498191,
+     "lon": -121.4466282
+    },
+    {
+     "lat": 38.5497709,
+     "lon": -121.4466276
+    },
+    {
+     "lat": 38.5497341,
+     "lon": -121.4465919
+    },
+    {
+     "lat": 38.549727,
+     "lon": -121.446575
+    },
+    {
+     "lat": 38.5497004,
+     "lon": -121.4465764
+    },
+    {
+     "lat": 38.5496988,
+     "lon": -121.4465227
+    },
+    {
+     "lat": 38.5497244,
+     "lon": -121.4465214
+    },
+    {
+     "lat": 38.549734,
+     "lon": -121.4464889
+    },
+    {
+     "lat": 38.5497344,
+     "lon": -121.4463564
+    },
+    {
+     "lat": 38.549754,
+     "lon": -121.4463565
+    },
+    {
+     "lat": 38.5497542,
+     "lon": -121.4462947
+    },
+    {
+     "lat": 38.5494223,
+     "lon": -121.446293
+    },
+    {
+     "lat": 38.5494236,
+     "lon": -121.4458638
+    },
+    {
+     "lat": 38.5495853,
+     "lon": -121.4458646
+    },
+    {
+     "lat": 38.5495855,
+     "lon": -121.4458308
+    },
+    {
+     "lat": 38.549593,
+     "lon": -121.4458308
+    },
+    {
+     "lat": 38.5496302,
+     "lon": -121.4458311
+    },
+    {
+     "lat": 38.5496301,
+     "lon": -121.4458575
+    },
+    {
+     "lat": 38.549854,
+     "lon": -121.4458598
+    },
+    {
+     "lat": 38.5498544,
+     "lon": -121.4457933
+    },
+    {
+     "lat": 38.5501403,
+     "lon": -121.4457966
+    }
+   ]
+  }
+ ]
+}

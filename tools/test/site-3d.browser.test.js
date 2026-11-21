@@ -306,4 +306,54 @@ test("the 3D page in a browser", { skip: !PLAYWRIGHT && "set PLAYWRIGHT_MODULE t
     assert.deepStrictEqual(errors, []);
     await page.close();
   });
+
+  await t.test("the MIND Institute: on its OSM outline, 2 storeys with a taller round tower, identified by name", async () => {
+    const { page, errors } = await open({ site: false });
+    await enter(page);
+    const seen = await page.evaluate(() => {
+      const { world, player } = window.__ucd3d;
+      const tops = {};
+      world.scene.traverse((o) => {
+        if (o.userData && typeof o.userData.design === "string" && o.userData.design.startsWith("MIND Institute")) {
+          o.geometry.computeBoundingBox();
+          tops[o.userData.design] = o.geometry.boundingBox.max.y;
+        }
+      });
+      // south of the building, facing north at its long south front
+      player.leaveBuilding();
+      player.teleport(588, 305);
+      player.object.rotation.y = 0;
+      player.object.children[0].rotation.x = 0;
+      return { tops };
+    });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    Object.assign(seen, await page.evaluate(() => {
+      window.__ucd3d.picking.identifyAhead();
+      return { title: document.getElementById("info-title").textContent, meta: document.getElementById("info-meta").textContent };
+    }));
+    assert.ok(seen.tops["MIND Institute · main"] > 8 && seen.tops["MIND Institute · main"] < 10, JSON.stringify(seen));
+    assert.ok(seen.tops["MIND Institute · rotunda"] > seen.tops["MIND Institute · main"], "the round tower rises above the wings");
+    assert.strictEqual(seen.title, "MIND Institute", JSON.stringify(seen));
+    assert.match(seen.meta, /2 floors \(estimated\)/);
+    // the round tower where it stands outside OSM's outline: identify names it, and it is solid
+    await page.evaluate(() => {
+      const { player } = window.__ucd3d;
+      player.teleport(530, 262); // south-west of the tower, facing it
+      player.object.rotation.y = Math.atan2(-16.5, 18.5);
+    });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    const drum = await page.evaluate(() => {
+      const { picking, player } = window.__ucd3d;
+      picking.identifyAhead();
+      const title = document.getElementById("info-title").textContent;
+      // walk straight at the tower's west side (it sticks out past the outline there)
+      player.teleport(530, 243.5);
+      for (let k = 0; k < 200; k++) player.nudgeTo(player.object.position.x + 0.1, 243.5);
+      return { title, stoppedAt: player.object.position.x };
+    });
+    assert.strictEqual(drum.title, "MIND Institute", JSON.stringify(drum));
+    assert.ok(drum.stoppedAt < 539.6, `the tower's wall stops the walker (rim at x 539.5): ${drum.stoppedAt}`);
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
 });

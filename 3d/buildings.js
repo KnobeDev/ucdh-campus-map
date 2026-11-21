@@ -13,7 +13,8 @@
 // add a BoxGeometry (uv layout differs) to either.
 import * as THREE from "./lib/three.module.js";
 import { flatPatch, extrudedRing, mergeBuckets } from "./geometry.js?v=7";
-import { buildDesigned } from "./designed.js?v=2";
+import { buildDesigned } from "./designed.js?v=3";
+import { drumRing } from "./design-core.js?v=2";
 
 const CELL = 60; // metres, spatial hash cell
 const FLAT_Y = 0.05; // ground patches: above lawn (0.03), below walkways (0.07)
@@ -85,6 +86,14 @@ export function buildBuildings(world, buildings, context) {
         index.entries.push(entry);
         registerInIndex(index, entry);
         designed.push(entry);
+        // A round tower may stand past OSM's outline: it collides and answers to the building's name too.
+        for (const feature of f.design.features || []) {
+          if (feature.kind !== "drum") continue;
+          const ring = drumRing(feature);
+          const drum = { building: b, footprint: f, ring, bbox: bboxOf(ring), solid: true };
+          index.entries.push(drum);
+          registerInIndex(index, drum);
+        }
         continue;
       }
       // A building site: its planned mass as a translucent ghost so the caution

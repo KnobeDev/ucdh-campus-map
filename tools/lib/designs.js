@@ -13,7 +13,10 @@
 //
 // A design is keyed by the OSM way's name, or by "osm:<way id>" for a way with
 // no name. Facades: "fins" (white fins over glass), "ribbon" (a window band per
-// storey), "punched" (a grid of windows in stone with a band at each floor).
+// storey), "punched" (a grid of windows in stone with a band at each floor),
+// "stone" (sandstone coursing with tall windows). A design may add features
+// that OSM does not map, such as a round tower ("drum"); their places are
+// estimates, said so in the note.
 //
 // The pictures are reference only. Nothing from them ships: no image, texture,
 // colour sample or traced line. The 3D app draws the facade from plain shapes.
@@ -34,6 +37,19 @@ const DESIGNS = {
     roof: { helipads: 2 },
     source: "estimated",
     note: "Storeys, the tower/wing split and the two rooftop helipads are read from UC Davis Health's published renderings and photos of the finished tower (reference only: nothing from them is used in the map). The outline is OpenStreetMap's construction site.",
+  },
+  // UC Davis MIND Institute, 2825 50th Street, OSM way 796721511 (amenity=research_institute,
+  // no building tag: ucdh-data/osm-extra.json brings it in).
+  "osm:796721511": {
+    name: "MIND Institute",
+    floorH: 4.6, // tall clinic and research storeys
+    whole: { floors: 2, facade: "stone", plant: false },
+    // The round sandstone tower at the entrance, one storey above the wings, on
+    // the outline's rounded south-west corner beside the drop-off loop.
+    features: [{ kind: "drum", x: 546.5, z: 243.5, radius: 7, floors: 3 }],
+    roof: { helipads: 0 },
+    source: "estimated",
+    note: "Storeys, the look of the walls and the round entrance tower are read from photos of the building (reference only: nothing from them is used in the map). The tower's place is estimated from the outline's rounded corner; OSM does not map it. The outline is OpenStreetMap's.",
   },
   // Shriners Children's Northern California, OSM way 307095185 (building=hospital, no name, no levels).
   "osm:307095185": {
@@ -117,7 +133,14 @@ function withDesign(f, floorH) {
     floors: parts[0].floors,
     height: parts[0].height,
     heightSource: d.source,
-    design: { name: d.name, parts, roof: { ...d.roof }, source: d.source, note: d.note },
+    design: {
+      name: d.name,
+      parts,
+      ...(d.features ? { features: d.features.map((x) => ({ ...x, height: +(x.floors * h).toFixed(2) })) } : {}),
+      roof: { ...d.roof },
+      source: d.source,
+      note: d.note,
+    },
   };
 }
 

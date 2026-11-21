@@ -11,6 +11,9 @@ const { osmGeomToEnu } = require("./georef");
 const { centroid, area, openRing, cleanRing } = require("./geom");
 
 const EXTRACT = path.join(__dirname, "..", "..", "ucdh-data", "osm-sac.json");
+// Buildings OSM maps without a building=* tag, so the extract's query misses them
+// (tools/fetch-osm-extra.js says which, and why). Offered as buildings, marked.
+const EXTRA = path.join(__dirname, "..", "..", "ucdh-data", "osm-extra.json");
 
 // highway -> how the 3D world should treat it.
 const WAY_KINDS = {
@@ -38,6 +41,16 @@ function widthOf(tags, fallback) {
 
 function loadOsm() {
   const raw = JSON.parse(fs.readFileSync(EXTRACT, "utf8"));
+  const extra = fs.existsSync(EXTRA) ? JSON.parse(fs.readFileSync(EXTRA, "utf8")).elements : [];
+  // Once only: if a refresh of the main extract brings the way in AS A BUILDING, that
+  // copy wins; as anything else (a landuse, say) the extra copy is still the building.
+  const buildingsInExtract = new Set(raw.elements.filter((e) => e.type === "way" && e.tags && e.tags.building).map((e) => e.id));
+  const added = new Set();
+  for (const e of extra) {
+    if (buildingsInExtract.has(e.id) || added.has(e.id)) continue;
+    added.add(e.id);
+    raw.elements.push({ ...e, tags: { building: "yes", ...e.tags }, addedFrom: "osm-extra" });
+  }
   const buildings = [];
   const ways = [];
   const areas = [];
@@ -70,6 +83,7 @@ function loadOsm() {
         operator: tags.operator || null,
         amenity: tags.amenity || null,
         tags,
+        ...(el.addedFrom ? { addedFrom: el.addedFrom } : {}),
         ring,
         center: centroid(ring),
         area: area(ring),

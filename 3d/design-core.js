@@ -82,3 +82,16 @@ export function roofLayout(ring, { helipads = 2, radius = 7 } = {}) {
   }
   return { helipads: spots, plant: { x: cx, z: cz, along: [ax, az] } };
 }
+
+/**
+ * A round tower's outline for collision and picking: `n` corners on its circle.
+ * The tower may stand partly outside OSM's outline, so it needs its own entry.
+ */
+export function drumRing({ x, z, radius }, n = 24) {
+  const ring = [];
+  for (let k = 0; k < n; k++) {
+    const a = (2 * Math.PI * k) / n;
+    ring.push([x + radius * Math.cos(a), z + radius * Math.sin(a)]);
+  }
+  return ring;
+}
