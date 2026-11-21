@@ -13,7 +13,7 @@
 // add a BoxGeometry (uv layout differs) to either.
 import * as THREE from "./lib/three.module.js";
 import { flatPatch, extrudedRing, mergeBuckets } from "./geometry.js?v=7";
-import { buildDesigned } from "./designed.js?v=4";
+import { buildDesigned } from "./designed.js?v=5";
 import { drumRing } from "./design-core.js?v=2";
 
 const CELL = 60; // metres, spatial hash cell

@@ -13,7 +13,7 @@ import { mergeGeometries } from "./lib/BufferGeometryUtils.js";
 import { flatPatch } from "./geometry.js?v=7";
 import { labelSprite } from "./labels.js?v=6";
 import { isZoneActive } from "./route-core.js?v=2";
-import { pointInPolygon } from "./buildings.js?v=11";
+import { pointInPolygon } from "./buildings.js?v=12";
 import { cautionText, labelHeightFor, labelAnchors, signHeightAt, signHeightCap } from "./caution-core.js?v=1";
 import { hazardMaterial, cautionSprite } from "./caution.js?v=1";
 

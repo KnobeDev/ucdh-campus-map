@@ -15,12 +15,14 @@
 // no name. Facades: "fins" (white fins over glass), "ribbon" (a window band per
 // storey), "punched" (a grid of windows in stone with a band at each floor),
 // "stone" (sandstone coursing with tall windows), "brick" (red brick with tall
-// windows), "glass" (a blue glass curtain wall), "garage" (open parking decks).
+// windows), "glass" (a blue glass curtain wall), "garage" (open parking decks),
+// "ledge" (stacked stone in uneven bands), "panel" (white metal panels, slot windows).
 // A whole design may stand on a `base` of other walls (brick under glass): the
 // base is its own part, and the main part starts at the base's top (minHeight).
 // A design may add features
-// that OSM does not map, such as a round tower ("drum"); their places are
-// estimates, said so in the note.
+// that OSM does not map, such as a round tower ("drum", centre and radius) or
+// a canopy over a courtyard ("canopy", corners snapped to the outline's own
+// vertices); their places are estimates, said so in the note.
 //
 // The pictures are reference only. Nothing from them ships: no image, texture,
 // colour sample or traced line. The 3D app draws the facade from plain shapes.
@@ -91,6 +93,23 @@ const DESIGNS = {
     source: "estimated",
     note: "Decks and the open concrete walls are read from photos of the garage (reference only; its mural is art and is not copied). The outline is OpenStreetMap's.",
   },
+  // Betty Irene Moore Hall (School of Nursing), 2570 48th Street, OSM way 522792282:
+  // OSM gives building:levels=2, so the storey count is OSM's and only its height is estimated.
+  "osm:522792282": {
+    name: "Betty Irene Moore Hall",
+    floorH: 5.0, // tall teaching storeys
+    base: { floors: 1, facade: "ledge" },
+    whole: { floors: 2, facade: "panel", plant: false },
+    // The entrance canopy: a perforated metal roof on slim posts over the courtyard in
+    // the outline's north-west notch (its inner corners are the outline's own vertices),
+    // reaching out past the building line in a curved edge over the plaza, posts along
+    // that edge (owner, 2026-11-20: the notch-only version was wrong). OSM does not map
+    // it: the 8 m reach is estimated from photos.
+    features: [{ kind: "canopy", corners: [[116.77, -10.03], [156.93, -9.1], [156.93, -25.8], [134.05, -32.75]], bulge: 8, height: 7.5 }],
+    roof: { helipads: 0 },
+    source: "OpenStreetMap",
+    note: "Storeys are OSM's (building:levels=2); their 5 m height, the stacked-stone base under white metal panels and the entrance canopy over the north-west courtyard are read from photos of the building (reference only: nothing from them is used in the map). The outline is OpenStreetMap's.",
+  },
   // Shriners Children's Northern California, OSM way 307095185 (building=hospital, no name, no levels).
   "osm:307095185": {
     name: "Shriners Hospital",
@@ -136,6 +155,57 @@ function splitRing(ring, zLine) {
 }
 
 const nearestVertex = (ring, [x, z]) => ring.reduce((best, p) => (Math.hypot(p[0] - x, p[1] - z) < Math.hypot(best[0] - x, best[1] - z) ? p : best), ring[0]);
+
+/**
+ * A circular arc from `a` to `b` whose middle stands `sagitta` metres off the chord,
+ * on the side away from the points in `away` (its ends included).
+ */
+function bowedEdge(a, b, sagitta, away, steps = 12) {
+  const [ax, az] = a; const [bx, bz] = b;
+  const cx = (ax + bx) / 2; const cz = (az + bz) / 2;
+  const half = Math.hypot(bx - ax, bz - az) / 2;
+  // A shallow arc only (less than a half circle): the sweep below goes the short way round.
+  if (!(sagitta > 0 && sagitta < half)) throw new Error(`canopy bulge ${sagitta} m must be more than 0 and less than half its edge (${half.toFixed(2)} m)`);
+  let nx = -(bz - az) / (2 * half); let nz = (bx - ax) / (2 * half);
+  const mean = away.reduce((m, p) => [m[0] + p[0] / away.length, m[1] + p[1] / away.length], [0, 0]);
+  if ((mean[0] - cx) * nx + (mean[1] - cz) * nz > 0) { nx = -nx; nz = -nz; }
+  const R = (half * half + sagitta * sagitta) / (2 * sagitta);
+  const ox = cx - nx * (R - sagitta); const oz = cz - nz * (R - sagitta); // the circle's centre
+  const t0 = Math.atan2(az - oz, ax - ox); let t1 = Math.atan2(bz - oz, bx - ox);
+  // go the short way round, through the bulge
+  let d = t1 - t0;
+  while (d > Math.PI) d -= 2 * Math.PI;
+  while (d < -Math.PI) d += 2 * Math.PI;
+  const pts = [];
+  for (let k = 0; k <= steps; k++) { const t = t0 + (d * k) / steps; pts.push([ox + R * Math.cos(t), oz + R * Math.sin(t)]); }
+  pts[0] = [ax, az]; pts[steps] = [bx, bz];
+  return pts;
+}
+
+/**
+ * A design feature as the app draws it. A drum's height comes from its storeys;
+ * a canopy's corners snap to the outline's own vertices (within 2 m), so it is
+ * placed by OSM's geometry, not by a picture.
+ */
+function featureOf(x, ring, h) {
+  if (x.kind === "canopy") {
+    const { corners, ...rest } = x;
+    const snapped = corners.map((c) => {
+      const v = nearestVertex(ring, c);
+      if (Math.hypot(v[0] - c[0], v[1] - c[1]) > 2) throw new Error(`canopy corner ${c} is not on the outline`);
+      return [v[0], v[1]];
+    });
+    const distinct = new Set(snapped.map(([x, z]) => `${x},${z}`));
+    if (distinct.size !== snapped.length || snapped.length < 3) throw new Error(`canopy corners ${JSON.stringify(corners)} do not make a shape on the outline`);
+    if (!x.bulge) return { ...rest, ring: snapped };
+    // The closing edge (last corner back to the first) bows out by `bulge` metres, on the
+    // side away from the other corners: the canopy's open, curved front.
+    const outer = bowedEdge(snapped[snapped.length - 1], snapped[0], x.bulge, snapped.slice(1, -1));
+    const { bulge, ...kept } = rest;
+    return { ...kept, ring: [...snapped, ...outer.slice(1, -1)].map(([px, pz]) => [+px.toFixed(2), +pz.toFixed(2)]), outer: outer.map(([px, pz]) => [+px.toFixed(2), +pz.toFixed(2)]) };
+  }
+  return { ...x, height: +(x.floors * h).toFixed(2) };
+}
 
 /**
  * A footprint with its finished design attached, or the footprint unchanged
@@ -187,7 +257,7 @@ function withDesign(f, floorH) {
     design: {
       name: d.name,
       parts,
-      ...(d.features ? { features: d.features.map((x) => ({ ...x, height: +(x.floors * h).toFixed(2) })) } : {}),
+      ...(d.features ? { features: d.features.map((x) => featureOf(x, f.ring, h)) } : {}),
       roof: { ...d.roof },
       source: d.source,
       note: d.note,

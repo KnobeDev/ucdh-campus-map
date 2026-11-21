@@ -1,21 +1,21 @@
 // Entry point: loads campus data, assembles the world, wires the HUD.
 import { createWorld } from "./world.js?v=7";
-import { buildBuildings } from "./buildings.js?v=11";
+import { buildBuildings } from "./buildings.js?v=12";
 import { buildGroundSurfaces } from "./ground.js?v=8";
-import { createOverheadCamera } from "./overhead.js?v=6";
+import { createOverheadCamera } from "./overhead.js?v=7";
 import { initialTheme, saveTheme } from "./theme.js?v=6";
-import { buildHospital } from "./hospital.js?v=20";
-import { createPlayer } from "./player.js?v=23";
+import { buildHospital } from "./hospital.js?v=21";
+import { createPlayer } from "./player.js?v=24";
 import { createFloorPicker } from "./elevator-ui.js?v=9";
 import { buildRouteGraph, snapToGraph } from "./route-core.js?v=2";
 import { createWayfinder } from "./wayfind.js?v=6";
-import { buildConstruction, buildPointLayers, buildPlaceMarkers } from "./layers.js?v=11";
+import { buildConstruction, buildPointLayers, buildPlaceMarkers } from "./layers.js?v=12";
 import { zoneListText } from "./caution-core.js?v=1";
 import { createSpeech } from "./speech.js?v=8";
 import { readingMs } from "./speech-core.js?v=3";
 import { createCaptions } from "./captions.js?v=1";
 import { createSonar } from "./sonar.js?v=6";
-import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=8";
+import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=9";
 import { createSession } from "./session.js?v=4";
 import { createMinimap } from "./minimap.js?v=8";
 import { loadAppConfig } from "./app-config.js?v=1";
@@ -72,6 +72,9 @@ function wireWalker(world, player, overhead, hospital, canvas) {
   const useBtn = $("use-btn");
   const where = $("where");
   const hint = $("hint");
+  // The map's name says how to drive the current view; the hint (aria-describedby) repeats it in short.
+  const WALK_LABEL = canvas.getAttribute("aria-label");
+  const OVERHEAD_LABEL = "3D map of the UC Davis Health Sacramento campus, overhead view. Drag or the arrow keys move the map, Shift+drag or Q and E turn it, Page Up and Page Down tilt it, plus and minus zoom, V or the Walk button returns to walking. Press Tab to leave the map.";
 
   const setWhere = () => {
     const f = player.state.floor;
@@ -97,9 +100,10 @@ function wireWalker(world, player, overhead, hospital, canvas) {
     viewBtn.querySelector(".btn-txt").textContent = over ? "Walk" : "Overhead view";
     viewBtn.querySelector(".btn-ico").textContent = over ? "🚶" : "🚁";
     hint.textContent = over
-      ? "Overhead: arrows pan · Q E rotate · PgUp PgDn tilt · + − zoom · V or the Walk button to walk"
+      ? "Overhead: drag or arrows move the map · Shift+drag or Q E turn · PgUp PgDn tilt · + − zoom · V or the Walk button to walk"
       : "Walk: W A S D · Shift runs · arrows look · E what's ahead / use elevator · P sonar · G guide me · V overhead · drag to look";
-    say(over ? "Overhead view." : "Walking view.");
+    canvas.setAttribute("aria-label", over ? OVERHEAD_LABEL : WALK_LABEL);
+    say(over ? "Overhead view. Drag or the arrow keys move the map." : "Walking view.");
     canvas.focus();
   }
   viewBtn.addEventListener("click", () => setView(player.state.mode === "over" ? "walk" : "over"));

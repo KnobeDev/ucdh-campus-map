@@ -1,12 +1,14 @@
 // Overhead camera for the scene shell: an orbit around a focus point on the
 // ground, driven by keyboard first (arrows pan, Q/E rotate, +/- zoom) and by
-// mouse drag / wheel second. Phase 3 adds the first-person player; this stays
-// as the "helicopter" view.
+// pointer drag / wheel second: a drag pans the map as it does on the 2D map (mouse,
+// pen or finger), Shift+drag turns and tilts it. Phase 3 adds the first-person
+// player; this stays as the "helicopter" view.
 //
 // Everything responds on key-down/pointer-move only while the input is held —
 // nothing fires on pointer-down alone (SC 2.5.2 pointer cancellation) and there
 // is no motion unless the user is actively driving it.
 import * as THREE from "./lib/three.module.js";
+import { dragAction, dragToPan, panToWorld, clampToBox } from "./overhead-core.js?v=1";
 
 const PAN_SPEED = 220; // metres per second at 1× zoom, scaled by distance
 const ROT_SPEED = 1.4; // radians per second
@@ -22,6 +24,8 @@ export function createOverheadCamera(world, canvas) {
   let dist = 900;
   const keys = new Set();
   let dragging = false;
+  let dragId = null; // the one pointer driving the drag: a second finger doesn't fight it
+  let dragMode = "pan"; // chosen when the drag starts (Shift or not) and kept until it ends
   let last = null;
   let enabled = true; // false while the first-person walker owns the camera
 
@@ -35,19 +39,17 @@ export function createOverheadCamera(world, canvas) {
     cam.lookAt(focus);
   }
 
-  function clampFocus() {
-    const b = world.box;
-    focus.x = Math.min(Math.max(focus.x, b.minX), b.maxX);
-    focus.z = Math.min(Math.max(focus.z, b.minZ), b.maxZ);
+  // Move the spot to (x, z), held on the campus (world.box is data.meta.world).
+  function setFocus(x, z) {
+    const [cx, cz] = clampToBox(x, z, world.box, [focus.x, focus.z]);
+    focus.x = cx;
+    focus.z = cz;
   }
 
   function pan(dx, dz) {
     // Move in the camera's ground-plane frame so "up" always means "away".
-    const s = Math.sin(yaw);
-    const c = Math.cos(yaw);
-    focus.x += dx * c - dz * s;
-    focus.z += -dx * s - dz * c;
-    clampFocus();
+    const [wx, wz] = panToWorld(yaw, dx, dz);
+    setFocus(focus.x + wx, focus.z + wz);
   }
 
   function zoom(factor) {
@@ -106,23 +108,37 @@ export function createOverheadCamera(world, canvas) {
 
   function onPointerDown(e) {
     if (!enabled || e.button !== 0) return;
+    if (dragging) return; // a second finger while one drags
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch {
+      return; // no capture, no drag: a half-started drag must never block the next one
+    }
     dragging = true;
+    dragId = e.pointerId;
+    dragMode = dragAction(e); // letting go of Shift mid-drag must not switch a turn into a pan
     last = [e.clientX, e.clientY];
-    canvas.setPointerCapture(e.pointerId);
   }
   function onPointerMove(e) {
-    if (!dragging || !last) return;
+    if (!dragging || !last || e.pointerId !== dragId) return;
     const dx = e.clientX - last[0];
     const dy = e.clientY - last[1];
     last = [e.clientX, e.clientY];
-    if (e.shiftKey) {
-      pan((-dx * dist) / 900, (dy * dist) / 900);
+    if (dragMode === "pan") {
+      // Grab the ground: the spot under the pointer follows it.
+      const [right, away] = dragToPan({ dx, dy, dist, fovDeg: cam.fov, viewHeight: canvas.clientHeight, pitch });
+      pan(right, away);
     } else {
       yaw -= dx * 0.005;
       tilt(dy * 0.005);
     }
   }
-  const endDrag = () => { dragging = false; last = null; };
+  const endDrag = (e) => {
+    if (e && e.pointerId !== dragId) return;
+    dragging = false;
+    dragId = null;
+    last = null;
+  };
   function onWheel(e) {
     if (!enabled) return;
     e.preventDefault();
@@ -148,6 +164,7 @@ export function createOverheadCamera(world, canvas) {
     ["pointermove", onPointerMove],
     ["pointerup", endDrag],
     ["pointercancel", endDrag],
+    ["lostpointercapture", endDrag], // a lost drag must never leave the next one ignored
     ["wheel", onWheel, { passive: false }],
   ];
   for (const [type, fn, opts] of listeners) canvas.addEventListener(type, fn, opts);
@@ -159,7 +176,7 @@ export function createOverheadCamera(world, canvas) {
     setEnabled(on) {
       enabled = on;
       keys.clear();
-      dragging = false;
+      endDrag();
       if (on) {
         if (cam.parent !== world.scene) world.scene.add(cam);
         apply();
@@ -189,9 +206,8 @@ export function createOverheadCamera(world, canvas) {
     },
     /** Re-aim at a world point — used by later phases to jump to a building. */
     lookAt(x, z, d) {
-      focus.set(x, 0, z);
+      setFocus(x, z);
       if (d) dist = Math.min(Math.max(d, MIN_DIST), MAX_DIST);
-      clampFocus();
       apply();
     },
   };

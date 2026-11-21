@@ -225,3 +225,59 @@ test("designs: a base as tall as the building is refused", () => {
     delete DESIGNS[key];
   }
 });
+
+for (const file of BUILDS) {
+  test(`designs (${file}): Betty Irene Moore Hall keeps OSM's 2 storeys, stone under white panels, its canopy over the courtyard`, () => {
+    const data = JSON.parse(fs.readFileSync(path.join(DIR, file), "utf8"));
+    const b = data.buildings.find((x) => x.code === "D");
+    assert.strictEqual(b.name, "Betty Irene Moore Hall");
+    const f = b.footprints.find((x) => x.osmId === 522792282);
+    assert.ok(f && f.design, "keyed by its OSM way");
+    assert.strictEqual(f.floors, 2, "OSM's building:levels");
+    assert.strictEqual(f.heightSource, "OpenStreetMap", "the storey count is OSM's");
+    const [base, main] = f.design.parts;
+    assert.strictEqual(base.facade, "ledge");
+    assert.strictEqual(base.floors, 1);
+    assert.strictEqual(main.facade, "panel");
+    assert.strictEqual(main.minHeight, base.height);
+    const canopy = (f.design.features || []).find((x) => x.kind === "canopy");
+    assert.ok(canopy, "the entrance canopy");
+    // Over the courtyard: its inner corners are the notch's own OSM corners …
+    const onOutline = canopy.ring.filter(([x, z]) => f.ring.some(([vx, vz]) => vx === x && vz === z));
+    assert.strictEqual(onOutline.length, 4, "the four courtyard corners are OSM's");
+    // … and it reaches out past the building line, its curved outer edge over the plaza.
+    assert.ok(canopy.outer.length >= 8, "a curved outer edge");
+    const [e0, e1] = [canopy.outer[0], canopy.outer[canopy.outer.length - 1]];
+    const off = ([x, z]) => {
+      // distance from the chord a-b, positive on the side away from the building's courtyard (x decreasing here)
+      const dx = e1[0] - e0[0]; const dz = e1[1] - e0[1]; const l = Math.hypot(dx, dz);
+      return ((x - e0[0]) * dz - (z - e0[1]) * dx) / l;
+    };
+    const mid = canopy.outer[Math.floor(canopy.outer.length / 2)];
+    const notch = [156.93, -17]; // inside the courtyard
+    assert.ok(Math.sign(off(mid)) !== Math.sign(off(notch)), "the bulge is on the plaza side, away from the courtyard");
+    assert.ok(Math.abs(off(mid)) > 5 && Math.abs(off(mid)) < 12, `it reaches out several metres: ${Math.abs(off(mid)).toFixed(1)}`);
+    for (const p of canopy.outer.slice(1, -1)) assert.ok(!contains(f.ring, p), `the outer edge stands outside the building: ${p}`);
+    assert.ok(area(canopy.ring) > 700, `bigger than the courtyard alone: ${area(canopy.ring).toFixed(0)} m²`);
+    assert.ok(canopy.height > base.height && canopy.height < main.height, `it stands above the stone base, below the roof: ${canopy.height}`);
+  });
+}
+
+test("designs: a canopy's bulge must be a shallow arc on the open side, or the design is refused", () => {
+  const { DESIGNS } = require("../lib/designs");
+  const key = "osm:999999998";
+  const ring = sq(0, 0, 20, 20);
+  const make = (bulge) => { DESIGNS[key] = { name: "T", whole: { floors: 1, facade: "panel" }, features: [{ kind: "canopy", corners: [[0, 0], [20, 0], [20, 20]], bulge, height: 5 }], roof: { helipads: 0 }, source: "estimated", note: "t" }; };
+  try {
+    for (const bad of [-3, 14.2, 20]) { // the closing edge (20,20)->(0,0) is 28.3 m: half is 14.14
+      make(bad);
+      assert.throws(() => withDesign({ osmId: 999999998, ring }, 4), /bulge/, `bulge ${bad} refused`);
+    }
+    make(5);
+    const f = withDesign({ osmId: 999999998, ring }, 4);
+    const mid = f.design.features[0].outer[6];
+    assert.ok(mid[0] < mid[1], `a 5 m bulge bows away from the corner (20, 0): ${mid}`);
+  } finally {
+    delete DESIGNS[key];
+  }
+});

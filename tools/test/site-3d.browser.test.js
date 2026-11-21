@@ -394,4 +394,130 @@ test("the 3D page in a browser", { skip: !PLAYWRIGHT && "set PLAYWRIGHT_MODULE t
     assert.deepStrictEqual(errors, []);
     await page.close();
   });
+
+  // The owner, 2026-11-20: "in the helicopter view I seem to be stuck in one area and can't move
+  // around the map with it." A plain drag only orbited the same spot (panning needed Shift held,
+  // which nothing said and a finger can't do), so a mouse, pen or touch could not move the view.
+  await t.test("overhead view: a drag moves the view across the whole campus, as on the 2D map", async () => {
+    const { page, errors } = await open({ site: false });
+    await enter(page);
+    await page.locator("#view-btn").click();
+    const state = () => page.evaluate(() => {
+      const { overhead, world, player } = window.__ucd3d;
+      const c = world.camera.position;
+      return { x: overhead.focus.x, z: overhead.focus.z, cam: [c.x, c.y, c.z], mode: player.state.mode, box: world.box };
+    });
+    const first = await state();
+    assert.strictEqual(first.mode, "over");
+    const { box } = first;
+    // the drags run over the map itself, clear of the panel and the inset map
+    const L = 560, R = 900, T = 240, B = 560, MX = 730, MY = 400;
+    const onMap = await page.evaluate((pts) => pts.every(([x, y]) => document.elementFromPoint(x, y)?.id === "scene"),
+      [[L, MY], [R, MY], [MX, T], [MX, B]]);
+    assert.ok(onMap, "the drag area is on the map, not on the panel or the inset map");
+    const drag = async (from, to, times) => {
+      for (let i = 0; i < times; i++) {
+        await page.mouse.move(...from);
+        await page.mouse.down();
+        await page.mouse.move(...to, { steps: 6 });
+        await page.mouse.up();
+      }
+    };
+    const centre = () => page.evaluate(() => window.__ucd3d.overhead.lookAt(0, 0));
+    // Grab the ground and pull: dragging it left takes the view east, and so on, to every edge.
+    const reach = {};
+    await centre(); await drag([R, MY], [L, MY], 8); reach.east = (await state()).x;
+    await centre(); await drag([L, MY], [R, MY], 8); reach.west = (await state()).x;
+    await centre(); await drag([MX, T], [MX, B], 8); reach.north = (await state()).z;
+    await centre(); await drag([MX, B], [MX, T], 8); reach.south = (await state()).z;
+    assert.ok(reach.east > 0.8 * box.maxX, `a drag reaches the east edge: ${JSON.stringify(reach)}`);
+    assert.ok(reach.west < 0.8 * box.minX, `a drag reaches the west edge: ${JSON.stringify(reach)}`);
+    assert.ok(reach.north < 0.8 * box.minZ, `a drag reaches the north edge: ${JSON.stringify(reach)}`);
+    assert.ok(reach.south > 0.8 * box.maxZ, `a drag reaches the south edge: ${JSON.stringify(reach)}`);
+    for (const v of Object.values(reach)) assert.ok(Number.isFinite(v), "and the view stays a number");
+    assert.ok(reach.east <= box.maxX && reach.west >= box.minX && reach.north >= box.minZ && reach.south <= box.maxZ,
+      `but never leaves the campus: ${JSON.stringify(reach)}`);
+    // A drag is not a click: no place opened under the pointer (SC 2.5.2).
+    assert.strictEqual(await page.locator("#info").isHidden(), true, "dragging opened nothing");
+
+    // The arrow keys still pan, the wheel still zooms, and Shift+drag still turns the view around its spot.
+    await centre();
+    await page.keyboard.press("ArrowRight");
+    assert.ok((await state()).x > 5, "an arrow tap pans");
+    const before = await state();
+    await page.mouse.move(MX, MY);
+    await page.mouse.wheel(0, 120);
+    await page.waitForTimeout(100);
+    const zoomed = await state();
+    assert.ok(zoomed.cam[1] > before.cam[1] + 1, `the wheel zooms out: ${before.cam[1]} -> ${zoomed.cam[1]}`);
+    await page.keyboard.down("Shift");
+    await drag([L, MY], [R, MY], 1);
+    await page.keyboard.up("Shift");
+    const turned = await state();
+    assert.ok(Math.abs(turned.x - zoomed.x) < 1e-6 && Math.abs(turned.z - zoomed.z) < 1e-6, "Shift+drag keeps the spot");
+    assert.ok(Math.hypot(turned.cam[0] - zoomed.cam[0], turned.cam[2] - zoomed.cam[2]) > 10, "and turns the view around it");
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
+
+  await t.test("Betty Irene Moore Hall: stone under white panels, its canopy on posts over the courtyard, identified as 2 floors from OSM", async () => {
+    const { page, errors } = await open({ site: false });
+    await enter(page);
+    const seen = await page.evaluate(() => {
+      const { world, player, data } = window.__ucd3d;
+      const box = {};
+      world.scene.traverse((o) => {
+        const n = o.userData && o.userData.design;
+        if (typeof n === "string" && n.startsWith("Betty Irene Moore Hall")) {
+          const bb = { min: Infinity, max: -Infinity };
+          o.traverse((m) => { if (m.geometry) { m.geometry.computeBoundingBox(); bb.min = Math.min(bb.min, m.geometry.boundingBox.min.y); bb.max = Math.max(bb.max, m.geometry.boundingBox.max.y); } });
+          box[n] = [bb.min, bb.max];
+        }
+      });
+      // west of the building on the lawn, facing east at it
+      const ring = data.buildings.find((b) => b.code === "D").footprints[0].ring;
+      const minX = Math.min(...ring.map((p) => p[0]));
+      player.leaveBuilding();
+      player.teleport(minX - 25, 0);
+      player.object.rotation.y = -Math.PI / 2;
+      player.object.children[0].rotation.x = 0;
+      return { box };
+    });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    Object.assign(seen, await page.evaluate(() => {
+      window.__ucd3d.picking.identifyAhead();
+      return { title: document.getElementById("info-title").textContent, meta: document.getElementById("info-meta").textContent };
+    }));
+    const base = seen.box["Betty Irene Moore Hall · base"];
+    const main = seen.box["Betty Irene Moore Hall · main"];
+    const canopy = seen.box["Betty Irene Moore Hall · canopy"];
+    assert.ok(base && main && canopy, JSON.stringify(seen.box));
+    assert.ok(Math.abs(base[1] - 5) < 1e-3 && Math.abs(main[0] - 5) < 1e-3 && Math.abs(main[1] - 10) < 1e-3, `stone to 5 m, panels 5-10 m: ${base} ${main}`);
+    assert.ok(Math.abs(canopy[0]) < 1e-3 && canopy[1] > 7 && canopy[1] < 8, `the canopy stands on posts from the ground to about 7.5 m: ${canopy}`);
+    assert.strictEqual(seen.title, "Betty Irene Moore Hall", JSON.stringify(seen));
+    assert.match(seen.meta, /2 floors \(OpenStreetMap\)/);
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
+
+  await t.test("overhead view: the map's name and its linked hint say how to move it, and switch back on Walk", async () => {
+    const { page, errors } = await open({ site: false });
+    await enter(page);
+    const read = () => page.evaluate(() => {
+      const c = document.getElementById("scene");
+      return { label: c.getAttribute("aria-label"), describedby: c.getAttribute("aria-describedby"), hint: document.getElementById("hint").textContent };
+    });
+    const walk = await read();
+    assert.strictEqual(walk.describedby, "hint", "the hint describes the map");
+    assert.match(walk.label, /first person/);
+    await page.locator("#view-btn").click();
+    const over = await read();
+    assert.match(over.label, /overhead view/i);
+    assert.match(over.label, /Drag or the arrow keys move the map/);
+    assert.match(over.hint, /drag or arrows move the map/i);
+    await page.locator("#view-btn").click(); // now labelled "Walk"
+    assert.strictEqual((await read()).label, walk.label, "back to the walking name");
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
 });

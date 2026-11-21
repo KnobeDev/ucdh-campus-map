@@ -3,7 +3,7 @@
 // meets a pickable mesh; the hit point is resolved to a building through the
 // spatial index. Click fires on pointer-UP and a drag is not a click (SC 2.5.2).
 import * as THREE from "./lib/three.module.js";
-import { footprintAt } from "./buildings.js?v=11";
+import { footprintAt } from "./buildings.js?v=12";
 import { nearestOnRing, directionLabel, metresWord, placeAhead } from "./spatial-core.js?v=2";
 import { siteStatus } from "./design-core.js?v=2";
 
@@ -25,7 +25,9 @@ export function createPicking(world, { index, player, onSelect, places = [] }) {
       // Nudge the wall hit a little along the ray so it lands inside the footprint.
       const px = h.point.x + ray.ray.direction.x * 0.2;
       const pz = h.point.z + ray.ray.direction.z * 0.2;
-      const e = footprintAt(index, px, pz, false) || footprintAt(index, h.point.x, h.point.z, false);
+      // A wall belongs to a building: a flat patch (a lawn, a lot) that overlaps its outline must not win.
+      const e = footprintAt(index, px, pz, true) || footprintAt(index, h.point.x, h.point.z, true)
+        || footprintAt(index, px, pz, false) || footprintAt(index, h.point.x, h.point.z, false);
       if (e) return { entry: e, point: h.point, distance: h.distance };
       // A pickable surface that resolved to no footprint (a seam, an edge): keep looking along the ray.
     }

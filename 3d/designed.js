@@ -3,12 +3,14 @@
 // and its 3-storey wing with a roof garden, drawn finished while still a site;
 // Shriners Hospital, 8 storeys of pale stone with a grid of blue windows; and
 // the MIND Institute, 2 storeys of sandstone with a round tower at its entrance;
-// and Aggie Square: glass over a brick base, brick, pale walls, a parking garage.
+// Aggie Square: glass over a brick base, brick, pale walls, a parking garage;
+// and Betty Irene Moore Hall: white panels on stacked stone, with its canopy.
 //
 // Everything is drawn from plain shapes and small canvas patterns made here:
 // no photo, rendering or texture of the real building is used. The storeys and
 // the slab/wing split are estimates (the info card says so via heightSource).
 import * as THREE from "./lib/three.module.js";
+import { mergeGeometries } from "./lib/BufferGeometryUtils.js";
 import { extrudedRing, flatPatch } from "./geometry.js?v=7";
 import { roofLayout, centroidOf, inRing } from "./design-core.js?v=2";
 
@@ -121,6 +123,67 @@ const garageFacade = (storeyH = 3) => pattern(4, storeyH, (g, w, h) => {
   g.fillStyle = "#a8a49c"; g.fillRect(0, 0, w * 0.08, h); // column
 });
 
+/** Stacked stone: long courses of uneven height in tan and grey, a low window band. */
+const ledgeFacade = (storeyH = STOREY) => pattern(6, storeyH, (g, w, h) => {
+  const tones = ["#cbbfae", "#a99d8d", "#d8cdbd", "#8f8577", "#c2b5a2", "#b3a795"];
+  let y = 0; let k = 0;
+  while (y < h) {
+    const band = h * (0.035 + ((k * 37) % 7) * 0.012);
+    g.fillStyle = tones[k % tones.length]; g.fillRect(0, y, w, band + 1);
+    y += band; k++;
+  }
+  g.fillStyle = "#355a6e"; g.fillRect(w * 0.1, h * 0.55, w * 0.8, h * 0.22); // ribbon of glass low in the storey
+});
+
+/** White metal panels: vertical seams and one tall narrow window per bay. */
+const panelFacade = (storeyH = STOREY) => pattern(4, storeyH, (g, w, h) => {
+  g.fillStyle = "#f1f2f1"; g.fillRect(0, 0, w, h);
+  g.fillStyle = "#d9dcdc";
+  for (let k = 1; k < 4; k++) g.fillRect((w * k) / 4, 0, Math.max(1, w * 0.008), h);
+  g.fillStyle = "#2f4f63"; g.fillRect(w * 0.42, h * 0.18, w * 0.13, h * 0.6);
+  g.fillStyle = "#c7ccce"; g.fillRect(w * 0.4, h * 0.16, w * 0.17, h * 0.03); // the little hood over each window
+});
+
+/**
+ * A canopy: a thin roof over its ring at `height`, on slim posts. The posts stand
+ * along its open (outer) edge when it has one (so none against the building walls
+ * it meets), otherwise along every edge. Walkable underneath, so no part in collision.
+ */
+function canopy(feature, mat, postMat) {
+  const { ring, height } = feature;
+  const line = feature.outer && feature.outer.length > 1 ? feature.outer : [...ring, ring[0]];
+  const edges = [];
+  for (let i = 0; i + 1 < line.length; i++) edges.push([line[i], line[i + 1]]);
+  const T = 0.45;
+  const g = new THREE.Group();
+  const slab = extrudedRing(ring, T);
+  slab.translate(0, height - T, 0);
+  g.add(new THREE.Mesh(slab, mat));
+  // Posts evenly along the line by its length (an arc is many short edges), half a
+  // spacing in from each end, each inset 1 m along its edge's inward normal.
+  const POST = 7.5; // metres between posts
+  const lens = edges.map(([[ax, az], [bx, bz]]) => Math.hypot(bx - ax, bz - az));
+  const total = lens.reduce((a, b) => a + b, 0);
+  const count = Math.max(2, Math.round(total / POST));
+  const posts = [];
+  for (let k = 0; k < count; k++) {
+    let left = (total * (k + 0.5)) / count;
+    let i = 0;
+    while (i < edges.length - 1 && left > lens[i]) { left -= lens[i]; i++; }
+    const [[ax, az], [bx, bz]] = edges[i];
+    const len = lens[i] || 1;
+    const t = Math.min(1, left / len);
+    const px = ax + (bx - ax) * t; const pz = az + (bz - az) * t;
+    let nx = -(bz - az) / len; let nz = (bx - ax) / len;
+    if (!inRing([px + nx * 0.5, pz + nz * 0.5], ring)) { nx = -nx; nz = -nz; }
+    const post = new THREE.CylinderGeometry(0.18, 0.18, height - T, 8);
+    post.translate(px + nx, (height - T) / 2, pz + nz);
+    posts.push(post);
+  }
+  if (posts.length) g.add(new THREE.Mesh(mergeGeometries(posts, false), postMat));
+  return g;
+}
+
 /** A helipad marking: white disc, red ring, red cross. Drawn here, the usual aviation sign. */
 function padTexture() {
   const c = document.createElement("canvas");
@@ -162,7 +225,26 @@ export function buildDesigned(world, designed) {
   const extraMats = []; // per-feature materials that also take the day/night glow
   // Walls: one material per facade and storey height, so a pattern's floor line
   // repeats with the building's own storeys (3.6 m flats, 4.6 m labs, 3 m decks).
-  const FACADES = { fins: towerFacade, ribbon: wingFacade, punched: punchedFacade, stone: stoneFacade, brick: brickFacade, glass: glassFacade, garage: garageFacade };
+  const FACADES = { fins: towerFacade, ribbon: wingFacade, punched: punchedFacade, stone: stoneFacade, brick: brickFacade, glass: glassFacade, garage: garageFacade, ledge: ledgeFacade, panel: panelFacade };
+  // pale perforated metal: lit from within a little, so its underside reads pale too, not in shadow
+  // Perforated metal panels: a light grid every 3 m (the slab's cap UVs are in metres).
+  const panelGrid = (() => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 64;
+    const gx = c.getContext("2d");
+    gx.fillStyle = "#e3e6e8"; gx.fillRect(0, 0, 64, 64);
+    gx.fillStyle = "#b9bec2"; gx.fillRect(0, 0, 64, 3); gx.fillRect(0, 0, 3, 64);
+    gx.fillStyle = "#d3d7da"; for (let y = 8; y < 64; y += 8) for (let x = 8; x < 64; x += 8) gx.fillRect(x, y, 2, 2);
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(1 / 3, 1 / 3);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  })();
+  const canopyMat = lit({ map: panelGrid, side: THREE.DoubleSide });
+  canopyMat.userData.dayEmissive = 0x737779; // world.applyTheme: this by day, the shared window glow at night
+  const postMat = lit({ color: 0xeeeeee });
+  extraMats.push(canopyMat, postMat);
   const wallMats = new Map();
   const wallMat = (facade, storeyH) => {
     const make = FACADES[facade] || FACADES.punched;
@@ -202,6 +284,16 @@ export function buildDesigned(world, designed) {
       }
     }
     for (const feature of d.features || []) {
+      if (feature.kind === "canopy") {
+        try {
+          const c = canopy(feature, canopyMat, postMat);
+          c.userData.design = `${d.name} · canopy`;
+          group.add(c);
+        } catch (err) {
+          console.error(`designed: ${d.name} canopy failed to build — skipped`, err);
+        }
+        continue;
+      }
       if (feature.kind !== "drum") continue;
       try {
         const built = drum(feature, mats);
