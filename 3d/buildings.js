@@ -13,7 +13,7 @@
 // add a BoxGeometry (uv layout differs) to either.
 import * as THREE from "./lib/three.module.js";
 import { flatPatch, extrudedRing, mergeBuckets } from "./geometry.js?v=7";
-import { buildDesigned } from "./designed.js?v=1";
+import { buildDesigned } from "./designed.js?v=2";
 
 const CELL = 60; // metres, spatial hash cell
 const FLAT_Y = 0.05; // ground patches: above lawn (0.03), below walkways (0.07)

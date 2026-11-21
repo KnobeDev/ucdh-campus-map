@@ -1,14 +1,19 @@
-// Buildings still under construction, drawn as their finished design.
+// Buildings drawn as they look, not as a plain box: a design says how tall a
+// building stands and what its walls look like, and, for a building site whose
+// finished form is published, how the site outline divides into its parts.
 //
 // OpenStreetMap maps a building site as one outline (building=construction) and
 // says nothing of what will stand on it, so the 3D map used to draw the whole
-// site as a 4-storey translucent ghost. For a site whose finished form is
-// published, a design here says how that outline divides into its parts and how
-// tall each part stands. The geometry is still OpenStreetMap's: the parts are the
-// site outline cut once along an east-west line through one of its own vertices.
-// The storeys and the cut are read from published pictures of the finished
-// building, so every number here is an estimate and says so (heightSource
-// "estimated", like the other guessed heights in tools/lib/heights.js).
+// site as a 4-storey translucent ghost; and it gives most finished buildings no
+// storey count, so they stand at a category default. The geometry is still
+// OpenStreetMap's: a part is the outline itself, or the outline cut once along
+// an east-west line through one of its own vertices. Storeys and cuts are read
+// from published pictures of the building, so every number here is an estimate
+// and says so (heightSource "estimated", like the guesses in tools/lib/heights.js).
+//
+// A design is keyed by the OSM way's name, or by "osm:<way id>" for a way with
+// no name. Facades: "fins" (white fins over glass), "ribbon" (a window band per
+// storey), "punched" (a grid of windows in stone with a band at each floor).
 //
 // The pictures are reference only. Nothing from them ships: no image, texture,
 // colour sample or traced line. The 3D app draws the facade from plain shapes.
@@ -24,13 +29,26 @@ const DESIGNS = {
     // runs west along X Street. They meet at the outline's inner corner, the OSM
     // vertex nearest this point; the cut runs east-west through it.
     cutAtVertexNear: [-95.3, -237.0],
-    tower: { floors: 14 },
-    wing: { floors: 3 },
+    tower: { floors: 14, facade: "fins", plant: true },
+    wing: { floors: 3, facade: "ribbon", roof: "garden" },
     roof: { helipads: 2 },
     source: "estimated",
     note: "Storeys, the tower/wing split and the two rooftop helipads are read from UC Davis Health's published renderings and photos of the finished tower (reference only: nothing from them is used in the map). The outline is OpenStreetMap's construction site.",
   },
+  // Shriners Children's Northern California, OSM way 307095185 (building=hospital, no name, no levels).
+  "osm:307095185": {
+    name: "Shriners Hospital",
+    floorH: 4.2, // hospital storeys, though the curated category is "external" (3.4 m)
+    whole: { floors: 8, facade: "punched", plant: true },
+    roof: { helipads: 0 },
+    source: "estimated",
+    note: "Storeys and the look of the walls (pale stone, a grid of blue windows, a dark band at each floor) are read from photos of the building (reference only: nothing from them is used in the map). The outline is OpenStreetMap's.",
+  },
 };
+
+// Own keys only: an OSM name like "constructor" must not find Object.prototype's.
+const own = (key) => (Object.hasOwn(DESIGNS, key) ? DESIGNS[key] : null);
+const designFor = (f) => (f && (own(String(f.osmName)) || (f.osmId != null && own(`osm:${f.osmId}`)))) || null;
 
 /**
  * Cut a ring on the east-west line z = zLine. +z is south, so `north` is the
@@ -71,21 +89,36 @@ const nearestVertex = (ring, [x, z]) => ring.reduce((best, p) => (Math.hypot(p[0
  * @param {number} floorH  metres per storey for the building's category
  */
 function withDesign(f, floorH) {
-  const d = f && DESIGNS[f.osmName];
+  const d = designFor(f);
   if (!d) return f;
-  const h = typeof floorH === "number" ? floorH : 4.2;
-  const zLine = nearestVertex(f.ring, d.cutAtVertexNear)[1];
-  const { north, south } = splitRing(f.ring, zLine);
-  const part = (role, ring, floors) => ({ role, ring: roundRing(ring), floors, height: +(floors * h).toFixed(2) });
-  const tower = part("tower", north, d.tower.floors);
-  const wing = part("wing", south, d.wing.floors);
+  const h = d.floorH || (typeof floorH === "number" ? floorH : 4.2);
+  const helipads = (d.roof && d.roof.helipads) || 0;
+  // The first part is the tallest: helipads and the plant room go on its roof.
+  const part = (role, ring, spec, first) => ({
+    role,
+    ring: roundRing(ring),
+    floors: spec.floors,
+    height: +(spec.floors * h).toFixed(2),
+    facade: spec.facade,
+    roof: spec.roof || "plain",
+    plant: !!spec.plant,
+    helipads: first ? helipads : 0,
+  });
+  let parts;
+  if (d.whole) {
+    parts = [part("main", f.ring, d.whole, true)];
+  } else {
+    const zLine = nearestVertex(f.ring, d.cutAtVertexNear)[1];
+    const { north, south } = splitRing(f.ring, zLine);
+    parts = [part("tower", north, d.tower, true), part("wing", south, d.wing, false)];
+  }
   return {
     ...f,
-    floors: tower.floors,
-    height: tower.height,
+    floors: parts[0].floors,
+    height: parts[0].height,
     heightSource: d.source,
-    design: { name: d.name, parts: [tower, wing], roof: { ...d.roof }, source: d.source, note: d.note },
+    design: { name: d.name, parts, roof: { ...d.roof }, source: d.source, note: d.note },
   };
 }
 
-module.exports = { DESIGNS, splitRing, withDesign };
+module.exports = { DESIGNS, splitRing, withDesign, designFor };

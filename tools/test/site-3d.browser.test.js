@@ -268,12 +268,41 @@ test("the 3D page in a browser", { skip: !PLAYWRIGHT && "set PLAYWRIGHT_MODULE t
       window.__ucd3d.picking.identifyAhead();
       return { title: document.getElementById("info-title").textContent, meta: document.getElementById("info-meta").textContent, shown: !document.getElementById("info").hidden };
     }));
-    assert.deepStrictEqual(seen.parts.sort(), ["California Tower · tower", "California Tower · wing"], JSON.stringify(seen));
+    assert.deepStrictEqual(seen.parts.filter((n) => n.startsWith("California Tower")).sort(), ["California Tower · tower", "California Tower · wing"], JSON.stringify(seen));
     assert.strictEqual(seen.ghostOfTower, false, "no orange ghost over the tower any more");
     assert.ok(seen.shown, "identify opens the card");
     assert.strictEqual(seen.title, "California Tower");
     assert.match(seen.meta, /14 floors \(estimated\)/);
     assert.match(seen.meta, /under construction until 2 February 2030, shown as the finished design/);
+    assert.deepStrictEqual(errors, []);
+    await page.close();
+  });
+
+  await t.test("Shriners Hospital: 8 storeys drawn with its own walls, identified as a finished building", async () => {
+    const { page, errors } = await open({ site: false });
+    await enter(page);
+    const seen = await page.evaluate(() => {
+      const { world, player } = window.__ucd3d;
+      let top = null;
+      world.scene.traverse((o) => {
+        if (o.userData && o.userData.design === "Shriners Hospital · main") { o.geometry.computeBoundingBox(); top = o.geometry.boundingBox.max.y; }
+      });
+      // north of the building on X Street, facing south at it
+      player.leaveBuilding();
+      player.teleport(-200, -175);
+      player.object.rotation.y = Math.PI;
+      player.object.children[0].rotation.x = 0;
+      return { top };
+    });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    Object.assign(seen, await page.evaluate(() => {
+      window.__ucd3d.picking.identifyAhead();
+      return { title: document.getElementById("info-title").textContent, meta: document.getElementById("info-meta").textContent };
+    }));
+    assert.ok(seen.top > 30 && seen.top < 40, `8 storeys of 4.2 m: ${seen.top}`);
+    assert.strictEqual(seen.title, "Shriners Hospital", JSON.stringify(seen));
+    assert.match(seen.meta, /8 floors \(estimated\)/);
+    assert.doesNotMatch(seen.meta, /under construction/, "a finished building says nothing of a site");
     assert.deepStrictEqual(errors, []);
     await page.close();
   });

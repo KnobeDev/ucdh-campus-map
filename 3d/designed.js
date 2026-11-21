@@ -1,13 +1,14 @@
-// Buildings drawn as their finished design (tools/lib/designs.js): today the
-// California Tower, a 14-storey slab of white fins over pale-blue glass with
-// two rooftop helipads, and its 3-storey wing with a roof garden.
+// Buildings drawn as they look (tools/lib/designs.js): the California Tower, a
+// 14-storey slab of white fins over pale-blue glass with two rooftop helipads,
+// and its 3-storey wing with a roof garden, drawn finished while still a site;
+// and Shriners Hospital, 8 storeys of pale stone with a grid of blue windows.
 //
 // Everything is drawn from plain shapes and small canvas patterns made here:
 // no photo, rendering or texture of the real building is used. The storeys and
 // the slab/wing split are estimates (the info card says so via heightSource).
 import * as THREE from "./lib/three.module.js";
 import { extrudedRing, flatPatch } from "./geometry.js?v=7";
-import { roofLayout } from "./design-core.js?v=1";
+import { roofLayout, centroidOf, inRing } from "./design-core.js?v=1";
 
 const STOREY = 4.2; // metres: matches the data's hospital storey (tools/lib/heights.js)
 const PLANT_H = 5.5; // rooftop plant room
@@ -52,6 +53,14 @@ const wingFacade = () => pattern(6, STOREY, (g, w, h) => {
   for (let x = 0; x < w; x += w / 4) g.fillRect(x, h * 0.18, w * 0.03, h * 0.5);
 });
 
+/** Punched windows: pale stone, one blue window per bay, a dark band at each floor. */
+const punchedFacade = () => pattern(3.6, STOREY, (g, w, h) => {
+  g.fillStyle = "#efe6df"; g.fillRect(0, 0, w, h);
+  g.fillStyle = "#6fa6bd"; g.fillRect(w * 0.22, h * 0.3, w * 0.56, h * 0.5);
+  g.fillStyle = "#a9cfe0"; g.fillRect(w * 0.22, h * 0.3, w * 0.56, h * 0.2); // sky in the upper pane (canvas top = top of the storey)
+  g.fillStyle = "#94606c"; g.fillRect(0, h * 0.08, w, h * 0.07);
+});
+
 /** A helipad marking: white disc, red ring, red cross. Drawn here, the usual aviation sign. */
 function padTexture() {
   const c = document.createElement("canvas");
@@ -83,8 +92,9 @@ export function buildDesigned(world, designed) {
   const group = new THREE.Group();
   const lit = (opts) => new THREE.MeshLambertMaterial(opts);
   const mats = {
-    tower: lit({ map: towerFacade() }),
-    wing: lit({ map: wingFacade() }),
+    fins: lit({ map: towerFacade() }),
+    ribbon: lit({ map: wingFacade() }),
+    punched: lit({ map: punchedFacade() }),
     // By day a pale facade on its shaded side still reads as pale (world.applyTheme swaps in the night glow).
     roof: lit({ color: 0xd9dcdc }),
     garden: lit({ color: 0x6f9a52 }),
@@ -97,14 +107,16 @@ export function buildDesigned(world, designed) {
     for (const part of d.parts) {
       try {
         // ExtrudeGeometry: group 0 is the caps (roof and underside), group 1 the walls.
-        const roof = part.role === "wing" ? mats.garden : mats.roof;
-        const mesh = new THREE.Mesh(extrudedRing(part.ring, part.height), [roof, part.role === "wing" ? mats.wing : mats.tower]);
+        const roof = part.roof === "garden" ? mats.garden : mats.roof;
+        const walls = mats[part.facade] || mats.punched;
+        const mesh = new THREE.Mesh(extrudedRing(part.ring, part.height), [roof, walls]);
         mesh.userData.pickable = true;
         mesh.userData.design = `${d.name} · ${part.role}`;
         group.add(mesh);
-        if (part.role !== "tower") continue;
-        const layout = roofLayout(part.ring, { helipads: (d.roof && d.roof.helipads) || 0, radius: PAD_R });
-        group.add(plantRoom(layout.plant, part.height, mats.plant));
+        if (!part.plant && !part.helipads) continue;
+        const layout = roofLayout(part.ring, { helipads: part.helipads || 0, radius: PAD_R });
+        // the plant room at the roof's centre, unless the outline curls round so the centre is open air
+        if (part.plant && inRing(centroidOf(part.ring), part.ring)) group.add(plantRoom(layout.plant, part.height, mats.plant));
         for (const [x, z] of layout.helipads) {
           const pad = new THREE.CircleGeometry(PAD_R, 40);
           pad.rotateX(-Math.PI / 2);
@@ -121,11 +133,11 @@ export function buildDesigned(world, designed) {
       try { group.add(new THREE.Mesh(flatPatch(footprint.ring, 0.05), mats.roof)); } catch { /* nothing to draw */ }
     }
   }
-  for (const m of [mats.tower, mats.wing, mats.plant]) {
+  for (const m of [mats.fins, mats.ribbon, mats.punched, mats.plant]) {
     m.emissiveMap = m.map || null;
     m.userData.dayEmissive = DAY_EMISSIVE;
   }
   world.scene.add(group);
   // Night: the facades take the same faint window glow as every other building (world.applyTheme).
-  return { group, materials: [mats.tower, mats.wing, mats.plant] };
+  return { group, materials: [mats.fins, mats.ribbon, mats.punched, mats.plant] };
 }

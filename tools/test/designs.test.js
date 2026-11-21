@@ -101,3 +101,29 @@ test("designs: a building site says so, with its end date, and says when it is d
   );
   assert.strictEqual(siteStatus({ underConstruction: { zoneId: "z", endDate: null } }), "under construction");
 });
+
+for (const file of BUILDS) {
+  test(`designs (${file}): Shriners Hospital stands 8 storeys, its whole OSM outline, a finished building`, () => {
+    const data = JSON.parse(fs.readFileSync(path.join(DIR, file), "utf8"));
+    const b = data.buildings.find((x) => x.code === "SH");
+    assert.ok(b, "the building is there");
+    const f = b.footprints.find((x) => x.osmId === 307095185);
+    assert.ok(f && f.design, "keyed by its OSM way: the way has no name");
+    assert.strictEqual(f.design.parts.length, 1, "one part: the outline is not cut");
+    const [main] = f.design.parts;
+    assert.deepStrictEqual(main.ring, f.ring, "the part is the outline itself");
+    assert.strictEqual(main.floors, 8);
+    assert.strictEqual(main.facade, "punched");
+    assert.strictEqual(f.floors, 8);
+    assert.ok(f.height > 30, `hospital storeys, not the 3.4 m default for an outside building: ${f.height}`);
+    assert.strictEqual(f.heightSource, "estimated");
+    assert.ok(!f.underConstruction, "a finished building: no fence, no caution");
+    assert.strictEqual(b.cat, "external", "still shown as a building outside UC Davis Health");
+  });
+}
+
+test("designs: an OSM name that is also a built-in property name finds no design", () => {
+  const f = { osmName: "constructor", osmId: 1, ring: sq(0, 0, 10, 10), floors: 2, height: 7.2 };
+  assert.strictEqual(withDesign(f, 4.2), f);
+  assert.strictEqual(withDesign({ ...f, osmName: "toString" }, 4.2).design, undefined);
+});
