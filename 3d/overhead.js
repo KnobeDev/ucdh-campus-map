@@ -2,14 +2,16 @@
 // ground, driven by keyboard first (W A S D move the view north, west, south, east;
 // the arrows tilt and turn it; Q/E turn, PgUp/PgDn tilt, +/- zoom) and by
 // pointer drag / wheel second: a drag pans the map as it does on the 2D map (mouse,
-// pen or finger), Shift+drag turns and tilts it. Phase 3 adds the first-person
-// player; this stays as the "helicopter" view.
+// pen or finger), Shift+drag turns and tilts it. On a touch screen the joystick
+// (touch-controls.js) moves it too, through setMoveInput: up is the way the camera
+// faces. Phase 3 adds the first-person player; this stays as the "helicopter" view.
 //
 // Everything responds on key-down/pointer-move only while the input is held —
 // nothing fires on pointer-down alone (SC 2.5.2 pointer cancellation) and there
 // is no motion unless the user is actively driving it.
 import * as THREE from "./lib/three.module.js";
 import { dragAction, dragToPan, panToWorld, clampToBox, keyAction, compassStep, TILT_MIN, TILT_MAX, OPEN_PITCH } from "./overhead-core.js?v=4";
+import { clampStick, stickPan } from "./joystick-core.js?v=1";
 
 const PAN_SPEED = 220; // metres per second at 1× zoom, scaled by distance
 const ROT_SPEED = 1.4; // radians per second
@@ -29,8 +31,12 @@ export function createOverheadCamera(world, canvas) {
   let dragMode = "pan"; // chosen when the drag starts (Shift or not) and kept until it ends
   let last = null;
   let enabled = true; // false while the first-person walker owns the camera
+  let stick = { x: 0, z: 0 }; // the touch joystick: x right, z down the screen; (0, 0) at rest
 
   function apply() {
+    // In VR the camera rides a flying rig (vr.js) and the headset sets its pose: an orbit pose
+    // put on it here would only mislead whatever reads the camera before the draw (the signs).
+    if (world.renderer.xr?.isPresenting && cam.parent !== world.scene) return;
     const cp = Math.cos(pitch);
     cam.position.set(
       focus.x + dist * cp * Math.sin(yaw),
@@ -156,6 +162,7 @@ export function createOverheadCamera(world, canvas) {
     setEnabled(on) {
       enabled = on;
       keys.clear();
+      stick = { x: 0, z: 0 };
       endDrag();
       if (on) {
         if (cam.parent !== world.scene) world.scene.add(cam);
@@ -178,7 +185,18 @@ export function createOverheadCamera(world, canvas) {
         if (keys.has("tiltUp")) tilt(ROT_SPEED * dt);
         if (keys.has("tiltDown")) tilt(-ROT_SPEED * dt);
       }
+      if (stick.x || stick.z) {
+        // the keys' speed at a full push, scaled by the view's height as theirs is
+        const [dx, dz] = stickPan(yaw, stick.x, stick.z, PAN_SPEED * dt * (dist / 900));
+        setFocus(focus.x + dx, focus.z + dz);
+      }
       apply();
+    },
+    /** The touch joystick: x right, z down the screen, length <= 1; (0, 0) stops. Up moves the
+     *  map the way the camera faces, analog, held on the campus as the keys and a drag are.
+     *  Ignored while the walker has the camera. */
+    setMoveInput(x, z) {
+      stick = enabled ? clampStick(x, z) : { x: 0, z: 0 };
     },
     /** Detach every listener — Phase 3 swaps in the first-person controller. */
     dispose() {

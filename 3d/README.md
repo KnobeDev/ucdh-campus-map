@@ -91,7 +91,8 @@ Remove. A refresh resumes the session; the session survives a silent guide for
 |---|---|
 | `W A S D` | walk (`Shift` runs) |
 | Arrow keys | look around — one tap turns a little, holding keeps turning |
-| Drag | look around (mouse / touch) |
+| Drag | look around (mouse / touch); with two fingers on the view, the first one down turns it |
+| Joystick (touch screens only, at the bottom: bottom left, or beside the inset map when the map is there) | walk the way you face: up forward, down back, left and right sideways; the further you push, the faster, rising evenly to a run near the rim. A second finger anywhere else on the view looks around at the same time. Let go to stop. Overhead, it moves the map: up is the way the camera faces. It appears only on a touch screen and steps around the inset map and the panel's Menu row (the open panel stops above it); with large text on a small screen it shrinks, and where there is still no room it waits out of sight until the panel closes or the inset map moves. It lets go when a dialog opens, the page hides, the screen turns or the view changes |
 | `E` / **What's ahead** | identify the building ahead (name, distance, direction, floors and how sure we are); at an elevator or stairs, use it instead |
 | `P` / **Sonar** | a pulse: each nearby building (or room, indoors) echoes from its position, then is named with distance and direction |
 | **Voice on/off** | Amy, the Piper neural voice, reads buildings and announcements aloud (on by default; a screen-reader user who already hears the live region turns it off once and it stays off) |
@@ -106,6 +107,29 @@ Remove. A refresh resumes the session; the session survives a silent guide for
 | Map **+** **−** / **Move** / **Hide** | zoom the inset map (120 m to 2 km across), move it between the lower-left and top-right corners, hide or show it |
 | Click the inset map | look at that spot in the overhead view (the keyboard equivalent is moving the overhead view with `W` `A` `S` `D`) |
 | `Tab` | leave the map (nothing traps focus) |
+
+### In a VR headset
+
+**Enter VR** shows in the panel only where the browser can start a headset session (the
+headset's own browser, or a PC browser with a headset attached); inside a session it reads
+**Exit VR**. A headset never shows the page, so the controllers and a menu inside the headset
+take over from the panel and the keys:
+
+| Controller | Action |
+|---|---|
+| Left stick | walk where you look (a full push walks; hold a grip to run). Overhead, fly over the map |
+| Right stick | turn 30° per push (or smoothly: the menu's **Turning** row, remembered). Overhead, up and down climb and sink |
+| One controller alone | its stick walks forward and back and turns sideways |
+| Point at the ground, pull the trigger (or pinch) | hop there (a ring shows where). Never into a building or a fenced site, never through a wall; aimed at a Medical Center door, through it |
+| `B` or `Y` | show or hide the menu; a trigger or pinch pointing anywhere but the ground shows it too |
+| Point at a menu row, pull the trigger | choose it: the rows are the panel's own buttons (Overhead view, Use elevator, Nearest elevator, Stop guiding, What's ahead, Sonar, Voice, Dark mode), plus Turning, Hear the controls, Exit VR and Close menu. The voice reads the row a ray lands on and what a choice did |
+| At an elevator or stairs | the menu's **Use** row opens the floor picker, whose floors become the menu's rows (**Stay on this floor** cancels) |
+
+Stepping about the room moves you on the map too, and walls and fences hold you back as the
+sticks do; a hop starts from where your head is, and a turn pivots about it. What's ahead and
+Sonar say "ahead", "left" and so on from where your head faces. Leaving VR puts the flat view
+back as it was (at the window's size then, if it changed during the session). The menu speaks through the Voice switch: with the
+voice off it is silent (its **Voice** row turns it back on).
 
 Walk into a Medical Center entrance to go inside; walk back through the door to
 leave. Every transition and every floor change is announced in a live region.
@@ -184,6 +208,8 @@ are straight lines until corridors are traced in the 2D editor.
 | `session.js` / `peers.js` | tours and events: lobby, sync loop, group panel, peer avatars |
 | `route-core.js` | pedestrian router over the OSM network (pure; node-tested) |
 | `wayfind.js` | guided route: ribbon, legs, re-routing, arrival, indoor continuation |
+| `vr.js` / `vr-controls.js` | the VR view: the Enter VR button, the session, the camera rigs (at the walker's feet; a flying one overhead), the controllers and the menu inside the headset (`vr-math.js` is the tested maths: sticks, turns, the walk a stick asks for, the hop's check, the flight, the menu's layout) |
+| `touch-controls.js` | the touch joystick: shown on a touch screen only, pointer-only and `aria-hidden` (`joystick-core.js` is the tested maths: the knob, the dead zone, walk and pan directions, placement) |
 | `overhead.js` | keyboard-first orbit camera (`overhead-core.js` is the tested maths: keys, drag, heading and pitch, gauge placement) |
 | `gauges.js` | the overhead view's heading strip (0-360 along the top) and pitch scale (0 straight down to 90 level, on the side) |
 | `labels.js` | canvas-texture text sprites |

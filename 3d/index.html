@@ -15,7 +15,7 @@
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' blob:; base-uri 'self'; form-action 'self'; object-src 'none'">
 <title>UC Davis Health — 3D Walkable Campus</title>
-<link rel="stylesheet" href="styles.css?v=25">
+<link rel="stylesheet" href="styles.css?v=27">
 </head>
 <body>
 <main>
@@ -153,6 +153,8 @@
     <p id="where" class="hud-where">Outside · near the Main Entrance</p>
     <div class="hud-buttons">
       <button id="view-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🚁</span><span class="btn-txt">Overhead view</span></button>
+      <!-- VR (vr.js): shown only where the browser can start a headset session; Exit VR inside one. -->
+      <button id="vr-btn" type="button" hidden><span class="btn-ico" aria-hidden="true">🥽</span><span class="btn-txt">Enter VR</span></button>
       <button id="theme-btn" type="button" aria-pressed="false"><span class="btn-ico" aria-hidden="true">🌙</span><span class="btn-txt">Dark mode</span></button>
       <button id="join-btn" type="button" hidden><span class="btn-ico" aria-hidden="true">🎟️</span><span class="btn-txt">Join a tour</span></button>
       <button id="conn-btn" type="button" hidden aria-expanded="false" aria-controls="conn-panel"><span class="btn-ico" aria-hidden="true">👥</span><span class="btn-txt">Group</span></button>
@@ -251,6 +253,6 @@
 </dialog>
 
 <script src="boot-guard.js?v=7"></script>
-<script type="module" src="main.js?v=53"></script>
+<script type="module" src="main.js?v=54"></script>
 </body>
 </html>

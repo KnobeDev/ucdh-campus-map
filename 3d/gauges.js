@@ -7,7 +7,8 @@
 // every frame. H in the overhead view reads them aloud (main.js), and the view says them when
 // it opens. pointer-events: none (styles.css), so they never take a drag from the map, and
 // they sit under the panel, the inset map and the captions. placeGauges (overhead-core.js)
-// keeps them clear of those anyway, and leaves a gauge out where there is no room.
+// keeps them clear of those and of the touch joystick anyway, and leaves a gauge out where
+// there is no room.
 import { gaugeReadout, gaugeText, headingDeg, displayPitch, headingTicks, pitchTicks, placeGauges } from "./overhead-core.js?v=4";
 
 const HALF_SPAN = 60; // degrees either side of the middle of the heading strip
@@ -17,9 +18,10 @@ const PLACE_EVERY = 0.25; // seconds between re-measuring the panel, the map and
 const GAP = 12; // px, as the inset map's corner offset
 // Sizes in rem, so the gauges grow with the text (SC 1.4.4); styles.css uses the same numbers.
 const SIZE = { stripW: 20, stripH: 4.25, stripMinW: 12.5, scaleW: 4.75, scaleH: 16, scaleMinH: 8.5 };
-// What the gauges must stay clear of. The captions are not here: they come and go, and moving
+// What the gauges must stay clear of: the touch joystick too, on a touch screen (touch-controls.js),
+// which steps around none of these itself. The captions are not here: they come and go, and moving
 // the gauges each time would be motion nobody asked for; they are drawn over the gauges instead.
-const OBSTACLES = ["hud", "minimap", "code-chip", "conn-panel"];
+const OBSTACLES = ["hud", "minimap", "code-chip", "conn-panel", "joystick"];
 const COMPACT_TRACK = 110; // px: a shorter pitch track labels only 0, 45 and 90
 // rem kept between a heading label's middle and the strip's edge: about half a label's width
 const labelEdge = (label) => (label.length === 1 ? 0.55 : 0.8);

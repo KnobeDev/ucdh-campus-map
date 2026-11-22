@@ -59,7 +59,7 @@ export function createPicking(world, { index, player, onSelect, places = [], flo
     const b = hit.entry.building;
     const f = hit.entry.footprint;
     const near = nearestOnRing(p.x, p.z, hit.entry.ring);
-    const dir = directionLabel(player.object.rotation.y, p.x, p.z, near.x, near.z);
+    const dir = directionLabel(player.facingYaw(), p.x, p.z, near.x, near.z);
     const name = b ? b.name : f.name || "an unnamed building";
     const top = b && b.renderedBy === "hospital" && floorAt && hit.at ? floorAt(hit.at.x, hit.at.z) : null;
     const floors = storeysText(top, f);
@@ -89,9 +89,9 @@ export function createPicking(world, { index, player, onSelect, places = [], flo
       if (hit) { onSelect(describe(hit)); return; }
       // No outlined building in view: a signposted one close ahead is named instead.
       const p = player.object.position;
-      const near = placeAhead(places, p.x, p.z, player.object.rotation.y);
+      const near = placeAhead(places, p.x, p.z, player.facingYaw());
       if (!near) { onSelect(null); return; }
-      const dir = directionLabel(player.object.rotation.y, p.x, p.z, near.place.x, near.place.z);
+      const dir = directionLabel(player.facingYaw(), p.x, p.z, near.place.x, near.place.z);
       onSelect({
         name: near.place.name, building: near.place.building, footprint: null, distance: near.d, dir, floors: null,
         text: `${near.place.name}, ${metresWord(near.d)} ${dir}. Shown as a signpost: its outline is not mapped.`,

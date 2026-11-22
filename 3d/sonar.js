@@ -77,7 +77,7 @@ export function createSonar(world, { index, hospital, player, speech, say, place
       liveNodes = [];
       speech.cancel("sonar"); // replace the last pulse's echoes, never a building description still being read
       const p = player.object.position;
-      const yaw = player.object.rotation.y;
+      const yaw = player.facingYaw(); // in VR the head's heading, not the body's
       const y = p.y - 1.7 + 0.25;
       try { speech.setListenerFromCamera(world.camera); } catch { /* no audio context available */ }
       for (let r = 1; r <= RINGS; r++) {

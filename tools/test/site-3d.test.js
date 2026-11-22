@@ -226,7 +226,7 @@ test("the 3D map hands its signposted buildings to sonar and to What's ahead", (
   assert.match(main, /createSonar\(world, \{[^}]*\bplaces\b[^}]*\}\)/);
   assert.match(main, /createPicking\(world, \{[^}]*\bplaces\b/);
   assert.match(read("3d/sonar.js"), /out\.push\(\.\.\.placesInReach\(places, p\.x, p\.z, RING_M \* RINGS\)\)/);
-  assert.match(read("3d/picking.js"), /placeAhead\(places, p\.x, p\.z, player\.object\.rotation\.y\)/);
+  assert.match(read("3d/picking.js"), /placeAhead\(places, p\.x, p\.z, player\.facingYaw\(\)\)/);
 });
 
 test("with tours off, no path in the session code can reach a server or the browser's storage", () => {

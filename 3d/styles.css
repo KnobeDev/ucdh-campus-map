@@ -126,8 +126,16 @@ main { position: fixed; inset: 0; }
 .floor-actions { margin: 0.9rem 0 0; }
 
 /* --- wayfinding panel ------------------------------------------------------ */
-/* --mm-reserve: the inset map's height while it sits below the panel (minimap.js). */
-#hud { max-height: max(8rem, calc(100vh - 1.5rem - var(--mm-reserve, 0px))); overflow-y: auto; box-sizing: border-box; }
+/* --mm-reserve: the inset map's height while it sits below the panel (minimap.js); --joy-reserve:
+   the touch joystick's, from the bottom of the screen to its top (touch-controls.js). The panel
+   stops above both, but never gets shorter than 8rem, or, on a touch screen, than its own top
+   row (--hud-floor, touch-controls.js), so with large text it never grows down over the joystick.
+   z-index: over the joystick (28), under the inset map (30), as before. */
+#hud { max-height: max(var(--hud-floor, 8rem), calc(100vh - 1.5rem - max(var(--mm-reserve, 0px), var(--joy-reserve, 0px))));
+  /* 100dvh where supported: the reserves are measured from innerHeight, which is the dynamic
+     viewport; a phone's 100vh is the large one (toolbar hidden), taller than the room on screen */
+  max-height: max(var(--hud-floor, 8rem), calc(100dvh - 1.5rem - max(var(--mm-reserve, 0px), var(--joy-reserve, 0px))));
+  overflow-y: auto; box-sizing: border-box; z-index: 29; }
 
 /* --- collapsible panel --------------------------------------------------- */
 .hud-top { align-items: center; }
@@ -275,7 +283,7 @@ body.sess-member #wf-go, body.sess-member #info-guide { display: none; }
 /* Theme-independent on purpose, like broadcast captions: white on near-black
    reads over sky, lawn, buildings and night alike (about 14:1 even over white). */
 #captions {
-  position: fixed; left: 50%; bottom: 12px; z-index: 31;
+  position: fixed; left: 50%; bottom: calc(12px + var(--joy-reserve, 0px)); z-index: 31; /* above the touch joystick */
   transform: translateX(-50%);
   box-sizing: border-box; width: max-content;
   /* Between the lower-left map and the lower-right code chip. */
@@ -290,7 +298,7 @@ body.sess-member #wf-go, body.sess-member #info-guide { display: none; }
 #captions.is-fading { opacity: 0; }
 /* Narrower windows: nearly full width, lifted above the map when it sits lower left. */
 @media (max-width: 999px) {
-  #captions { max-width: calc(100vw - 24px); bottom: calc(12px + var(--mm-reserve, 0px)); }
+  #captions { max-width: calc(100vw - 24px); bottom: calc(12px + max(var(--mm-reserve, 0px), var(--joy-reserve, 0px))); }
 }
 @media (prefers-reduced-motion: reduce) {
   #captions { transition: none; }
@@ -300,7 +308,7 @@ body.sess-member #wf-go, body.sess-member #info-guide { display: none; }
    running off the top of the screen (SC 1.4.10). Last, so it wins over the rules above. */
 @media (max-height: 560px) {
   #captions {
-    left: calc(12px + var(--mm-reserve-w, 0px)); right: 12px; bottom: 12px;
+    left: calc(12px + max(var(--mm-reserve-w, 0px), var(--joy-reserve-w, 0px))); right: 12px; bottom: 12px;
     transform: none; width: auto; max-width: none;
     max-height: calc(100vh - 24px);
     overflow-y: auto;
@@ -364,3 +372,34 @@ body.sess-member #wf-go, body.sess-member #info-guide { display: none; }
   font-size: 0.9rem; line-height: 1; color: var(--accent);
 }
 .ps-marker::after { content: ""; position: absolute; left: 0.85rem; top: 50%; width: 1.25rem; margin-top: -1.5px; border-top: 3px solid var(--accent); }
+
+/* --- touch joystick (touch-controls.js): bottom left, touch screens only ------------------- */
+/* Steps above (--joy-lift) or beside (--joy-shift) the inset map, the code chip and the group
+   panel; the side panel and the captions make room for it (--joy-reserve). Under the panel (29)
+   and the inset map (30), so it never covers a control. Fixed colours, the same in both themes,
+   because it sits on the scene, not on a panel: the ring is UC Davis blue with a white halo, so
+   one of the two holds 3:1 against a pale sky or lawn and against the night; the knob is the
+   same blue rimmed in white, on a milky plate. Pointer-only and aria-hidden. No transitions:
+   the knob follows the thumb and nothing animates on its own. */
+:root { --joy-size: clamp(128px, 36vmin, 152px); }
+.joystick {
+  position: fixed; z-index: 28;
+  left: calc(12px + env(safe-area-inset-left, 0px) + var(--joy-shift, 0px));
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px) + var(--joy-lift, 0px));
+  width: var(--joy-size); height: var(--joy-size); box-sizing: border-box; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  border: 4px solid #002855;
+  box-shadow: 0 0 0 2px #ffffff, 0 4px 14px rgba(0, 0, 0, 0.35);
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+/* No room for it anywhere (large text on a small screen, the panel open): out of sight until
+   there is, rather than half under the panel where a thumb would land on a button. */
+.joystick[data-no-room] { display: none; }
+.joystick-knob {
+  position: absolute; left: 50%; top: 50%;
+  width: calc(var(--joy-size) * 0.4); height: calc(var(--joy-size) * 0.4);
+  transform-origin: center; translate: -50% -50%;
+  box-sizing: border-box; border-radius: 50%; background: #002855; border: 3px solid #ffffff;
+  box-shadow: 0 0 0 2px #002855, 0 2px 8px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}

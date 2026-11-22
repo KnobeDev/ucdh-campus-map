@@ -81,6 +81,8 @@ export function createWorld(canvas, worldBox) {
   };
 
   addEventListener("resize", () => {
+    // A headset session owns the size (three.js refuses it); leaving VR sizes the page (vr.js).
+    if (renderer.xr.isPresenting) return;
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight);

@@ -1,13 +1,13 @@
 // Entry point: loads campus data, assembles the world, wires the HUD.
-import { createWorld } from "./world.js?v=7";
+import { createWorld } from "./world.js?v=8";
 import { buildBuildings } from "./buildings.js?v=13";
 import { buildGroundSurfaces } from "./ground.js?v=8";
-import { createOverheadCamera } from "./overhead.js?v=9";
+import { createOverheadCamera } from "./overhead.js?v=10";
 import { OPEN_PITCH, gaugeReadout, compassName, degreesWord } from "./overhead-core.js?v=4";
-import { createGauges } from "./gauges.js?v=2";
+import { createGauges } from "./gauges.js?v=3";
 import { initialTheme, saveTheme } from "./theme.js?v=6";
 import { buildHospital } from "./hospital.js?v=22";
-import { createPlayer } from "./player.js?v=25";
+import { createPlayer } from "./player.js?v=26";
 import { createFloorPicker } from "./elevator-ui.js?v=9";
 import { buildRouteGraph, snapToGraph } from "./route-core.js?v=2";
 import { createWayfinder } from "./wayfind.js?v=6";
@@ -16,13 +16,15 @@ import { zoneListText } from "./caution-core.js?v=1";
 import { createSpeech } from "./speech.js?v=8";
 import { readingMs } from "./speech-core.js?v=3";
 import { createCaptions } from "./captions.js?v=1";
-import { createSonar } from "./sonar.js?v=7";
-import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=10";
+import { createSonar } from "./sonar.js?v=8";
+import { createPicking, enuToLonLat, mapsUrl } from "./picking.js?v=11";
 import { createSession } from "./session.js?v=4";
 import { createMinimap } from "./minimap.js?v=9";
 import { loadAppConfig } from "./app-config.js?v=1";
 import { checkFun } from "./entitlement.js?v=1";
 import { initialPanelOpen, prefs } from "./minimap-core.js?v=1";
+import { wireTouch } from "./touch-controls.js?v=1";
+import { wireVr } from "./vr.js?v=1";
 
 const $ = (id) => document.getElementById(id);
 
@@ -93,7 +95,9 @@ function wireWalker(world, player, overhead, gauges, hospital, canvas) {
     where.textContent = near && near.d < 80 ? `Outside · near the ${near.e.label}` : "Outside";
   };
 
+  let onViewChange = null; // the touch joystick lets go when the view changes, as the keys stop
   function setView(mode) {
+    onViewChange?.();
     player.setMode(mode);
     overhead.setEnabled(mode === "over");
     if (mode === "over") {
@@ -176,7 +180,9 @@ function wireWalker(world, player, overhead, gauges, hospital, canvas) {
     const label = cell.kind === "stairs" ? "Use stairs" : `Use ${cell.node.label || "elevator"}`;
     useBtn.querySelector(".btn-txt").textContent = label;
     useBtn.querySelector(".btn-ico").textContent = cell.kind === "stairs" ? "🪜" : "🛗";
-    say(`${cell.kind === "stairs" ? "Stairs" : cell.node.label || "Elevator"} here. Press E or use the ${label} button.`);
+    // In VR the keys and the panel are out of reach: the menu inside the headset has the same button.
+    const how = player.inXr() ? `Open the menu (B or Y, or pinch pointing up) and choose ${label}.` : `Press E or use the ${label} button.`;
+    say(`${cell.kind === "stairs" ? "Stairs" : cell.node.label || "Elevator"} here. ${how}`);
   };
   // A wall is the one thing a non-visual walker can't see coming.
   player.onBlocked = throttle(() => say("Wall — no way through here."), 1200);
@@ -189,6 +195,7 @@ function wireWalker(world, player, overhead, gauges, hospital, canvas) {
   player.onExit = (d) => { setWhere(); say(`Left the Medical Center through the ${d.label || "entrance"}.`); };
   setWhere();
   return {
+    set onViewChange(fn) { onViewChange = fn; },
     setWayfinder(w) { wayfinder = w; },
     setWhere,
     /** The inset map's click: look at that spot from overhead, switching view if walking. */
@@ -510,6 +517,12 @@ async function boot() {
   $("hud").hidden = false;
   $("minimap").hidden = false;
   minimap.layout(); // measured only once visible: it reserves room under the panel
+  // A touch screen (decided once, here, by feature, never by the user agent) gets the joystick:
+  // it walks while walking and moves the map overhead, stepping around the inset map.
+  const joystick = wireTouch({ player, overhead, walker });
+  // A headset, where the browser has one: the Enter VR button shows, and the controllers and a
+  // menu inside the headset take over from the panel and the keys (vr.js).
+  const vr = wireVr({ world, player, overhead, joystick, say, speak: (text) => speech.speak(text) });
   canvas.focus();
 
   // Anyone using assistive tech gets the same summary the sighted user infers
@@ -533,7 +546,7 @@ async function boot() {
     { speak: false });
   // A handle for devtools and the owner's own tests: the local build only.
   if (config.mode === "local") {
-    window.__ucd3d = { world, index, data, overhead, gauges, player, hospital, walker, wayfinder, wayfindingWiring, graph, sonar, picking, speech, captions, session, minimap, construction, config };
+    window.__ucd3d = { world, index, data, overhead, gauges, player, hospital, walker, wayfinder, wayfindingWiring, graph, sonar, picking, speech, captions, session, minimap, construction, config, joystick, vr };
   }
   // Members' extras (3d/fun/): loaded only after the server said yes, and never needed to
   // find your way. A file the server will not send, or a module that fails, changes nothing.
@@ -541,22 +554,28 @@ async function boot() {
     .then((fun) => fun?.initFun({ world, player, say }))
     .catch((err) => console.warn("Members' extras did not load:", err?.message || err));
 
+  // setAnimationLoop, not requestAnimationFrame: inside a VR session the page's own frames stop
+  // and three.js runs this from the headset's frame loop instead.
   let last = performance.now();
-  function frame(now) {
-    const dt = Math.min((now - last) / 1000, 0.1);
+  function frame() {
+    const now = performance.now();
+    const dt = Math.min(Math.max((now - last) / 1000, 0), 0.1);
     last = now;
+    vr.update(dt); // in VR the controllers set this frame's walk and turn
     player.update(dt);
     wayfinder.update(dt);
     sonar.update(dt);
     session.update(dt);
-    overhead.update(dt);
-    gauges.update(dt); // after the camera has moved, so the gauges show this frame's view
+    overhead.update(dt); // a no-op in VR: the camera rides a rig there, not the orbit (overhead.js)
+    vr.beforeRender(); // before anything reads the camera's place: in VR a view change goes back on a rig
+    // The gauges and the inset map are drawn on the page, which a headset never shows: in VR
+    // they wait, and the first frame back on the flat screen catches them up.
+    if (!vr.presenting) gauges.update(dt); // after the camera has moved, so the gauges show this frame's view
     construction.update(); // after the cameras have moved for this frame
-    minimap.update(dt);
+    if (!vr.presenting) minimap.update(dt);
     world.renderer.render(world.scene, world.camera);
-    requestAnimationFrame(frame);
   }
-  requestAnimationFrame(frame);
+  world.renderer.setAnimationLoop(frame);
 }
 
 boot().catch((err) => {
